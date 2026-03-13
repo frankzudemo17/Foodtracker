@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NährWert Auth Test</title>
+<style>
+body { font-family: -apple-system, sans-serif; padding: 20px; max-width: 400px; margin: 40px auto; background: #faf5f0; }
+h1 { font-size: 1.5rem; margin-bottom: 8px; color: #d4654a; }
+p { color: #777; margin-bottom: 24px; }
+input { width: 100%; padding: 14px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 10px; font-size: 1rem; box-sizing: border-box; }
+input:focus { border-color: #d4654a; outline: none; }
+button { width: 100%; padding: 14px; border: none; border-radius: 10px; background: #d4654a; color: #fff; font-size: 1rem; font-weight: 600; cursor: pointer; margin-bottom: 8px; }
+.secondary { background: #eee; color: #333; }
+#status { padding: 12px; border-radius: 8px; margin-top: 16px; font-size: 0.9rem; display: none; }
+.ok { display: block; background: #dfd; border: 1px solid #4a4; }
+.err { display: block; background: #fdd; border: 1px solid #d44; }
+</style>
+</head>
+<body>
+
+<h1>NährWert</h1>
+<p>Auth Test Version</p>
+
+<input type="text" id="name" placeholder="Name">
+<input type="email" id="email" placeholder="E-Mail">
+<input type="password" id="password" placeholder="Passwort (min. 6 Zeichen)">
+
+<button onclick="doRegister()">Registrieren</button>
+<button class="secondary" onclick="doLogin()">Anmelden</button>
+
+<div id="status"></div>
+
+<script>
+var sb = null;
+
+function status(msg, ok) {
+  var el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = ok ? 'ok' : 'err';
+}
+
+// Step 1: Load Supabase
+var s = document.createElement('script');
+s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+s.onload = function() {
+  try {
+    sb = window.supabase.createClient(
+      'https://pmsapistypygnrdbxokq.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2FwaXN0eXB5Z25yZGJ4b2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTg5NDEsImV4cCI6MjA4ODk3NDk0MX0.uAK5-RZYpMUgOj20nEx75vlc_cjvXydnWTLEmPbHS7o'
+    );
+    status('Verbindung OK - bereit!', true);
+  } catch(e) {
+    status('Client Fehler: ' + e.message, false);
+  }
+};
+s.onerror = function() {
+  status('CDN nicht erreichbar', false);
+};
+document.head.appendChild(s);
+
+async function doRegister() {
+  if (!sb) { status('Supabase nicht geladen. Seite neu laden.', false); return; }
+  var email = document.getElementById('email').value;
+  var password = document.getElementById('password').value;
+  var name = document.getElementById('name').value;
+  if (!email || !password) { status('Bitte E-Mail und Passwort eingeben', false); return; }
+  if (password.length < 6) { status('Passwort muss min. 6 Zeichen haben', false); return; }
+
+  status('Registriere...', true);
+  try {
+    var result = await sb.auth.signUp({
+      email: email,
+      password: password,
+      options: { data: { display_name: name || 'Nutzer' } }
+    });
+    if (result.error) {
+      status('Fehler: ' + result.error.message, false);
+    } else {
+      status('Registrierung OK! User: ' + result.data.user.email + ' | Session: ' + (result.data.session ? 'JA' : 'NEIN - E-Mail Bestätigung aus?'), true);
+    }
+  } catch(e) {
+    status('Exception: ' + e.message, false);
+  }
+}
+
+async function doLogin() {
+  if (!sb) { status('Supabase nicht geladen. Seite neu laden.', false); return; }
+  var email = document.getElementById('email').value;
+  var password = document.getElementById('password').value;
+  if (!email || !password) { status('Bitte E-Mail und Passwort eingeben', false); return; }
+
+  status('Logge ein...', true);
+  try {
+    var result = await sb.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+    if (result.error) {
+      status('Fehler: ' + result.error.message, false);
+    } else {
+      status('Login OK! Willkommen ' + result.data.user.email, true);
+    }
+  } catch(e) {
+    status('Exception: ' + e.message, false);
+  }
+}
+</script>
+</body>
+</html>
