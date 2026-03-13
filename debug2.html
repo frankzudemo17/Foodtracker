@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debug Test 2</title>
+<style>
+body { font-family: -apple-system, sans-serif; padding: 20px; max-width: 480px; margin: 0 auto; }
+.box { padding: 12px; margin: 8px 0; border-radius: 8px; font-size: 0.9rem; word-break: break-all; }
+.green { background: #dfd; border: 1px solid #4a4; }
+.red { background: #fdd; border: 1px solid #d44; }
+.blue { background: #def; border: 1px solid #46a; }
+</style>
+</head>
+<body>
+<h2>Debug Test 2</h2>
+<div id="log"></div>
+
+<script>
+function log(msg, color) {
+  var d = document.createElement('div');
+  d.className = 'box ' + color;
+  d.textContent = msg;
+  document.getElementById('log').appendChild(d);
+}
+
+// Test 1: JS läuft überhaupt
+log('1. JavaScript funktioniert', 'green');
+
+// Test 2: Supabase CDN laden
+var script = document.createElement('script');
+script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+script.onload = function() {
+  log('2. Supabase CDN geladen!', 'green');
+
+  // Test 3: Client erstellen
+  try {
+    var sb = window.supabase.createClient(
+      'https://pmsapistypygnrdbxokq.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtc2FwaXN0eXB5Z25yZGJ4b2txIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTg5NDEsImV4cCI6MjA4ODk3NDk0MX0.uAK5-RZYpMUgOj20nEx75vlc_cjvXydnWTLEmPbHS7o'
+    );
+    log('3. Supabase Client erstellt', 'green');
+
+    // Test 4: Auth-Verbindung
+    sb.auth.getSession().then(function(result) {
+      if (result.error) {
+        log('4. Auth Fehler: ' + result.error.message, 'red');
+      } else {
+        log('4. Auth Verbindung OK!', 'green');
+      }
+
+      // Test 5: Profiles Tabelle
+      sb.from('profiles').select('id').limit(1).then(function(res) {
+        if (res.error) {
+          log('5. DB Fehler: ' + res.error.message + ' (Code: ' + res.error.code + ')', 'red');
+        } else {
+          log('5. Datenbank Verbindung OK!', 'green');
+        }
+        log('FERTIG - Alles was gruen ist, funktioniert.', 'blue');
+      });
+    });
+  } catch(e) {
+    log('3. Client Fehler: ' + e.message, 'red');
+  }
+};
+script.onerror = function() {
+  log('2. Supabase CDN BLOCKIERT oder nicht erreichbar!', 'red');
+  log('Moeglicherweise blockiert ein AdBlocker oder GitHub Pages die CDN-Verbindung.', 'red');
+};
+document.head.appendChild(script);
+</script>
+</body>
+</html>
