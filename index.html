@@ -6,6 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#FAF5F0">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="./icons/icon-167.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
 <title>Aufgetischt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -674,6 +679,56 @@ body {
 .auth-error { color: #d44; font-size: 0.85rem; text-align: center; padding: 8px; display: none; }
 .auth-error.show { display: block; }
 
+/* ============================================
+   WEEKLY STATS
+   ============================================ */
+.weekly-stats { padding: 0 20px 16px; }
+.weekly-bars { display: flex; gap: 4px; align-items: flex-end; height: 100px; padding: 12px 0; }
+.weekly-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.weekly-bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--accent); min-height: 2px; transition: height 0.5s ease; }
+.weekly-bar.today { background: var(--accent); opacity: 1; }
+.weekly-bar.past { background: var(--accent); opacity: 0.5; }
+.weekly-bar-label { font-size: 0.65rem; color: var(--text-tertiary); }
+.weekly-bar-val { font-size: 0.6rem; color: var(--text-secondary); font-weight: 600; }
+.weekly-avg { display: flex; justify-content: space-around; padding: 12px 16px; background: var(--bg-tertiary); border-radius: var(--radius-sm); margin-top: 8px; }
+.weekly-avg-item { text-align: center; }
+.weekly-avg-val { font-weight: 700; font-size: 1rem; }
+.weekly-avg-label { font-size: 0.7rem; color: var(--text-secondary); }
+
+/* ============================================
+   WEIGHT CHART
+   ============================================ */
+.weight-section { padding: 0 20px 20px; }
+.weight-input-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.weight-input-row input { flex: 1; }
+.weight-chart-container { position: relative; width: 100%; height: 200px; }
+.weight-chart-container canvas { width: 100% !important; height: 100% !important; }
+
+/* ============================================
+   RECENT FOODS
+   ============================================ */
+.recent-foods { margin-bottom: 16px; }
+.recent-food-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: var(--radius-full);
+  border: 1px solid var(--border); background: var(--bg-secondary);
+  font-size: 0.82rem; cursor: pointer; transition: all 0.2s;
+  margin: 0 6px 6px 0; white-space: nowrap;
+}
+.recent-food-chip:hover { border-color: var(--accent); background: var(--accent-light); }
+.recent-food-chip .chip-kcal { color: var(--text-tertiary); font-size: 0.75rem; }
+
+/* ============================================
+   COPY MEAL
+   ============================================ */
+.meal-copy-btn {
+  width: 36px; height: 36px; border-radius: var(--radius-full);
+  border: none; background: transparent; color: var(--text-tertiary);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.meal-copy-btn:hover { color: var(--blue); background: var(--blue-light); }
+
 @media (min-width: 481px) {
   .app-container { border-left: 1px solid var(--border-light); border-right: 1px solid var(--border-light); }
   .onboarding { border-left: 1px solid var(--border-light); border-right: 1px solid var(--border-light); }
@@ -1051,6 +1106,19 @@ body {
         </div>
       </div>
     </div>
+    <!-- Weekly Stats -->
+    <div class="weekly-stats" id="weekly-stats-section">
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div style="font-weight:600;font-size:0.9rem">Wochenübersicht</div>
+          <div style="font-size:0.75rem;color:var(--text-tertiary)" id="weekly-range"></div>
+        </div>
+        <div class="weekly-bars" id="weekly-bars"></div>
+        <div class="weekly-avg" id="weekly-avg"></div>
+      </div>
+    </div>
+
+    <!-- Meals -->
     <div class="meals-section" id="meals-container"></div>
   </div>
 
@@ -1102,6 +1170,22 @@ body {
         </div>
       </div>
       <div class="settings-group">
+        <div class="settings-group-title">Gewicht tracken</div>
+        <div class="settings-item" style="flex-direction:column;align-items:stretch;gap:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="settings-item-icon" style="background:var(--green-light);color:var(--green)">⚖️</div>
+              <div><div class="settings-item-label">Heutiges Gewicht</div><div class="settings-item-desc" id="last-weight-display">— kg</div></div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <input type="number" class="goal-input" id="weight-input" placeholder="0.0" step="0.1" style="width:70px">
+              <button class="btn btn-primary btn-sm" onclick="logWeight()">Speichern</button>
+            </div>
+          </div>
+          <div class="weight-chart-container"><canvas id="weight-chart"></canvas></div>
+        </div>
+      </div>
+      <div class="settings-group">
         <div class="settings-group-title">Erscheinungsbild</div>
         <div class="settings-item">
           <div class="settings-item-left"><div class="settings-item-icon" style="background:var(--purple-light);color:var(--purple)">🌙</div><div><div class="settings-item-label">Dark Mode</div></div></div>
@@ -1143,6 +1227,7 @@ body {
         <div class="search-actions"><button class="scan-btn" onclick="openScanner()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan</button></div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"><button class="btn btn-secondary btn-sm" onclick="showCustomFoodForm()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Eigenes Lebensmittel</button></div>
+      <div id="recent-foods-section" class="recent-foods"></div>
       <div id="modal-search-results" class="search-results"></div>
     </div>
   </div>
@@ -1778,6 +1863,8 @@ function switchView(viewName) {
   document.getElementById('view-' + viewName).classList.add('active');
   document.querySelector(`[data-view="${viewName}"]`).classList.add('active');
   if (viewName === 'recipes') loadRecipes();
+  if (viewName === 'settings') loadWeightChart();
+  if (viewName === 'dashboard') loadWeeklyStats();
 }
 
 function showApp() {
@@ -1786,6 +1873,7 @@ function showApp() {
   document.getElementById('app').style.display = 'block';
   loadDayEntries();
   renderMealCards();
+  loadWeeklyStats();
 }
 
 // ============================================
@@ -1861,7 +1949,7 @@ function renderMealCards() {
     const entries = getMealEntries(type);
     const totals = getMealTotals(type);
     const card = document.createElement('div'); card.className = 'meal-card';
-    card.innerHTML = `<div class="meal-card-header" onclick="openAddFoodModal('${type}')"><div class="meal-card-left"><div class="meal-icon ${config.class}">${config.icon}</div><div><div class="meal-name">${config.name}</div><div class="meal-kcal">${Math.round(totals.kcal)} kcal</div></div></div><button class="meal-add-btn" onclick="event.stopPropagation();openAddFoodModal('${type}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div>${entries.length > 0 ? `<div class="meal-items">${entries.map(e => `<div class="meal-item"><div class="meal-item-info"><div class="meal-item-name">${escapeHtml(e.food_name)}</div><div class="meal-item-detail">${e.amount}${e.unit} · E ${Math.round(e.protein_g||0)}g · K ${Math.round(e.carbs_g||0)}g · F ${Math.round(e.fat_g||0)}g</div></div><div class="meal-item-kcal">${Math.round(e.kcal)} kcal</div><div class="meal-item-actions"><button class="item-delete-btn" onclick="deleteEntry('${e.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button></div></div>`).join('')}</div>` : ''}`;
+    card.innerHTML = `<div class="meal-card-header" onclick="openAddFoodModal('${type}')"><div class="meal-card-left"><div class="meal-icon ${config.class}">${config.icon}</div><div><div class="meal-name">${config.name}</div><div class="meal-kcal">${Math.round(totals.kcal)} kcal</div></div></div><div style="display:flex;gap:4px"><button class="meal-copy-btn" onclick="event.stopPropagation();copyMealFromYesterday('${type}')" title="Von gestern kopieren"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button><button class="meal-add-btn" onclick="event.stopPropagation();openAddFoodModal('${type}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button></div></div>${entries.length > 0 ? `<div class="meal-items">${entries.map(e => `<div class="meal-item"><div class="meal-item-info"><div class="meal-item-name">${escapeHtml(e.food_name)}</div><div class="meal-item-detail">${e.amount}${e.unit} · E ${Math.round(e.protein_g||0)}g · K ${Math.round(e.carbs_g||0)}g · F ${Math.round(e.fat_g||0)}g</div></div><div class="meal-item-kcal">${Math.round(e.kcal)} kcal</div><div class="meal-item-actions"><button class="item-delete-btn" onclick="deleteEntry('${e.id}')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button></div></div>`).join('')}</div>` : ''}`;
     container.appendChild(card);
   }
 }
@@ -1885,6 +1973,7 @@ function openAddFoodModal(mealType) {
   document.getElementById('modal-search').value = '';
   document.getElementById('modal-search-results').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Suche nach Lebensmitteln oder scanne einen Barcode</div></div>';
   openModal('modal-add-food');
+  loadRecentFoods();
   setTimeout(() => document.getElementById('modal-search').focus(), 350);
 }
 
@@ -2204,6 +2293,240 @@ async function saveRecipe() {
 }
 
 // ============================================
+// FEATURE: WEEKLY STATS (Wochenübersicht)
+// ============================================
+async function loadWeeklyStats() {
+  if (!currentUser || !db) return;
+  const days = [];
+  const dayNames = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+  const today = new Date();
+  
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    days.push({ date: d, str: d.toISOString().split('T')[0], label: dayNames[d.getDay()] });
+  }
+
+  const startDate = days[0].str;
+  const endDate = days[6].str;
+  const { data } = await db.from('food_entries').select('entry_date,kcal,protein_g,carbs_g,fat_g')
+    .eq('user_id', currentUser.id).gte('entry_date', startDate).lte('entry_date', endDate);
+
+  const entries = data || [];
+  const goal = currentProfile?.daily_kcal_goal || 2000;
+  let totalKcal = 0, totalP = 0, totalC = 0, totalF = 0, daysWithData = 0;
+
+  const dayTotals = days.map(d => {
+    const dayEntries = entries.filter(e => e.entry_date === d.str);
+    const kcal = dayEntries.reduce((s, e) => s + (e.kcal || 0), 0);
+    const p = dayEntries.reduce((s, e) => s + (e.protein_g || 0), 0);
+    const c = dayEntries.reduce((s, e) => s + (e.carbs_g || 0), 0);
+    const f = dayEntries.reduce((s, e) => s + (e.fat_g || 0), 0);
+    if (kcal > 0) { totalKcal += kcal; totalP += p; totalC += c; totalF += f; daysWithData++; }
+    return { ...d, kcal, p, c, f };
+  });
+
+  const maxKcal = Math.max(...dayTotals.map(d => d.kcal), goal);
+  const todayStr = today.toISOString().split('T')[0];
+
+  const barsEl = document.getElementById('weekly-bars');
+  barsEl.innerHTML = dayTotals.map(d => {
+    const h = maxKcal > 0 ? Math.max(2, (d.kcal / maxKcal) * 100) : 2;
+    const isToday = d.str === todayStr;
+    const color = d.kcal > goal ? 'background:var(--fat-color)' : '';
+    return `<div class="weekly-bar-col"><div class="weekly-bar-val">${d.kcal > 0 ? Math.round(d.kcal) : ''}</div><div class="weekly-bar ${isToday ? 'today' : 'past'}" style="height:${h}%;${color}"></div><div class="weekly-bar-label" style="${isToday ? 'font-weight:700;color:var(--accent)' : ''}">${d.label}</div></div>`;
+  }).join('');
+
+  const avgKcal = daysWithData > 0 ? Math.round(totalKcal / daysWithData) : 0;
+  const avgP = daysWithData > 0 ? Math.round(totalP / daysWithData) : 0;
+  const avgC = daysWithData > 0 ? Math.round(totalC / daysWithData) : 0;
+  const avgF = daysWithData > 0 ? Math.round(totalF / daysWithData) : 0;
+
+  document.getElementById('weekly-avg').innerHTML = `
+    <div class="weekly-avg-item"><div class="weekly-avg-val" style="color:var(--accent)">${avgKcal}</div><div class="weekly-avg-label">⌀ kcal</div></div>
+    <div class="weekly-avg-item"><div class="weekly-avg-val" style="color:var(--protein-color)">${avgP}g</div><div class="weekly-avg-label">⌀ Eiweiß</div></div>
+    <div class="weekly-avg-item"><div class="weekly-avg-val" style="color:var(--carbs-color)">${avgC}g</div><div class="weekly-avg-label">⌀ Kohlenh.</div></div>
+    <div class="weekly-avg-item"><div class="weekly-avg-val" style="color:var(--fat-color)">${avgF}g</div><div class="weekly-avg-label">⌀ Fett</div></div>`;
+
+  document.getElementById('weekly-range').textContent = `${days[0].date.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${days[6].date.toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
+}
+
+// ============================================
+// FEATURE: WEIGHT CHART (Gewichtsverlauf)
+// ============================================
+async function loadWeightChart() {
+  if (!currentUser || !db) return;
+  const { data } = await db.from('weight_log').select('*')
+    .eq('user_id', currentUser.id).order('logged_date', { ascending: true }).limit(60);
+
+  const logs = data || [];
+  if (logs.length > 0) {
+    document.getElementById('last-weight-display').textContent = logs[logs.length - 1].weight_kg + ' kg';
+    document.getElementById('weight-input').value = '';
+    document.getElementById('weight-input').placeholder = logs[logs.length - 1].weight_kg;
+  }
+
+  const canvas = document.getElementById('weight-chart');
+  if (!canvas || logs.length < 2) {
+    if (canvas) { const ctx = canvas.getContext('2d'); ctx.clearRect(0,0,canvas.width,canvas.height); ctx.font = '14px Outfit'; ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-tertiary'); ctx.textAlign = 'center'; ctx.fillText('Mindestens 2 Einträge für Chart nötig', canvas.width/2, canvas.height/2); }
+    return;
+  }
+
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * dpr;
+  canvas.height = 200 * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = '200px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = rect.width, H = 200;
+
+  const weights = logs.map(l => l.weight_kg);
+  const minW = Math.min(...weights) - 1;
+  const maxW = Math.max(...weights) + 1;
+  const targetW = currentProfile?.target_weight_kg;
+  const pad = { top: 20, bottom: 30, left: 10, right: 10 };
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Target line
+  if (targetW && targetW >= minW && targetW <= maxW) {
+    const y = pad.top + ((maxW - targetW) / (maxW - minW)) * (H - pad.top - pad.bottom);
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--green');
+    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.font = '11px Outfit';
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--green');
+    ctx.fillText('Ziel: ' + targetW + ' kg', W - pad.right - 45, y - 5);
+  }
+
+  // Weight line
+  const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent');
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  logs.forEach((l, i) => {
+    const x = pad.left + (i / (logs.length - 1)) * (W - pad.left - pad.right);
+    const y = pad.top + ((maxW - l.weight_kg) / (maxW - minW)) * (H - pad.top - pad.bottom);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // Dots
+  logs.forEach((l, i) => {
+    const x = pad.left + (i / (logs.length - 1)) * (W - pad.left - pad.right);
+    const y = pad.top + ((maxW - l.weight_kg) / (maxW - minW)) * (H - pad.top - pad.bottom);
+    ctx.fillStyle = accent;
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Labels
+  ctx.font = '10px Outfit';
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-tertiary');
+  ctx.textAlign = 'center';
+  const step = Math.max(1, Math.floor(logs.length / 5));
+  logs.forEach((l, i) => {
+    if (i % step === 0 || i === logs.length - 1) {
+      const x = pad.left + (i / (logs.length - 1)) * (W - pad.left - pad.right);
+      const d = new Date(l.logged_date);
+      ctx.fillText(d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' }), x, H - 8);
+    }
+  });
+
+  // Start/End weight labels
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary');
+  ctx.font = '11px Outfit';
+  ctx.textAlign = 'left';
+  const firstY = pad.top + ((maxW - weights[0]) / (maxW - minW)) * (H - pad.top - pad.bottom);
+  ctx.fillText(weights[0] + ' kg', pad.left + 8, firstY - 8);
+  ctx.textAlign = 'right';
+  const lastY = pad.top + ((maxW - weights[weights.length-1]) / (maxW - minW)) * (H - pad.top - pad.bottom);
+  ctx.fillText(weights[weights.length-1] + ' kg', W - pad.right - 8, lastY - 8);
+}
+
+async function logWeight() {
+  const val = parseFloat(document.getElementById('weight-input').value);
+  if (!val || val < 20 || val > 400 || !currentUser) { showToast('Bitte gültiges Gewicht eingeben'); return; }
+  const today = new Date().toISOString().split('T')[0];
+  await db.from('weight_log').upsert({ user_id: currentUser.id, weight_kg: val, logged_date: today }, { onConflict: 'user_id,logged_date' });
+  await db.from('profiles').update({ current_weight_kg: val }).eq('id', currentUser.id);
+  if (currentProfile) currentProfile.current_weight_kg = val;
+  showToast('Gewicht gespeichert: ' + val + ' kg');
+  loadWeightChart();
+}
+
+// ============================================
+// FEATURE: RECENT FOODS (Kürzlich gegessen)
+// ============================================
+async function loadRecentFoods() {
+  if (!currentUser || !db) return;
+  const { data } = await db.from('food_entries').select('food_name,kcal,protein_g,carbs_g,fat_g,amount,unit,brand,image_url,barcode,off_product_id')
+    .eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(30);
+
+  if (!data || data.length === 0) return;
+
+  // Deduplizieren nach food_name
+  const seen = new Set();
+  const unique = data.filter(e => {
+    const key = e.food_name.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, 12);
+
+  const container = document.getElementById('recent-foods-section');
+  if (!container) return;
+  container.innerHTML = '<div style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px">KÜRZLICH GEGESSEN</div>' +
+    unique.map(e => {
+      const kcalPer100 = e.amount > 0 ? Math.round((e.kcal / e.amount) * 100) : e.kcal;
+      const protPer100 = e.amount > 0 ? Math.round(((e.protein_g || 0) / e.amount) * 100 * 10) / 10 : 0;
+      const carbsPer100 = e.amount > 0 ? Math.round(((e.carbs_g || 0) / e.amount) * 100 * 10) / 10 : 0;
+      const fatPer100 = e.amount > 0 ? Math.round(((e.fat_g || 0) / e.amount) * 100 * 10) / 10 : 0;
+      const fd = encodeURIComponent(JSON.stringify({ name: e.food_name, brand: e.brand || '', kcal: kcalPer100, protein: protPer100, carbs: carbsPer100, fat: fatPer100, fiber: 0, image: e.image_url || '', barcode: e.barcode || '', off_id: e.off_product_id || '' }));
+      return `<span class="recent-food-chip" onclick="selectProduct('${fd}')">${escapeHtml(e.food_name)} <span class="chip-kcal">${Math.round(e.kcal)}</span></span>`;
+    }).join('');
+}
+
+// ============================================
+// FEATURE: COPY MEAL (Mahlzeit kopieren)
+// ============================================
+async function copyMealFromYesterday(mealType) {
+  if (!currentUser || !db) return;
+  const yesterday = new Date(selectedDate);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = yesterday.toISOString().split('T')[0];
+  const todayStr = selectedDate.toISOString().split('T')[0];
+
+  const { data } = await db.from('food_entries').select('*')
+    .eq('user_id', currentUser.id).eq('entry_date', yStr).eq('meal_type', mealType);
+
+  if (!data || data.length === 0) {
+    showToast('Keine Einträge von gestern für ' + MEAL_CONFIG[mealType].name);
+    return;
+  }
+
+  const copies = data.map(e => ({
+    user_id: currentUser.id, entry_date: todayStr, meal_type: mealType,
+    food_name: e.food_name, brand: e.brand, barcode: e.barcode,
+    amount: e.amount, unit: e.unit, kcal: e.kcal,
+    protein_g: e.protein_g, carbs_g: e.carbs_g, fat_g: e.fat_g,
+    fiber_g: e.fiber_g, image_url: e.image_url, off_product_id: e.off_product_id
+  }));
+
+  const { data: inserted, error } = await db.from('food_entries').insert(copies).select();
+  if (error) { showToast('Fehler beim Kopieren'); return; }
+
+  todayEntries.push(...(inserted || []));
+  updateDashboard();
+  renderMealCards();
+  showToast(`${data.length} Einträge von gestern kopiert!`);
+}
+
+// ============================================
 // UTILITIES
 // ============================================
 function escapeHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
@@ -2216,6 +2539,10 @@ document.addEventListener('DOMContentLoaded', function() {
   s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
   s.async = true;
   document.head.appendChild(s);
+  // Register Service Worker for PWA
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(function() {});
+  }
 });
 
 // iOS Safari: Wenn App aus dem Hintergrund zurückkommt,
