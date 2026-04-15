@@ -1084,6 +1084,9 @@ body {
       <div class="app-logo font-display">Aufgetischt</div>
     </div>
     <div class="header-actions">
+      <div id="streak-badge" style="display:none;align-items:center;gap:4px;padding:6px 10px;border-radius:var(--radius-full);background:var(--accent-light);color:var(--accent);font-weight:600;font-size:0.85rem" title="Tage in Folge geloggt">
+        🔥 <span class="streak-count">0</span>
+      </div>
       <button class="btn-icon" onclick="toggleTheme()" title="Theme wechseln">
         <svg id="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
@@ -1130,6 +1133,35 @@ body {
         </div>
       </div>
     </div>
+    <!-- Wasser & Fasten -->
+    <div style="padding:0 20px 12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="card" style="padding:14px 12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="font-weight:600;font-size:0.85rem">💧 Wasser</div>
+          <div style="font-size:0.7rem;color:var(--text-tertiary)" id="water-display">0 / 0 ml</div>
+        </div>
+        <div style="height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden;margin-bottom:8px">
+          <div id="water-bar" style="height:100%;background:var(--blue);width:0%;transition:width 0.4s"></div>
+        </div>
+        <div style="display:flex;gap:4px;justify-content:space-between">
+          <button class="btn-icon" style="width:32px;height:32px;font-size:0.75rem;font-weight:600" onclick="addWater(-250)" title="-250ml">−</button>
+          <button class="btn-icon" style="flex:1;width:auto;height:32px;font-size:0.75rem;font-weight:600;border-radius:var(--radius-sm)" onclick="addWater(250)">+250</button>
+          <button class="btn-icon" style="flex:1;width:auto;height:32px;font-size:0.75rem;font-weight:600;border-radius:var(--radius-sm)" onclick="addWater(500)">+500</button>
+        </div>
+      </div>
+      <div class="card" style="padding:14px 12px;cursor:pointer" onclick="openFastingSettings()">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="font-weight:600;font-size:0.85rem">⏱️ Fasten</div>
+          <div style="font-size:0.7rem;color:var(--text-tertiary)" id="fasting-window-label">16:8</div>
+        </div>
+        <div style="height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden;margin-bottom:8px">
+          <div id="fasting-bar" style="height:100%;background:var(--purple);width:0%;transition:width 0.4s"></div>
+        </div>
+        <div style="font-size:1rem;font-weight:600;text-align:center;color:var(--text-primary)" id="fasting-time">—</div>
+        <div style="font-size:0.65rem;text-align:center;color:var(--text-tertiary)" id="fasting-status">Tippe für Einstellungen</div>
+      </div>
+    </div>
+
     <!-- Weekly Stats -->
     <div class="weekly-stats" id="weekly-stats-section">
       <div class="card">
@@ -1217,7 +1249,6 @@ body {
           <div class="toggle" id="theme-toggle" onclick="toggleTheme()"></div>
         </div>
       </div>
-      </div>
       <div class="settings-group">
         <div class="settings-group-title">Profil</div>
         <div class="settings-item">
@@ -1229,8 +1260,19 @@ body {
           <button class="btn btn-secondary btn-sm" onclick="restartOnboarding()">Starten</button>
         </div>
       </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Daten &amp; Konto</div>
+        <div class="settings-item">
+          <div class="settings-item-left"><div class="settings-item-icon" style="background:var(--green-light);color:var(--green)">📤</div><div><div class="settings-item-label">Daten exportieren</div><div class="settings-item-desc">Alle Einträge als CSV</div></div></div>
+          <button class="btn btn-secondary btn-sm" onclick="exportUserData()">Export</button>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-left"><div class="settings-item-icon" style="background:#fee;color:#d44">🗑️</div><div><div class="settings-item-label">Konto löschen</div><div class="settings-item-desc">Alle Daten dauerhaft entfernen</div></div></div>
+          <button class="btn btn-secondary btn-sm" style="color:#d44" onclick="deleteAccount()">Löschen</button>
+        </div>
+      </div>
       <button class="btn btn-secondary btn-block" style="margin-top:24px;color:#d44" onclick="handleLogout()">Abmelden</button>
-      <div style="text-align:center;padding:12px;font-size:0.65rem;color:var(--text-tertiary)">v2.2</div>
+      <div style="text-align:center;padding:12px;font-size:0.65rem;color:var(--text-tertiary)">v2.3</div>
     </div>
   </div>
 
@@ -1355,7 +1397,11 @@ body {
         <input class="search-input" id="modal-search" type="text" placeholder="Lebensmittel suchen..." oninput="debounceSearch(this.value, true)">
         <div class="search-actions"><button class="scan-btn" onclick="openScanner()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan</button></div>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap"><button class="btn btn-secondary btn-sm" onclick="showCustomFoodForm()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Eigenes Lebensmittel</button></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="showCustomFoodForm()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Eigenes Lebensmittel</button>
+        <button class="btn btn-secondary btn-sm" onclick="openQuickAdd(currentMealType)">⚡ Nur Kalorien</button>
+      </div>
+      <div id="favorites-section" class="recent-foods"></div>
       <div id="recent-foods-section" class="recent-foods"></div>
       <div id="modal-search-results" class="search-results"></div>
     </div>
@@ -1365,7 +1411,7 @@ body {
 <!-- Amount -->
 <div id="modal-amount" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-amount')">
   <div class="modal-sheet"><div class="modal-handle"></div>
-    <div class="modal-header"><div class="modal-title">Menge eingeben</div><button class="modal-close" onclick="closeModal('modal-amount')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-header"><div class="modal-title">Menge eingeben</div><div style="display:flex;gap:6px;align-items:center"><button class="btn-icon" onclick="favoriteCurrentSelection()" title="Favorit umschalten" style="width:36px;height:36px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15 9 22 9.3 17 14.5 18.5 22 12 18 5.5 22 7 14.5 2 9.3 9 9 12 2"/></svg></button><button class="modal-close" onclick="closeModal('modal-amount')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></div>
     <div class="modal-body">
       <div class="amount-section">
         <div class="food-preview"><img class="food-preview-img" id="amount-food-img" src="" alt=""><div class="food-preview-info"><h3 id="amount-food-name"></h3><p id="amount-food-brand"></p></div></div>
@@ -1380,7 +1426,18 @@ body {
 
 <!-- Scanner -->
 <div id="modal-scanner" class="modal-overlay" onclick="if(event.target===this)closeScannerModal()">
-  <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-header"><div class="modal-title">Barcode scannen</div><button class="modal-close" onclick="closeScannerModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div><div class="modal-body"><div class="scanner-container"><div id="barcode-reader"></div></div><div class="scanner-hint">Halte den Barcode vor die Kamera</div></div></div>
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title">Barcode scannen</div><button class="modal-close" onclick="closeScannerModal()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="scanner-container"><div id="barcode-reader"></div></div>
+      <div class="scanner-hint" id="scanner-hint">Halte den Barcode vor die Kamera</div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" id="torch-btn" onclick="toggleTorch()" style="display:none">🔦 Licht an</button>
+        <button class="btn btn-secondary btn-sm" id="camera-switch-btn" onclick="switchCamera()" style="display:none">🔄 Kamera wechseln</button>
+        <button class="btn btn-secondary btn-sm" onclick="openManualBarcode()">⌨️ Manuell eingeben</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Custom Food -->
@@ -1448,6 +1505,62 @@ body {
 <div id="modal-recipe-detail" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-recipe-detail')">
   <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-header"><div class="modal-title">Rezept</div><button class="modal-close" onclick="closeModal('modal-recipe-detail')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body" id="recipe-detail-body"></div>
+  </div>
+</div>
+
+<!-- Fasting Settings -->
+<div id="modal-fasting" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-fasting')">
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title">Fasten-Fenster</div><button class="modal-close" onclick="closeModal('modal-fasting')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.5;margin-bottom:16px">Wie viele Stunden möchtest du fasten? Beliebte Werte: <strong>16</strong> (16:8), <strong>14</strong> (14:10), <strong>18</strong> (18:6).</p>
+      <div class="form-group">
+        <label class="form-label">Fasten-Stunden</label>
+        <input type="number" inputmode="numeric" class="form-input" id="fasting-window-input" min="8" max="23" value="16">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="saveFastingWindow()" style="padding:16px;margin-top:8px">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Profile Name -->
+<div id="modal-edit-name" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-edit-name')">
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title">Name ändern</div><button class="modal-close" onclick="closeModal('modal-edit-name')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Anzeigename</label><input type="text" class="form-input" id="edit-name-input" maxlength="50" placeholder="Name"></div>
+      <button class="btn btn-primary btn-block" onclick="saveProfileName()" style="padding:16px;margin-top:8px">Speichern</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick-Add kcal -->
+<div id="modal-quick-add" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-quick-add')">
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title">Schnell-Eintrag</div><button class="modal-close" onclick="closeModal('modal-quick-add')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Beschreibung (optional)</label><input type="text" class="form-input" id="qa-name" placeholder="z.B. Restaurant Pasta" maxlength="80"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Kalorien</label><input type="number" inputmode="numeric" class="form-input" id="qa-kcal" placeholder="0" min="0" max="9999"></div>
+        <div class="form-group"><label class="form-label">Eiweiß (g, opt.)</label><input type="number" inputmode="decimal" class="form-input" id="qa-protein" placeholder="0" min="0" max="500" step="0.1"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Kohlenh. (g, opt.)</label><input type="number" inputmode="decimal" class="form-input" id="qa-carbs" placeholder="0" min="0" max="500" step="0.1"></div>
+        <div class="form-group"><label class="form-label">Fett (g, opt.)</label><input type="number" inputmode="decimal" class="form-input" id="qa-fat" placeholder="0" min="0" max="500" step="0.1"></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="confirmQuickAdd()" style="padding:16px;margin-top:8px">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Manual Barcode -->
+<div id="modal-manual-barcode" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-manual-barcode')">
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title">Barcode manuell eingeben</div><button class="modal-close" onclick="closeModal('modal-manual-barcode')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">EAN/UPC (8–14 Ziffern)</label><input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input" id="manual-barcode-input" placeholder="z.B. 4000417025005" maxlength="14"></div>
+      <button class="btn btn-primary btn-block" onclick="submitManualBarcode()" style="padding:16px;margin-top:8px">Suchen</button>
+    </div>
   </div>
 </div>
 
@@ -1891,15 +2004,21 @@ async function finishOnboarding() {
     updated_at: new Date().toISOString()
   };
 
-  await db.from('profiles').update(profileUpdate).eq('id', currentUser.id);
+  const profRes = await db.from('profiles').update(profileUpdate).eq('id', currentUser.id);
+  if (profRes.error) {
+    console.error('Onboarding profile update failed:', profRes.error);
+    showToast('Speichern fehlgeschlagen — bitte erneut versuchen');
+    return;
+  }
 
-  // Log initial weight
-  await db.from('weight_log').upsert({
+  // Log initial weight (Fehler hier nicht-blockierend)
+  const wRes = await db.from('weight_log').upsert({
     user_id: currentUser.id,
     weight_kg: obData.weight,
-    logged_date: new Date().toISOString().split('T')[0],
+    logged_date: getDateStr(new Date()),
     note: 'Startgewicht'
   }, { onConflict: 'user_id,logged_date' });
+  if (wRes.error) console.error('Initial weight log failed:', wRes.error);
 
   await loadProfile();
   document.getElementById('onboarding').style.display = 'none';
@@ -1933,6 +2052,9 @@ async function initApp() {
     await loadProfile();
     if (!currentProfile?.onboarding_completed) {
       document.getElementById('onboarding').style.display = 'flex';
+      document.getElementById('bottom-nav').style.display = 'none';
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('auth-view').style.display = 'none';
       showObStep(1);
     } else {
       showApp();
@@ -1940,6 +2062,8 @@ async function initApp() {
   } else {
     document.getElementById('auth-view').style.display = 'flex';
     document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('onboarding').style.display = 'none';
   }
 
   db.auth.onAuthStateChange(async (event, session) => {
@@ -1949,6 +2073,8 @@ async function initApp() {
       document.getElementById('auth-view').style.display = 'none';
       if (!currentProfile?.onboarding_completed) {
         document.getElementById('onboarding').style.display = 'flex';
+        document.getElementById('bottom-nav').style.display = 'none';
+        document.getElementById('app').style.display = 'none';
         showObStep(1);
       } else {
         showApp();
@@ -2003,7 +2129,7 @@ async function handleAuth() {
   finally { btn.disabled = false; btn.textContent = isAuthRegister ? 'Registrieren' : 'Anmelden'; }
 }
 
-async function handleLogout() { await db.auth.signOut(); }
+async function handleLogout() { try { await db.auth.signOut(); } catch (e) { console.error('signOut failed:', e); showToast('Abmelden fehlgeschlagen'); } }
 function showAuthError(msg) { const el = document.getElementById('auth-error'); el.textContent = msg; el.classList.add('show'); }
 function hideAuthError() { document.getElementById('auth-error').classList.remove('show'); }
 
@@ -2011,7 +2137,15 @@ function hideAuthError() { document.getElementById('auth-error').classList.remov
 // PROFILE
 // ============================================
 async function loadProfile() {
-  const { data } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+  const { data, error } = await db.from('profiles').select('*').eq('id', currentUser.id).single();
+  if (error) {
+    // PGRST116 = "Results contain 0 rows" — Profil noch nicht angelegt, kein Fehler
+    if (error.code !== 'PGRST116') {
+      console.error('loadProfile failed:', error);
+      showToast('Profil konnte nicht geladen werden');
+    }
+    return;
+  }
   if (data) {
     currentProfile = data;
     document.getElementById('input-kcal').textContent = data.daily_kcal_goal || 2000;
@@ -2039,15 +2173,24 @@ async function saveGoals() {
   showToast('Ziele gespeichert!');
 }
 
-async function editProfile() {
-  const name = prompt('Neuer Name:', currentProfile?.display_name || '');
-  if (name !== null && name.trim()) {
-    await db.from('profiles').update({ display_name: name.trim() }).eq('id', currentUser.id);
-    currentProfile.display_name = name.trim();
-    document.getElementById('settings-name').textContent = name.trim();
-    document.getElementById('profile-name-display').textContent = name.trim();
-    showToast('Name geändert!');
-  }
+function editProfile() {
+  // Eigenes Modal — window.prompt() funktioniert in iOS PWA nicht zuverlässig.
+  document.getElementById('edit-name-input').value = currentProfile?.display_name || '';
+  openModal('modal-edit-name');
+  setTimeout(function() { document.getElementById('edit-name-input').focus(); }, 200);
+}
+
+async function saveProfileName() {
+  const name = document.getElementById('edit-name-input').value.trim();
+  if (!name) { showToast('Name darf nicht leer sein'); return; }
+  if (name.length > 50) { showToast('Name zu lang (max. 50 Zeichen)'); return; }
+  const { error } = await db.from('profiles').update({ display_name: name }).eq('id', currentUser.id);
+  if (error) { console.error('name update:', error); showToast('Speichern fehlgeschlagen'); return; }
+  currentProfile.display_name = name;
+  document.getElementById('settings-name').textContent = name;
+  document.getElementById('profile-name-display').textContent = name;
+  closeModal('modal-edit-name');
+  showToast('Name geändert!');
 }
 
 // ============================================
@@ -2082,14 +2225,14 @@ function switchView(viewName) {
   var view = document.getElementById('view-' + viewName);
   view.classList.add('active');
   document.querySelector('[data-view="' + viewName + '"]').classList.add('active');
-  // Force scroll to top (iOS Safari PWA)
-  window.scrollTo({ top: 0, behavior: 'instant' });
+  // Scroll-to-top für iOS Safari PWA. scrollIntoView NICHT verwenden — kollidiert
+  // mit sticky header und führt im Wissen-Tab zu Offset-Problemen.
+  try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (e) { window.scrollTo(0, 0); }
   document.body.scrollTop = 0;
   document.documentElement.scrollTop = 0;
-  view.scrollIntoView({ behavior: 'instant', block: 'start' });
   if (viewName === 'recipes') loadRecipes();
   if (viewName === 'settings') { loadWeightChart(); refreshSettingsInputs(); }
-  if (viewName === 'dashboard') loadWeeklyStats();
+  if (viewName === 'dashboard') { loadWeeklyStats(); if (typeof loadWaterToday === 'function') loadWaterToday(); if (typeof loadFastingStatus === 'function') loadFastingStatus(); }
 }
 
 function refreshSettingsInputs() {
@@ -2108,6 +2251,10 @@ function showApp() {
   loadDayEntries();
   renderMealCards();
   loadWeeklyStats();
+  loadWaterToday();
+  loadFastingStatus();
+  loadStreak();
+  loadFavorites();
 }
 
 // ============================================
@@ -2123,12 +2270,19 @@ function formatDate(date) {
   return date.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'long' });
 }
 
-function getDateStr(date) { return date.toISOString().split('T')[0]; }
+function getDateStr(date) {
+  // Local time, NICHT UTC — sonst rutscht "Heute" je nach Zeitzone auf den falschen Tag.
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 function changeDate(delta) {
   selectedDate.setDate(selectedDate.getDate() + delta);
   document.getElementById('date-display').textContent = formatDate(selectedDate);
   loadDayEntries();
+  loadWaterToday();
 }
 
 // ============================================
@@ -2136,9 +2290,14 @@ function changeDate(delta) {
 // ============================================
 async function loadDayEntries() {
   if (!currentUser) return;
-  const { data } = await db.from('food_entries').select('*')
+  const { data, error } = await db.from('food_entries').select('*')
     .eq('user_id', currentUser.id).eq('entry_date', getDateStr(selectedDate))
     .order('created_at', { ascending: true });
+  if (error) {
+    console.error('loadDayEntries failed:', error);
+    showToast('Einträge konnten nicht geladen werden');
+    return;
+  }
   todayEntries = data || [];
   updateDashboard();
   renderMealCards();
@@ -2189,7 +2348,9 @@ function renderMealCards() {
 }
 
 async function deleteEntry(id) {
-  await db.from('food_entries').delete().eq('id', id);
+  if (!currentUser) return;
+  const { error } = await db.from('food_entries').delete().eq('id', id).eq('user_id', currentUser.id);
+  if (error) { showToast('Fehler beim Löschen'); return; }
   todayEntries = todayEntries.filter(e => e.id !== id);
   updateDashboard(); renderMealCards(); showToast('Eintrag gelöscht');
 }
@@ -2378,11 +2539,18 @@ function searchLocalFoods(query) {
 
 var offAbortController = null;
 var offCache = {};
+// Generations-Counter: Jede neue Suchanfrage erhöht ihn. Antworten älterer
+// Anfragen werden verworfen, sobald sie ankommen — verhindert "Stale-Overwrite"
+// wenn Tipp-Geschwindigkeit > Netzwerk-Latenz.
+var searchGen = 0;
 
 function debounceSearch(query, inModal) {
   clearTimeout(searchTimeout);
   var container = inModal ? document.getElementById('modal-search-results') : document.getElementById('search-results');
   if (query.length < 2) { container.innerHTML = ''; return; }
+  // Neue Generation — alle in-flight-Antworten ungültig machen
+  searchGen++;
+  var myGen = searchGen;
   var localResults = searchLocalFoods(query);
   var qLower = query.trim().toLowerCase();
   // Gecachte OFF-Ergebnisse sofort zeigen
@@ -2393,11 +2561,15 @@ function debounceSearch(query, inModal) {
   }
   // OFF erst ab 3 Zeichen
   if (query.length >= 3 && !offCache[qLower]) {
-    searchTimeout = setTimeout(function() { loadOffResults(query, inModal, 0); }, 800);
+    searchTimeout = setTimeout(function() { loadOffResults(query, inModal, 0, myGen); }, 600);
+  } else if (offCache[qLower] && currentUser) {
+    // Custom-Foods auch bei Cache-Hit nachladen
+    loadCustomFoodsForSearch(query, container, offCache[qLower], localResults, myGen);
   }
 }
 
-async function loadOffResults(query, inModal, retry) {
+async function loadOffResults(query, inModal, retry, gen) {
+  if (gen !== searchGen) return; // Veraltet — neuere Anfrage läuft
   var container = inModal ? document.getElementById('modal-search-results') : document.getElementById('search-results');
   var localResults = searchLocalFoods(query);
   var qLower = query.trim().toLowerCase();
@@ -2406,25 +2578,34 @@ async function loadOffResults(query, inModal, retry) {
   var offData = { products: [] };
   try {
     var resp = await fetch('https://world.openfoodfacts.org/cgi/search.pl?search_terms=' + encodeURIComponent(query) + '&search_simple=1&action=process&json=1&page_size=8&fields=product_name,brands,nutriments,image_front_small_url,code,_id&lc=de', { signal: offAbortController.signal });
+    if (gen !== searchGen) return; // veraltet
     if (resp.ok) {
       offData = await resp.json();
+      if (gen !== searchGen) return;
       offCache[qLower] = offData;
       setTimeout(function() { delete offCache[qLower]; }, 300000);
     } else if (retry < 1) {
-      setTimeout(function() { loadOffResults(query, inModal, retry + 1); }, 2000);
+      setTimeout(function() { loadOffResults(query, inModal, retry + 1, gen); }, 2000);
       return;
     }
   } catch(e) {
     if (e.name === 'AbortError') return;
-    if (retry < 1) { setTimeout(function() { loadOffResults(query, inModal, retry + 1); }, 2000); return; }
+    if (retry < 1) { setTimeout(function() { loadOffResults(query, inModal, retry + 1, gen); }, 2000); return; }
   }
+  if (gen !== searchGen) return;
+  await loadCustomFoodsForSearch(query, container, offData, localResults, gen);
+}
+
+async function loadCustomFoodsForSearch(query, container, offData, localResults, gen) {
   var customFoods = [];
   try {
     if (currentUser && db) {
       var res = await db.from('custom_foods').select('*').eq('user_id', currentUser.id).ilike('food_name', '%' + query + '%').limit(5);
+      if (gen !== searchGen) return; // veraltet
       customFoods = res.data || [];
     }
   } catch(e) {}
+  if (gen !== searchGen) return;
   renderSearchResults(container, offData, localResults, customFoods);
 }
 
@@ -2434,7 +2615,10 @@ function renderSearchResults(container, offData, localResults, customFoods) {
   // --- Eigene Lebensmittel ---
   if (customFoods.length > 0) {
     html += '<div style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px">EIGENE LEBENSMITTEL</div>';
-    customFoods.forEach(f => { html += `<div class="search-result-item" onclick='selectCustomFood(${JSON.stringify(f).replace(/'/g,"&#39;")})'><div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">⭐</div><div class="result-info"><div class="result-name">${escapeHtml(f.food_name)}</div><div class="result-brand">${escapeHtml(f.brand||'Eigenes Lebensmittel')}</div></div><div class="result-kcal">${Math.round(f.kcal_per_100)} kcal</div></div>`; });
+    customFoods.forEach(f => {
+      const fd = encodeURIComponent(JSON.stringify(f));
+      html += `<div class="search-result-item" onclick="selectCustomFoodEnc('${fd}')"><div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">⭐</div><div class="result-info"><div class="result-name">${escapeHtml(f.food_name)}</div><div class="result-brand">${escapeHtml(f.brand||'Eigenes Lebensmittel')}</div></div><div class="result-kcal">${Math.round(f.kcal_per_100)} kcal</div></div>`;
+    });
     html += '<div style="height:12px"></div>';
   }
 
@@ -2459,9 +2643,11 @@ function renderSearchResults(container, offData, localResults, customFoods) {
     }
     products.forEach(p => {
       const name = p.product_name || 'Unbekannt', brand = p.brands || '', kcal = Math.round(p.nutriments['energy-kcal_100g'] || p.nutriments['energy-kcal'] || 0);
-      const img = p.image_front_small_url || '';
+      // Nur https-URLs zulassen — verhindert javascript:/data:/file: Schemata aus API.
+      const rawImg = p.image_front_small_url || '';
+      const img = isSafeImageUrl(rawImg) ? rawImg : '';
       const pd = encodeURIComponent(JSON.stringify({ name, brand, kcal, protein: p.nutriments.proteins_100g||0, carbs: p.nutriments.carbohydrates_100g||0, fat: p.nutriments.fat_100g||0, fiber: p.nutriments.fiber_100g||0, image: img, barcode: p.code||'', off_id: p._id||'' }));
-      html += `<div class="search-result-item" onclick="selectProduct('${pd}')">${img ? `<img class="result-thumb" src="${img}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;flex-shrink:0">🏷️</div>'}<div class="result-info"><div class="result-name">${escapeHtml(name)}</div><div class="result-brand">${escapeHtml(brand)}</div></div><div class="result-kcal">${kcal} kcal/100g</div></div>`;
+      html += `<div class="search-result-item" onclick="selectProduct('${pd}')">${img ? `<img class="result-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" onerror="this.style.display='none'">` : '<div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;flex-shrink:0">🏷️</div>'}<div class="result-info"><div class="result-name">${escapeHtml(name)}</div><div class="result-brand">${escapeHtml(brand)}</div></div><div class="result-kcal">${kcal} kcal/100g</div></div>`;
     });
   }
 
@@ -2475,26 +2661,55 @@ function renderSearchResults(container, offData, localResults, customFoods) {
 // ============================================
 // PRODUCT SELECTION & AMOUNT
 // ============================================
-function selectProduct(enc) { try { const d = JSON.parse(decodeURIComponent(enc)); selectedFood = { name: d.name, brand: d.brand, kcal_per_100: d.kcal, protein_per_100: d.protein, carbs_per_100: d.carbs, fat_per_100: d.fat, fiber_per_100: d.fiber, image: d.image, barcode: d.barcode, off_id: d.off_id }; editingEntryId = null; openAmountModal(); } catch(e) { showToast('Fehler beim Laden'); } }
-function selectCustomFood(f) { selectedFood = { name: f.food_name, brand: f.brand||'', kcal_per_100: f.kcal_per_100, protein_per_100: f.protein_per_100, carbs_per_100: f.carbs_per_100, fat_per_100: f.fat_per_100, fiber_per_100: f.fiber_per_100||0, image: '', barcode: '', off_id: '' }; openAmountModal(); }
+function selectProduct(enc) { try { const d = JSON.parse(decodeURIComponent(enc)); selectedFood = { name: d.name, brand: d.brand, kcal_per_100: d.kcal, protein_per_100: d.protein, carbs_per_100: d.carbs, fat_per_100: d.fat, fiber_per_100: d.fiber, image: d.image, barcode: d.barcode, off_id: d.off_id, unitHint: d.unitHint || null }; editingEntryId = null; openAmountModal(); } catch(e) { showToast('Fehler beim Laden'); } }
+function selectCustomFood(f) { selectedFood = { name: f.food_name, brand: f.brand||'', kcal_per_100: f.kcal_per_100, protein_per_100: f.protein_per_100, carbs_per_100: f.carbs_per_100, fat_per_100: f.fat_per_100, fiber_per_100: f.fiber_per_100||0, image: '', barcode: '', off_id: '' }; editingEntryId = null; openAmountModal(); }
+function selectCustomFoodEnc(enc) { try { selectCustomFood(JSON.parse(decodeURIComponent(enc))); } catch(e) { showToast('Fehler beim Laden'); } }
 
 let editingEntryId = null;
 
-function openAmountModal() {
+// Quick-Amount-Presets pro Einheit. data-value-Attribut macht die Aktiv-Erkennung
+// robust gegen Label-Varianten ("1L", "½ Port.").
+const QUICK_AMOUNT_PRESETS = {
+  g:       { values: [25, 50, 100, 150, 200, 250, 500], label: function(v) { return v + 'g'; }, default: 100 },
+  ml:      { values: [100, 200, 250, 330, 500, 1000],   label: function(v) { return v === 1000 ? '1L' : v + 'ml'; }, default: 250 },
+  Stk:     { values: [1, 2, 3, 4, 5],                   label: function(v) { return v + ' Stk'; }, default: 1 },
+  Portion: { values: [0.5, 1, 2],                       label: function(v) { return v === 0.5 ? '½ Port.' : v + ' Port.'; }, default: 1 }
+};
+
+function renderQuickAmountsForUnit(unit, activeVal) {
+  var preset = QUICK_AMOUNT_PRESETS[unit] || QUICK_AMOUNT_PRESETS.g;
+  var container = document.querySelector('.quick-amounts');
+  var av = parseFloat(activeVal);
+  container.innerHTML = preset.values.map(function(v) {
+    var active = v === av ? ' active' : '';
+    return '<button class="quick-amount-btn' + active + '" data-value="' + v + '" onclick="setAmount(' + v + ')">' + preset.label(v) + '</button>';
+  }).join('');
+}
+
+function openAmountModal(presetAmount, presetUnit) {
   document.getElementById('amount-food-name').textContent = selectedFood.name;
   document.getElementById('amount-food-brand').textContent = selectedFood.brand || '';
   const img = document.getElementById('amount-food-img');
-  img.style.display = selectedFood.image ? 'block' : 'none';
-  if (selectedFood.image) img.src = selectedFood.image;
-  document.getElementById('amount-value').value = 100;
-  // Smart unit: check if food name suggests ml
-  var unit = document.getElementById('amount-unit');
-  var isLiquid = selectedFood.unitHint === 'ml' || /saft|milch|cola|fanta|sprite|bier|wein|kaffee|tee|kakao|smoothie|wasser|drink|latte|cappuccino|eistee/i.test(selectedFood.name);
-  unit.value = isLiquid ? 'ml' : 'g';
-  // Smart quick amounts
-  updateQuickAmounts(isLiquid);
+  const safeImg = isSafeImageUrl(selectedFood.image) ? selectedFood.image : '';
+  img.style.display = safeImg ? 'block' : 'none';
+  if (safeImg) img.src = safeImg;
+
+  var unitEl = document.getElementById('amount-unit');
+  var amountEl = document.getElementById('amount-value');
+
+  if (presetUnit) {
+    // Bearbeiten-Pfad: Einheit/Menge vom Eintrag übernehmen, keine Auto-Defaults.
+    unitEl.value = presetUnit;
+    amountEl.value = presetAmount;
+  } else {
+    // Neu-anlegen-Pfad: smart-detect ml vs g basierend auf Lebensmittelname
+    var isLiquid = selectedFood.unitHint === 'ml' || /saft|milch|cola|fanta|sprite|bier|wein|kaffee|tee|kakao|smoothie|wasser|drink|latte|cappuccino|eistee/i.test(selectedFood.name);
+    unitEl.value = isLiquid ? 'ml' : 'g';
+    amountEl.value = QUICK_AMOUNT_PRESETS[unitEl.value].default;
+  }
+  renderQuickAmountsForUnit(unitEl.value, amountEl.value);
   updateNutritionPreview();
-  // Button text
+
   var btn = document.getElementById('amount-confirm-btn');
   if (editingEntryId) {
     btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Änderung speichern';
@@ -2504,62 +2719,44 @@ function openAmountModal() {
   openModal('modal-amount');
 }
 
-function updateQuickAmounts(isLiquid) {
-  var container = document.querySelector('.quick-amounts');
-  if (isLiquid) {
-    container.innerHTML = '<button class="quick-amount-btn" onclick="setAmount(100)">100ml</button><button class="quick-amount-btn" onclick="setAmount(200)">200ml</button><button class="quick-amount-btn active" onclick="setAmount(250)">250ml</button><button class="quick-amount-btn" onclick="setAmount(330)">330ml</button><button class="quick-amount-btn" onclick="setAmount(500)">500ml</button><button class="quick-amount-btn" onclick="setAmount(1000)">1L</button>';
-    document.getElementById('amount-value').value = 250;
-  } else {
-    container.innerHTML = '<button class="quick-amount-btn" onclick="setAmount(25)">25g</button><button class="quick-amount-btn" onclick="setAmount(50)">50g</button><button class="quick-amount-btn active" onclick="setAmount(100)">100g</button><button class="quick-amount-btn" onclick="setAmount(150)">150g</button><button class="quick-amount-btn" onclick="setAmount(200)">200g</button><button class="quick-amount-btn" onclick="setAmount(250)">250g</button><button class="quick-amount-btn" onclick="setAmount(500)">500g</button>';
-  }
-}
-
 function editEntry(entryId) {
   var entry = todayEntries.find(function(e) { return e.id === entryId; });
   if (!entry) return;
-  // Berechne per-100 Werte zurück
-  var f = entry.amount > 0 ? (100 / entry.amount) : 1;
+  var unit = entry.unit || 'g';
+  // Wichtig: g/ml → kcal skaliert mit amount → backcalc per-100.
+  // Stk/Portion → kcal ist bereits pro 1 Einheit (getAmountFactor gibt amount direkt zurück),
+  // also kcal_per_100 = entry.kcal damit factor*kcal_per_100 = entry.kcal ergibt.
+  var per100 = (unit === 'g' || unit === 'ml') && entry.amount > 0 ? (100 / entry.amount) : 1;
   selectedFood = {
     name: entry.food_name,
     brand: entry.brand || '',
-    kcal_per_100: Math.round(entry.kcal * f * 10) / 10,
-    protein_per_100: Math.round((entry.protein_g || 0) * f * 10) / 10,
-    carbs_per_100: Math.round((entry.carbs_g || 0) * f * 10) / 10,
-    fat_per_100: Math.round((entry.fat_g || 0) * f * 10) / 10,
-    fiber_per_100: Math.round((entry.fiber_g || 0) * f * 10) / 10,
+    kcal_per_100: Math.round(entry.kcal * per100 * 10) / 10,
+    protein_per_100: Math.round((entry.protein_g || 0) * per100 * 10) / 10,
+    carbs_per_100: Math.round((entry.carbs_g || 0) * per100 * 10) / 10,
+    fat_per_100: Math.round((entry.fat_g || 0) * per100 * 10) / 10,
+    fiber_per_100: Math.round((entry.fiber_g || 0) * per100 * 10) / 10,
     image: entry.image_url || '',
     barcode: entry.barcode || '',
     off_id: entry.off_product_id || ''
   };
   editingEntryId = entryId;
   currentMealType = entry.meal_type;
-  openAmountModal();
-  document.getElementById('amount-value').value = entry.amount;
-  document.getElementById('amount-unit').value = entry.unit || 'g';
-  updateNutritionPreview();
+  openAmountModal(entry.amount, unit);
 }
 
 function onUnitChange() {
   var unit = document.getElementById('amount-unit').value;
-  var container = document.querySelector('.quick-amounts');
-  if (unit === 'ml') {
-    container.innerHTML = '<button class="quick-amount-btn" onclick="setAmount(100)">100ml</button><button class="quick-amount-btn" onclick="setAmount(200)">200ml</button><button class="quick-amount-btn active" onclick="setAmount(250)">250ml</button><button class="quick-amount-btn" onclick="setAmount(330)">330ml</button><button class="quick-amount-btn" onclick="setAmount(500)">500ml</button><button class="quick-amount-btn" onclick="setAmount(1000)">1L</button>';
-    document.getElementById('amount-value').value = 250;
-  } else if (unit === 'Stk') {
-    container.innerHTML = '<button class="quick-amount-btn active" onclick="setAmount(1)">1 Stk</button><button class="quick-amount-btn" onclick="setAmount(2)">2 Stk</button><button class="quick-amount-btn" onclick="setAmount(3)">3 Stk</button><button class="quick-amount-btn" onclick="setAmount(4)">4 Stk</button><button class="quick-amount-btn" onclick="setAmount(5)">5 Stk</button>';
-    document.getElementById('amount-value').value = 1;
-  } else if (unit === 'Portion') {
-    container.innerHTML = '<button class="quick-amount-btn active" onclick="setAmount(1)">1 Port.</button><button class="quick-amount-btn" onclick="setAmount(2)">2 Port.</button><button class="quick-amount-btn" onclick="setAmount(0.5)">½ Port.</button>';
-    document.getElementById('amount-value').value = 1;
-  } else {
-    container.innerHTML = '<button class="quick-amount-btn" onclick="setAmount(25)">25g</button><button class="quick-amount-btn" onclick="setAmount(50)">50g</button><button class="quick-amount-btn active" onclick="setAmount(100)">100g</button><button class="quick-amount-btn" onclick="setAmount(150)">150g</button><button class="quick-amount-btn" onclick="setAmount(200)">200g</button><button class="quick-amount-btn" onclick="setAmount(250)">250g</button><button class="quick-amount-btn" onclick="setAmount(500)">500g</button>';
-  }
+  var preset = QUICK_AMOUNT_PRESETS[unit] || QUICK_AMOUNT_PRESETS.g;
+  document.getElementById('amount-value').value = preset.default;
+  renderQuickAmountsForUnit(unit, preset.default);
   updateNutritionPreview();
 }
 
 function setAmount(val) {
   document.getElementById('amount-value').value = val;
-  document.querySelectorAll('.quick-amount-btn').forEach(function(b) { b.classList.toggle('active', parseFloat(b.textContent) === val || b.textContent.includes('½') && val === 0.5); });
+  document.querySelectorAll('.quick-amount-btn').forEach(function(b) {
+    b.classList.toggle('active', parseFloat(b.dataset.value) === val);
+  });
   updateNutritionPreview();
 }
 
@@ -2599,10 +2796,10 @@ async function confirmAddFood() {
 
   if (editingEntryId) {
     // UPDATE existing entry
-    var { error } = await db.from('food_entries').update(entryData).eq('id', editingEntryId);
+    var { error } = await db.from('food_entries').update(entryData).eq('id', editingEntryId).eq('user_id', currentUser.id);
     if (error) { showToast('Fehler beim Speichern'); return; }
     var idx = todayEntries.findIndex(function(e) { return e.id === editingEntryId; });
-    if (idx >= 0) todayEntries[idx] = Object.assign(todayEntries[idx], entryData);
+    if (idx >= 0) todayEntries[idx] = { ...todayEntries[idx], ...entryData };
     closeModal('modal-amount');
     showToast('Eintrag aktualisiert!');
     editingEntryId = null;
@@ -2618,26 +2815,94 @@ async function confirmAddFood() {
     showToast(selectedFood.name + ' hinzugefügt!');
   }
   updateDashboard(); renderMealCards();
+  loadStreak();
+  loadFastingStatus();
   selectedFood = null;
 }
 
 // ============================================
-// BARCODE SCANNER
+// BARCODE SCANNER (komplett überarbeitet)
+// - Kamera-Auswahl mit Fallback (back → front)
+// - Torch/Licht-Button (wenn vom Gerät unterstützt)
+// - Manuelle Eingabe als Fallback
+// - Bibliotheks-Wartelogik (lazy-load via DOMContentLoaded)
+// - Doppelstart-Schutz, Misread-Schutz (gleicher Code 2x in 1.5s)
 // ============================================
+let scannerStarting = false;
+let scannerCameras = [];
+let scannerCameraIdx = 0;
+let scannerLastCode = null;
+let scannerLastCodeAt = 0;
+let scannerTorchOn = false;
+
+function setScannerHint(text, isError) {
+  var el = document.getElementById('scanner-hint');
+  if (!el) return;
+  el.textContent = text;
+  el.style.color = isError ? '#d44' : '';
+}
+
 function openScanner() {
-  document.querySelector('.scanner-hint').textContent = 'Halte den Barcode vor die Kamera';
+  setScannerHint('Kamera wird gestartet...');
+  document.getElementById('torch-btn').style.display = 'none';
+  document.getElementById('camera-switch-btn').style.display = 'none';
+  scannerLastCode = null;
   openModal('modal-scanner');
   startScanner();
 }
-async function startScanner() {
-  if (typeof Html5Qrcode === 'undefined') {
-    document.querySelector('.scanner-hint').textContent = 'Scanner lädt noch... Bitte 3 Sek. warten und nochmal öffnen.';
-    return;
+
+async function waitForHtml5Qrcode(maxMs) {
+  var start = Date.now();
+  while (typeof Html5Qrcode === 'undefined' && Date.now() - start < maxMs) {
+    await new Promise(function(r) { setTimeout(r, 100); });
   }
+  return typeof Html5Qrcode !== 'undefined';
+}
+
+async function startScanner() {
+  if (html5QrCode || scannerStarting) return; // Doppelstart-Schutz
+  scannerStarting = true;
+
   try {
-    html5QrCode = new Html5Qrcode('barcode-reader');
-    var config = { fps: 15, qrbox: { width: 300, height: 180 } };
-    // Explizit Barcode-Formate angeben
+    var ready = await waitForHtml5Qrcode(5000);
+    if (!ready) {
+      setScannerHint('Scanner-Bibliothek konnte nicht geladen werden. Internet prüfen oder Manuell eingeben.', true);
+      return;
+    }
+
+    // Kameras enumerieren — gibt uns Wechsel-Möglichkeit + Hintergrundkamera-Erkennung
+    try {
+      scannerCameras = await Html5Qrcode.getCameras();
+    } catch (e) {
+      scannerCameras = [];
+    }
+
+    if (scannerCameras.length > 1) {
+      document.getElementById('camera-switch-btn').style.display = '';
+      // Beste Hintergrundkamera vorauswählen
+      var backIdx = scannerCameras.findIndex(function(c) {
+        return /back|rear|environment|hinten/i.test(c.label || '');
+      });
+      scannerCameraIdx = backIdx >= 0 ? backIdx : scannerCameras.length - 1;
+    } else {
+      scannerCameraIdx = 0;
+    }
+
+    html5QrCode = new Html5Qrcode('barcode-reader', { verbose: false });
+
+    // Responsive qrbox — passt sich an Container-Breite an
+    var config = {
+      fps: 10,
+      qrbox: function(w, h) {
+        var min = Math.min(w, h);
+        var width = Math.floor(min * 0.85);
+        var height = Math.floor(width * 0.55); // EAN ist breiter als hoch
+        return { width: width, height: height };
+      },
+      aspectRatio: 1.333,
+      disableFlip: false,
+      experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+    };
     if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
       config.formatsToSupport = [
         Html5QrcodeSupportedFormats.EAN_13,
@@ -2645,45 +2910,146 @@ async function startScanner() {
         Html5QrcodeSupportedFormats.UPC_A,
         Html5QrcodeSupportedFormats.UPC_E,
         Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.QR_CODE
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.ITF
       ];
     }
-    await html5QrCode.start(
-      { facingMode: 'environment' },
-      config,
-      onBarcodeScanned,
-      function() {}
-    );
-    document.querySelector('.scanner-hint').textContent = 'Kamera aktiv — Barcode ins Feld halten';
+
+    var cameraSpec = scannerCameras.length > 0
+      ? scannerCameras[scannerCameraIdx].id
+      : { facingMode: 'environment' };
+
+    await html5QrCode.start(cameraSpec, config, onBarcodeScanned, function(){});
+    setScannerHint('Kamera aktiv — Barcode mittig ins Feld halten');
+
+    // Torch-Support prüfen (asynchron, nicht blockierend)
+    setTimeout(function() {
+      try {
+        var caps = html5QrCode.getRunningTrackCapabilities && html5QrCode.getRunningTrackCapabilities();
+        if (caps && caps.torch) {
+          document.getElementById('torch-btn').style.display = '';
+        }
+      } catch (e) {}
+    }, 500);
   } catch (err) {
-    document.querySelector('.scanner-hint').textContent = 'Kamera-Fehler: ' + (err.message || err);
+    console.error('Scanner start error:', err);
+    var msg = 'Kamera nicht verfügbar';
+    if (err && err.name === 'NotAllowedError') msg = 'Kamera-Zugriff verweigert. Berechtigung in den Browser-Einstellungen erlauben.';
+    else if (err && err.name === 'NotFoundError') msg = 'Keine Kamera gefunden.';
+    else if (err && err.name === 'NotReadableError') msg = 'Kamera wird bereits verwendet.';
+    else if (err && err.message) msg = 'Kamera-Fehler: ' + err.message;
+    setScannerHint(msg + ' Du kannst den Code auch manuell eingeben.', true);
+    if (html5QrCode) { try { await html5QrCode.stop(); } catch(e) {} html5QrCode = null; }
+  } finally {
+    scannerStarting = false;
   }
 }
-async function onBarcodeScanned(barcode) {
-  if (html5QrCode) { await html5QrCode.stop(); html5QrCode = null; }
-  closeScannerModal();
-  showToast('Barcode erkannt: ' + barcode + ' — Produkt wird gesucht...');
+
+async function switchCamera() {
+  if (!html5QrCode || scannerCameras.length < 2) return;
+  scannerCameraIdx = (scannerCameraIdx + 1) % scannerCameras.length;
   try {
-    const resp = await fetch('https://world.openfoodfacts.org/api/v0/product/' + barcode + '.json');
-    if (!resp.ok) throw new Error('Server Fehler');
+    await html5QrCode.stop();
+    html5QrCode = null;
+    scannerTorchOn = false;
+    document.getElementById('torch-btn').textContent = '🔦 Licht an';
+    setScannerHint('Wechsle Kamera...');
+    await startScanner();
+  } catch (e) {
+    setScannerHint('Wechsel fehlgeschlagen', true);
+  }
+}
+
+async function toggleTorch() {
+  if (!html5QrCode) return;
+  try {
+    scannerTorchOn = !scannerTorchOn;
+    await html5QrCode.applyVideoConstraints({ advanced: [{ torch: scannerTorchOn }] });
+    document.getElementById('torch-btn').textContent = scannerTorchOn ? '🔦 Licht aus' : '🔦 Licht an';
+  } catch (e) {
+    showToast('Licht nicht verfügbar');
+    scannerTorchOn = false;
+  }
+}
+
+function openManualBarcode() {
+  closeScannerModal();
+  setTimeout(function() {
+    openModal('modal-manual-barcode');
+    setTimeout(function() { document.getElementById('manual-barcode-input').focus(); }, 200);
+  }, 300);
+}
+
+async function submitManualBarcode() {
+  var raw = document.getElementById('manual-barcode-input').value.trim();
+  if (!/^\d{8,14}$/.test(raw)) { showToast('Ungültig — 8 bis 14 Ziffern erwartet'); return; }
+  closeModal('modal-manual-barcode');
+  await lookupBarcode(raw);
+}
+
+async function onBarcodeScanned(barcode) {
+  // Misread-Schutz: gleicher Code innerhalb 1.5s = ignorieren
+  var now = Date.now();
+  if (scannerLastCode === barcode && (now - scannerLastCodeAt) < 1500) return;
+  scannerLastCode = barcode;
+  scannerLastCodeAt = now;
+
+  // Validierung — nur numerische EAN/UPC akzeptieren (8-14 Ziffern)
+  if (!/^\d{8,14}$/.test(barcode)) {
+    setScannerHint('Code erkannt, aber kein gültiger EAN/UPC: ' + barcode, true);
+    return;
+  }
+
+  await closeScannerModal();
+  await lookupBarcode(barcode);
+}
+
+async function lookupBarcode(barcode) {
+  showToast('Suche Barcode ' + barcode + '...');
+  try {
+    const resp = await fetch('https://world.openfoodfacts.org/api/v2/product/' + encodeURIComponent(barcode) + '.json?fields=product_name,product_name_de,brands,nutriments,image_front_small_url,_id,code');
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
     if (data.status === 1 && data.product) {
       const p = data.product;
-      selectedFood = { name: p.product_name||'Unbekannt', brand: p.brands||'', kcal_per_100: p.nutriments?.['energy-kcal_100g']||p.nutriments?.['energy-kcal']||0, protein_per_100: p.nutriments?.proteins_100g||0, carbs_per_100: p.nutriments?.carbohydrates_100g||0, fat_per_100: p.nutriments?.fat_100g||0, fiber_per_100: p.nutriments?.fiber_100g||0, image: p.image_front_small_url||'', barcode: barcode, off_id: p._id||'' };
-      showToast('Gefunden: ' + selectedFood.name);
+      const name = p.product_name_de || p.product_name || 'Unbekannt';
+      selectedFood = {
+        name: name,
+        brand: p.brands || '',
+        kcal_per_100: Math.round(p.nutriments?.['energy-kcal_100g'] || p.nutriments?.['energy-kcal'] || 0),
+        protein_per_100: p.nutriments?.proteins_100g || 0,
+        carbs_per_100: p.nutriments?.carbohydrates_100g || 0,
+        fat_per_100: p.nutriments?.fat_100g || 0,
+        fiber_per_100: p.nutriments?.fiber_100g || 0,
+        image: isSafeImageUrl(p.image_front_small_url) ? p.image_front_small_url : '',
+        barcode: barcode,
+        off_id: p._id || ''
+      };
+      editingEntryId = null;
+      showToast('Gefunden: ' + name);
       openAmountModal();
     } else {
-      showToast('Produkt nicht in Datenbank — als eigenes Lebensmittel anlegen');
+      showToast('Produkt nicht gefunden — bitte manuell anlegen');
       showCustomFoodForm();
       document.getElementById('custom-food-name').value = 'Barcode ' + barcode;
     }
   } catch (err) {
-    showToast('Suche fehlgeschlagen — manuell eingeben');
+    console.error('barcode lookup:', err);
+    showToast('Suche fehlgeschlagen — bitte manuell anlegen');
     showCustomFoodForm();
     document.getElementById('custom-food-name').value = 'Barcode ' + barcode;
   }
 }
-function closeScannerModal() { if (html5QrCode) { html5QrCode.stop().catch(()=>{}); html5QrCode = null; } closeModal('modal-scanner'); }
+
+async function closeScannerModal() {
+  if (html5QrCode) {
+    try { await html5QrCode.stop(); } catch(e) {}
+    try { html5QrCode.clear(); } catch(e) {}
+    html5QrCode = null;
+  }
+  scannerTorchOn = false;
+  closeModal('modal-scanner');
+}
 
 // ============================================
 // CUSTOM FOOD
@@ -3001,16 +3367,16 @@ function renderRecipeSearchResults(container, localResults, offProducts) {
   let html = '';
   if (localResults.length > 0) {
     html += localResults.slice(0, 5).map(f => {
-      const fd = JSON.stringify(f).replace(/'/g, '&#39;');
-      return `<div class="search-result-item" onclick='addRecipeIngredient(${fd})' style="padding:8px 10px"><div style="width:32px;height:32px;border-radius:6px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">${f.icon}</div><div class="result-info"><div class="result-name" style="font-size:0.85rem">${escapeHtml(f.name)}</div><div class="result-brand" style="font-size:0.7rem">${f.kcal} kcal · E ${f.protein}g · K ${f.carbs}g · F ${f.fat}g /100g</div></div></div>`;
+      const fd = encodeURIComponent(JSON.stringify(f));
+      return `<div class="search-result-item" onclick="addRecipeIngredientEnc('${fd}')" style="padding:8px 10px"><div style="width:32px;height:32px;border-radius:6px;background:var(--green-light);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">${f.icon}</div><div class="result-info"><div class="result-name" style="font-size:0.85rem">${escapeHtml(f.name)}</div><div class="result-brand" style="font-size:0.7rem">${f.kcal} kcal · E ${f.protein}g · K ${f.carbs}g · F ${f.fat}g /100g</div></div></div>`;
     }).join('');
   }
   if (offProducts.length > 0) {
     html += '<div style="font-size:0.7rem;font-weight:600;color:var(--text-tertiary);margin:6px 0 4px;padding:0 4px">VERPACKTE PRODUKTE</div>';
     html += offProducts.slice(0, 5).map(p => {
       const f = { name: p.product_name, kcal: Math.round(p.nutriments['energy-kcal_100g']||p.nutriments['energy-kcal']||0), protein: Math.round((p.nutriments.proteins_100g||0)*10)/10, carbs: Math.round((p.nutriments.carbohydrates_100g||0)*10)/10, fat: Math.round((p.nutriments.fat_100g||0)*10)/10, fiber: Math.round((p.nutriments.fiber_100g||0)*10)/10, icon: '🏷️' };
-      const fd = JSON.stringify(f).replace(/'/g, '&#39;');
-      return `<div class="search-result-item" onclick='addRecipeIngredient(${fd})' style="padding:8px 10px"><div style="width:32px;height:32px;border-radius:6px;background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">🏷️</div><div class="result-info"><div class="result-name" style="font-size:0.85rem">${escapeHtml(p.product_name)}</div><div class="result-brand" style="font-size:0.7rem">${escapeHtml(p.brands||'')} · ${f.kcal} kcal/100g</div></div></div>`;
+      const fd = encodeURIComponent(JSON.stringify(f));
+      return `<div class="search-result-item" onclick="addRecipeIngredientEnc('${fd}')" style="padding:8px 10px"><div style="width:32px;height:32px;border-radius:6px;background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0">🏷️</div><div class="result-info"><div class="result-name" style="font-size:0.85rem">${escapeHtml(p.product_name)}</div><div class="result-brand" style="font-size:0.7rem">${escapeHtml(p.brands||'')} · ${f.kcal} kcal/100g</div></div></div>`;
     }).join('');
   }
   if (!html) html = '<div style="font-size:0.8rem;color:var(--text-tertiary);padding:8px">Nichts gefunden.</div>';
@@ -3023,6 +3389,7 @@ function addRecipeIngredient(food) {
   document.getElementById('recipe-search-results').innerHTML = '';
   renderRecipeIngredients();
 }
+function addRecipeIngredientEnc(enc) { try { addRecipeIngredient(JSON.parse(decodeURIComponent(enc))); } catch(e) { showToast('Fehler beim Hinzufügen'); } }
 
 function removeRecipeIngredient(idx) {
   recipeIngredients.splice(idx, 1);
@@ -3089,16 +3456,16 @@ async function saveRecipe() {
 
   if (editingRecipeId) {
     // UPDATE
-    const { error } = await db.from('recipes').update(recipeData).eq('id', editingRecipeId);
-    if (error) { showToast('Fehler: ' + (error.message || '')); return; }
-    closeModal('modal-recipe'); loadRecipes(); showToast('Rezept aktualisiert!');
+    const { error } = await db.from('recipes').update(recipeData).eq('id', editingRecipeId).eq('user_id', currentUser.id);
+    if (error) { showToast('Fehler beim Speichern'); return; }
+    closeModal('modal-recipe'); await loadRecipes(); showToast('Rezept aktualisiert!');
     editingRecipeId = null;
   } else {
     // INSERT
     recipeData.user_id = currentUser.id;
     const { error } = await db.from('recipes').insert([recipeData]).select();
-    if (error) { showToast('Fehler: ' + (error.message || '')); return; }
-    closeModal('modal-recipe'); loadRecipes(); showToast('Rezept gespeichert!');
+    if (error) { showToast('Fehler beim Speichern'); return; }
+    closeModal('modal-recipe'); await loadRecipes(); showToast('Rezept gespeichert!');
   }
 }
 
@@ -3146,10 +3513,12 @@ async function addRecipeAsMeal(recipeId) {
 }
 
 async function deleteRecipe(recipeId) {
+  if (!currentUser) return;
   if (!confirm('Rezept wirklich löschen?')) return;
-  await db.from('recipes').delete().eq('id', recipeId);
+  const { error } = await db.from('recipes').delete().eq('id', recipeId).eq('user_id', currentUser.id);
+  if (error) { showToast('Fehler beim Löschen'); return; }
   closeModal('modal-recipe-detail');
-  loadRecipes();
+  await loadRecipes();
   showToast('Rezept gelöscht');
 }
 
@@ -3165,7 +3534,7 @@ async function loadWeeklyStats() {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    days.push({ date: d, str: d.toISOString().split('T')[0], label: dayNames[d.getDay()] });
+    days.push({ date: d, str: getDateStr(d), label: dayNames[d.getDay()] });
   }
 
   const startDate = days[0].str;
@@ -3188,7 +3557,7 @@ async function loadWeeklyStats() {
   });
 
   const maxKcal = Math.max(...dayTotals.map(d => d.kcal), goal);
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = getDateStr(today);
 
   const barsEl = document.getElementById('weekly-bars');
   barsEl.innerHTML = dayTotals.map(d => {
@@ -3312,8 +3681,9 @@ async function loadWeightChart() {
 async function logWeight() {
   const val = parseFloat(document.getElementById('weight-input').value);
   if (!val || val < 20 || val > 400 || !currentUser) { showToast('Bitte gültiges Gewicht eingeben'); return; }
-  const today = new Date().toISOString().split('T')[0];
-  await db.from('weight_log').upsert({ user_id: currentUser.id, weight_kg: val, logged_date: today }, { onConflict: 'user_id,logged_date' });
+  const today = getDateStr(new Date());
+  const { error: wErr } = await db.from('weight_log').upsert({ user_id: currentUser.id, weight_kg: val, logged_date: today }, { onConflict: 'user_id,logged_date' });
+  if (wErr) { console.error('weight upsert failed:', wErr); showToast('Speichern fehlgeschlagen'); return; }
 
   // Automatisch Ziele neu berechnen mit neuem Gewicht
   if (currentProfile && currentProfile.birth_date && currentProfile.height_cm && currentProfile.activity_level) {
@@ -3334,18 +3704,21 @@ async function logWeight() {
       daily_fiber_goal: macros.fiberG, daily_water_ml_goal: macros.waterMl,
       updated_at: new Date().toISOString()
     };
-    await db.from('profiles').update(update).eq('id', currentUser.id);
+    const { error: pErr } = await db.from('profiles').update(update).eq('id', currentUser.id);
+    if (pErr) { console.error('profile update failed:', pErr); showToast('Gewicht gespeichert, Ziel-Update fehlgeschlagen'); }
     currentProfile = { ...currentProfile, ...update };
 
     updateDashboard();
     refreshSettingsInputs();
-    showToast(`${val} kg gespeichert — Ziele angepasst (${kcalGoal} kcal)`);
+    if (!pErr) showToast(`${val} kg gespeichert — Ziele angepasst (${kcalGoal} kcal)`);
   } else {
-    await db.from('profiles').update({ current_weight_kg: val }).eq('id', currentUser.id);
+    const { error: pErr } = await db.from('profiles').update({ current_weight_kg: val }).eq('id', currentUser.id);
+    if (pErr) console.error('profile update failed:', pErr);
     if (currentProfile) currentProfile.current_weight_kg = val;
     showToast('Gewicht gespeichert: ' + val + ' kg');
   }
   loadWeightChart();
+  if (typeof loadStreak === 'function') loadStreak();
 }
 
 // ============================================
@@ -3371,11 +3744,13 @@ async function loadRecentFoods() {
   if (!container) return;
   container.innerHTML = '<div style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px">KÜRZLICH GEGESSEN</div>' +
     unique.map(e => {
-      const kcalPer100 = e.amount > 0 ? Math.round((e.kcal / e.amount) * 100) : e.kcal;
-      const protPer100 = e.amount > 0 ? Math.round(((e.protein_g || 0) / e.amount) * 100 * 10) / 10 : 0;
-      const carbsPer100 = e.amount > 0 ? Math.round(((e.carbs_g || 0) / e.amount) * 100 * 10) / 10 : 0;
-      const fatPer100 = e.amount > 0 ? Math.round(((e.fat_g || 0) / e.amount) * 100 * 10) / 10 : 0;
-      const fd = encodeURIComponent(JSON.stringify({ name: e.food_name, brand: e.brand || '', kcal: kcalPer100, protein: protPer100, carbs: carbsPer100, fat: fatPer100, fiber: 0, image: e.image_url || '', barcode: e.barcode || '', off_id: e.off_product_id || '' }));
+      // Wichtig: Nur bei g/ml ist (kcal/amount)*100 sinnvoll. Stk/Portion sind bereits pro 1 Einheit.
+      const isMass = (e.unit === 'g' || e.unit === 'ml') && e.amount > 0;
+      const kcalPer100 = isMass ? Math.round((e.kcal / e.amount) * 100) : Math.round(e.kcal * 10) / 10;
+      const protPer100 = isMass ? Math.round(((e.protein_g || 0) / e.amount) * 100 * 10) / 10 : Math.round((e.protein_g || 0) * 10) / 10;
+      const carbsPer100 = isMass ? Math.round(((e.carbs_g || 0) / e.amount) * 100 * 10) / 10 : Math.round((e.carbs_g || 0) * 10) / 10;
+      const fatPer100 = isMass ? Math.round(((e.fat_g || 0) / e.amount) * 100 * 10) / 10 : Math.round((e.fat_g || 0) * 10) / 10;
+      const fd = encodeURIComponent(JSON.stringify({ name: e.food_name, brand: e.brand || '', kcal: kcalPer100, protein: protPer100, carbs: carbsPer100, fat: fatPer100, fiber: 0, image: e.image_url || '', barcode: e.barcode || '', off_id: e.off_product_id || '', unitHint: e.unit || 'g' }));
       return `<span class="recent-food-chip" onclick="selectProduct('${fd}')">${escapeHtml(e.food_name)} <span class="chip-kcal">${Math.round(e.kcal)}</span></span>`;
     }).join('');
 }
@@ -3387,8 +3762,8 @@ async function copyMealFromYesterday(mealType) {
   if (!currentUser || !db) return;
   const yesterday = new Date(selectedDate);
   yesterday.setDate(yesterday.getDate() - 1);
-  const yStr = yesterday.toISOString().split('T')[0];
-  const todayStr = selectedDate.toISOString().split('T')[0];
+  const yStr = getDateStr(yesterday);
+  const todayStr = getDateStr(selectedDate);
 
   const { data } = await db.from('food_entries').select('*')
     .eq('user_id', currentUser.id).eq('entry_date', yStr).eq('meal_type', mealType);
@@ -3419,7 +3794,381 @@ async function copyMealFromYesterday(mealType) {
 // UTILITIES
 // ============================================
 function escapeHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function escapeAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function isSafeImageUrl(u) { return typeof u === 'string' && /^https:\/\//i.test(u); }
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+
+// ============================================
+// FEATURE: WASSERTRACKING
+// ============================================
+async function loadWaterToday() {
+  if (!currentUser || !db) return;
+  var dateStr = getDateStr(selectedDate);
+  var goal = currentProfile?.daily_water_ml_goal || 2000;
+  try {
+    var { data, error } = await db.from('water_log').select('amount_ml')
+      .eq('user_id', currentUser.id).eq('logged_date', dateStr);
+    if (error) { console.error('water load:', error); return; }
+    var total = (data || []).reduce(function(s, r) { return s + (r.amount_ml || 0); }, 0);
+    renderWater(total, goal);
+  } catch (e) { console.error('water:', e); }
+}
+
+function renderWater(ml, goal) {
+  document.getElementById('water-display').textContent = ml + ' / ' + goal + ' ml';
+  var pct = Math.min(100, goal > 0 ? (ml / goal) * 100 : 0);
+  document.getElementById('water-bar').style.width = pct + '%';
+}
+
+async function addWater(deltaMl) {
+  if (!currentUser || !db) return;
+  // Nur Heute editierbar — kein Eintrag in Vergangenheit/Zukunft
+  var dateStr = getDateStr(new Date());
+  if (dateStr !== getDateStr(selectedDate)) {
+    showToast('Wasser kann nur für heute geändert werden');
+    return;
+  }
+  // Aktuellen Stand laden, dann upserten
+  var { data } = await db.from('water_log').select('id,amount_ml')
+    .eq('user_id', currentUser.id).eq('logged_date', dateStr).maybeSingle();
+  var current = data?.amount_ml || 0;
+  var next = Math.max(0, Math.min(20000, current + deltaMl));
+  if (data?.id) {
+    var { error } = await db.from('water_log').update({ amount_ml: next })
+      .eq('id', data.id).eq('user_id', currentUser.id);
+    if (error) { showToast('Fehler beim Speichern'); return; }
+  } else {
+    var { error } = await db.from('water_log').insert([{
+      user_id: currentUser.id, logged_date: dateStr, amount_ml: next
+    }]);
+    if (error) { showToast('Fehler beim Speichern'); return; }
+  }
+  var goal = currentProfile?.daily_water_ml_goal || 2000;
+  renderWater(next, goal);
+}
+
+// ============================================
+// FEATURE: FASTING TIMER
+// ============================================
+let fastingInterval = null;
+
+async function loadFastingStatus() {
+  if (!currentUser) return;
+  var win = currentProfile?.fasting_window_hours || 16;
+  document.getElementById('fasting-window-label').textContent = win + ':' + (24 - win);
+
+  // Zeitpunkt der letzten Mahlzeit ermitteln
+  try {
+    var { data } = await db.from('food_entries').select('created_at')
+      .eq('user_id', currentUser.id)
+      .order('created_at', { ascending: false }).limit(1);
+    var lastEntry = data && data[0] ? new Date(data[0].created_at) : null;
+    if (fastingInterval) clearInterval(fastingInterval);
+    if (!lastEntry) {
+      document.getElementById('fasting-time').textContent = '—';
+      document.getElementById('fasting-status').textContent = 'Noch kein Eintrag';
+      document.getElementById('fasting-bar').style.width = '0%';
+      return;
+    }
+    function tick() {
+      var now = Date.now();
+      var elapsedMs = now - lastEntry.getTime();
+      var elapsedH = elapsedMs / 3600000;
+      var h = Math.floor(elapsedH);
+      var m = Math.floor((elapsedMs / 60000) % 60);
+      var pct = Math.min(100, (elapsedH / win) * 100);
+      document.getElementById('fasting-time').textContent = h + 'h ' + String(m).padStart(2,'0') + 'm';
+      document.getElementById('fasting-bar').style.width = pct + '%';
+      if (elapsedH >= win) {
+        document.getElementById('fasting-status').textContent = '✅ Fenster offen';
+        document.getElementById('fasting-bar').style.background = 'var(--green)';
+      } else {
+        var remH = Math.floor(win - elapsedH);
+        var remM = Math.floor((win - elapsedH - remH) * 60);
+        document.getElementById('fasting-status').textContent = 'noch ' + remH + 'h ' + remM + 'm';
+        document.getElementById('fasting-bar').style.background = 'var(--purple)';
+      }
+    }
+    tick();
+    fastingInterval = setInterval(tick, 30000); // alle 30s aktualisieren
+  } catch (e) { console.error('fasting:', e); }
+}
+
+function openFastingSettings() {
+  var current = currentProfile?.fasting_window_hours || 16;
+  document.getElementById('fasting-window-input').value = current;
+  openModal('modal-fasting');
+}
+
+async function saveFastingWindow() {
+  var v = parseInt(document.getElementById('fasting-window-input').value);
+  if (!v || v < 8 || v > 23) { showToast('Wert muss zwischen 8 und 23 liegen'); return; }
+  var { error } = await db.from('profiles').update({ fasting_window_hours: v }).eq('id', currentUser.id);
+  if (error) { showToast('Speichern fehlgeschlagen'); return; }
+  if (currentProfile) currentProfile.fasting_window_hours = v;
+  closeModal('modal-fasting');
+  loadFastingStatus();
+  showToast('Fasten-Fenster aktualisiert');
+}
+
+// ============================================
+// FEATURE: STREAK COUNTER
+// ============================================
+async function loadStreak() {
+  if (!currentUser || !db) return;
+  try {
+    // Letzte 60 Tage holen, distinct entry_dates ableiten
+    var lookback = new Date();
+    lookback.setDate(lookback.getDate() - 60);
+    var { data } = await db.from('food_entries').select('entry_date')
+      .eq('user_id', currentUser.id).gte('entry_date', getDateStr(lookback));
+    if (!data || data.length === 0) {
+      renderStreak(0);
+      return;
+    }
+    var dateSet = new Set(data.map(function(r) { return r.entry_date; }));
+    // Streak ab heute rückwärts zählen
+    var streak = 0;
+    var d = new Date();
+    while (dateSet.has(getDateStr(d))) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    }
+    // Wenn heute noch nichts geloggt aber gestern: Streak ab gestern
+    if (streak === 0) {
+      d = new Date();
+      d.setDate(d.getDate() - 1);
+      while (dateSet.has(getDateStr(d))) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      }
+    }
+    renderStreak(streak);
+  } catch (e) { console.error('streak:', e); }
+}
+
+function renderStreak(count) {
+  var el = document.getElementById('streak-badge');
+  if (!el) return;
+  if (count > 0) {
+    el.style.display = 'flex';
+    el.querySelector('.streak-count').textContent = count;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+// ============================================
+// FEATURE: FAVORITEN
+// ============================================
+let favoritesCache = [];
+
+async function loadFavorites() {
+  if (!currentUser || !db) return;
+  try {
+    var { data } = await db.from('favorites').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+    favoritesCache = data || [];
+    renderFavoritesSection();
+  } catch (e) { console.error('favorites load:', e); }
+}
+
+function renderFavoritesSection() {
+  var container = document.getElementById('favorites-section');
+  if (!container) return;
+  if (favoritesCache.length === 0) { container.innerHTML = ''; return; }
+  container.innerHTML = '<div style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px">⭐ FAVORITEN</div>' +
+    favoritesCache.slice(0, 12).map(function(f) {
+      var fd = encodeURIComponent(JSON.stringify({ name: f.food_name, brand: f.brand || '', kcal: f.kcal_per_100, protein: f.protein_per_100, carbs: f.carbs_per_100, fat: f.fat_per_100, fiber: 0, image: f.image_url || '', barcode: f.barcode || '', off_id: f.off_id || '', unitHint: f.unit_hint || 'g' }));
+      return '<span class="recent-food-chip" onclick="selectProduct(\'' + fd + '\')" style="background:var(--accent-light);border-color:var(--accent)">⭐ ' + escapeHtml(f.food_name) + ' <span class="chip-kcal">' + Math.round(f.kcal_per_100) + '</span></span>';
+    }).join('');
+}
+
+async function toggleFavorite(foodObj) {
+  if (!currentUser) return;
+  var existing = favoritesCache.find(function(f) {
+    return f.food_name.toLowerCase() === foodObj.name.toLowerCase() && (f.brand || '') === (foodObj.brand || '');
+  });
+  if (existing) {
+    var { error } = await db.from('favorites').delete().eq('id', existing.id).eq('user_id', currentUser.id);
+    if (error) { showToast('Fehler'); return; }
+    favoritesCache = favoritesCache.filter(function(f) { return f.id !== existing.id; });
+    showToast('Aus Favoriten entfernt');
+  } else {
+    var row = {
+      user_id: currentUser.id,
+      food_name: foodObj.name,
+      brand: foodObj.brand || null,
+      kcal_per_100: foodObj.kcal_per_100 || foodObj.kcal || 0,
+      protein_per_100: foodObj.protein_per_100 || foodObj.protein || 0,
+      carbs_per_100: foodObj.carbs_per_100 || foodObj.carbs || 0,
+      fat_per_100: foodObj.fat_per_100 || foodObj.fat || 0,
+      image_url: foodObj.image || null,
+      barcode: foodObj.barcode || null,
+      off_id: foodObj.off_id || null,
+      unit_hint: foodObj.unitHint || 'g'
+    };
+    var { data, error } = await db.from('favorites').insert([row]).select().single();
+    if (error) { showToast('Fehler beim Speichern'); return; }
+    favoritesCache.unshift(data);
+    showToast('Zu Favoriten hinzugefügt ⭐');
+  }
+  renderFavoritesSection();
+}
+
+function favoriteCurrentSelection() {
+  if (!selectedFood) return;
+  toggleFavorite(selectedFood);
+}
+
+// ============================================
+// FEATURE: QUICK-ADD KCAL (Schnell-Eintrag)
+// ============================================
+function openQuickAdd(mealType) {
+  currentMealType = mealType || 'snacks';
+  document.getElementById('qa-name').value = '';
+  document.getElementById('qa-kcal').value = '';
+  document.getElementById('qa-protein').value = '';
+  document.getElementById('qa-carbs').value = '';
+  document.getElementById('qa-fat').value = '';
+  closeModal('modal-add-food');
+  setTimeout(function() {
+    openModal('modal-quick-add');
+    setTimeout(function() { document.getElementById('qa-kcal').focus(); }, 150);
+  }, 200);
+}
+
+async function confirmQuickAdd() {
+  if (!currentUser) return;
+  var kcal = parseFloat(document.getElementById('qa-kcal').value) || 0;
+  if (kcal <= 0 || kcal > 9999) { showToast('Bitte Kalorien eingeben (1–9999)'); return; }
+  var name = document.getElementById('qa-name').value.trim() || 'Schnell-Eintrag';
+  var entryData = {
+    user_id: currentUser.id,
+    entry_date: getDateStr(selectedDate),
+    meal_type: currentMealType,
+    food_name: name,
+    brand: 'Schnell-Eintrag',
+    amount: 1,
+    unit: 'Portion',
+    kcal: Math.round(kcal),
+    protein_g: parseFloat(document.getElementById('qa-protein').value) || 0,
+    carbs_g: parseFloat(document.getElementById('qa-carbs').value) || 0,
+    fat_g: parseFloat(document.getElementById('qa-fat').value) || 0,
+    fiber_g: 0
+  };
+  var { data, error } = await db.from('food_entries').insert([entryData]).select().single();
+  if (error) { console.error(error); showToast('Fehler beim Speichern'); return; }
+  todayEntries.push(data);
+  closeModal('modal-quick-add');
+  updateDashboard();
+  renderMealCards();
+  loadFastingStatus();
+  showToast('Eintrag hinzugefügt');
+}
+
+// ============================================
+// FEATURE: CSV-EXPORT (DSGVO)
+// ============================================
+function csvEscape(v) {
+  if (v == null) return '';
+  var s = String(v);
+  if (/[",\n;]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function rowsToCsv(rows) {
+  if (!rows || rows.length === 0) return '';
+  var headers = Object.keys(rows[0]);
+  var out = headers.join(';') + '\n';
+  rows.forEach(function(r) {
+    out += headers.map(function(h) { return csvEscape(r[h]); }).join(';') + '\n';
+  });
+  return out;
+}
+
+async function exportUserData() {
+  if (!currentUser) return;
+  showToast('Daten werden vorbereitet...');
+  try {
+    var [entries, weights, customs, recipes, water, favs, profile] = await Promise.all([
+      db.from('food_entries').select('*').eq('user_id', currentUser.id).order('entry_date'),
+      db.from('weight_log').select('*').eq('user_id', currentUser.id).order('logged_date'),
+      db.from('custom_foods').select('*').eq('user_id', currentUser.id),
+      db.from('recipes').select('*').eq('user_id', currentUser.id),
+      db.from('water_log').select('*').eq('user_id', currentUser.id).order('logged_date'),
+      db.from('favorites').select('*').eq('user_id', currentUser.id),
+      db.from('profiles').select('*').eq('id', currentUser.id).single()
+    ]);
+    var sections = [
+      '# Aufgetischt — Datenexport ' + new Date().toISOString(),
+      '',
+      '## Profil',
+      rowsToCsv(profile.data ? [profile.data] : []),
+      '',
+      '## Einträge',
+      rowsToCsv(entries.data || []),
+      '',
+      '## Gewicht',
+      rowsToCsv(weights.data || []),
+      '',
+      '## Wasser',
+      rowsToCsv(water.data || []),
+      '',
+      '## Eigene Lebensmittel',
+      rowsToCsv(customs.data || []),
+      '',
+      '## Rezepte',
+      rowsToCsv(recipes.data || []),
+      '',
+      '## Favoriten',
+      rowsToCsv(favs.data || [])
+    ];
+    var blob = new Blob([sections.join('\n')], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'aufgetischt-export-' + getDateStr(new Date()) + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    showToast('Export erstellt');
+  } catch (e) {
+    console.error('export:', e);
+    showToast('Export fehlgeschlagen');
+  }
+}
+
+// ============================================
+// FEATURE: ACCOUNT LÖSCHEN (DSGVO)
+// ============================================
+async function deleteAccount() {
+  if (!currentUser) return;
+  if (!confirm('Konto wirklich löschen?\n\nAlle Einträge, Gewichte, Rezepte und Favoriten werden dauerhaft entfernt.\n\nDieser Schritt kann NICHT rückgängig gemacht werden.')) return;
+  var second = prompt('Zur Bestätigung tippe LÖSCHEN ein:');
+  if (second !== 'LÖSCHEN') { showToast('Abgebrochen'); return; }
+  showToast('Daten werden gelöscht...');
+  try {
+    // Reihenfolge unwichtig (kein FK-Zwang client-seitig)
+    await Promise.all([
+      db.from('food_entries').delete().eq('user_id', currentUser.id),
+      db.from('weight_log').delete().eq('user_id', currentUser.id),
+      db.from('custom_foods').delete().eq('user_id', currentUser.id),
+      db.from('recipes').delete().eq('user_id', currentUser.id),
+      db.from('water_log').delete().eq('user_id', currentUser.id),
+      db.from('favorites').delete().eq('user_id', currentUser.id)
+    ]);
+    // Profil zuletzt
+    await db.from('profiles').delete().eq('id', currentUser.id);
+    // Auth-User Löschung erfordert Service-Role-Key — nur Sign-Out client-seitig.
+    // Hinweis: Vollständige Auth-Löschung muss in Supabase Dashboard oder via Edge Function erfolgen.
+    await db.auth.signOut();
+    alert('Daten gelöscht. Der Auth-Account selbst muss in Supabase manuell entfernt werden (kein Anon-Key-Zugriff).');
+  } catch (e) {
+    console.error('delete account:', e);
+    showToast('Fehler beim Löschen — bitte erneut versuchen');
+  }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   initApp();
@@ -3442,32 +4191,35 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// iOS Safari: Wenn App aus dem Hintergrund zurückkommt,
-// Supabase-Client neu initialisieren damit Suche sofort funktioniert
-document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'visible' && window.supabase) {
-    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    // Cache leeren (Verbindungen veraltet)
+// iOS Safari: Wenn App aus dem Hintergrund zurückkommt, Session refreshen
+// statt den ganzen Client neu zu erstellen — verhindert Race-Conditions mit
+// in-flight-Requests und doppelte Auth-Listener.
+let _resumeInFlight = false;
+async function resumeFromBackground() {
+  if (_resumeInFlight || !db) return;
+  _resumeInFlight = true;
+  try {
     Object.keys(offCache).forEach(function(k) { delete offCache[k]; });
-    db.auth.getSession().then(function(result) {
-      if (result.data?.session) {
-        currentUser = result.data.session.user;
-      }
-    });
+    const { data, error } = await db.auth.refreshSession();
+    if (error) {
+      // Refresh fehlgeschlagen — auf normalem getSession-Fallback zurück
+      const sess = await db.auth.getSession();
+      if (sess.data?.session) currentUser = sess.data.session.user;
+    } else if (data?.session) {
+      currentUser = data.session.user;
+    }
+  } catch (e) {
+    console.error('resumeFromBackground:', e);
+  } finally {
+    _resumeInFlight = false;
   }
-});
+}
 
-// Auch für Safari PWA "pageshow" Event (bfcache)
+document.addEventListener('visibilitychange', function() {
+  if (document.visibilityState === 'visible') resumeFromBackground();
+});
 window.addEventListener('pageshow', function(event) {
-  if (event.persisted && window.supabase) {
-    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    Object.keys(offCache).forEach(function(k) { delete offCache[k]; });
-    db.auth.getSession().then(function(result) {
-      if (result.data?.session) {
-        currentUser = result.data.session.user;
-      }
-    });
-  }
+  if (event.persisted) resumeFromBackground();
 });
 </script>
 </body>
