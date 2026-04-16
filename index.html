@@ -1573,6 +1573,41 @@ body {
 .recipe-ingredient-item .ri-remove:hover { color: #d44; background: var(--bg-tertiary); }
 
 /* ============================================
+   STATS-TABS — Woche / Monat Segmented Toggle
+   ============================================ */
+.stats-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  position: relative;
+}
+.stats-tab {
+  flex: 1;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-family: var(--ff-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: color 0.2s, background 0.25s, box-shadow 0.25s;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: -0.005em;
+}
+.stats-tab:hover { color: var(--text-secondary); }
+.stats-tab.active {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-xs);
+}
+.stats-pane { animation: fadeIn 0.25s ease; }
+
+/* ============================================
    WEEKLY STATS — Editorial Chart
    ============================================ */
 .weekly-stats { padding: 0 20px 18px; }
@@ -2365,47 +2400,47 @@ body {
         </div>
       </div>
     </div>
-    <!-- Weekly Stats -->
-    <div class="weekly-stats" id="weekly-stats-section">
+    <!-- Stats Card mit Toggle Woche/Monat -->
+    <div class="weekly-stats" id="stats-section">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-          <div class="eyebrow">Die Woche</div>
-          <div style="font-size:0.72rem;color:var(--text-tertiary);font-family:var(--ff-display);font-style:italic" id="weekly-range"></div>
+        <div class="stats-tabs">
+          <button class="stats-tab active" data-tab="week" onclick="switchStatsTab('week')">Woche</button>
+          <button class="stats-tab" data-tab="month" onclick="switchStatsTab('month')">Monat</button>
         </div>
-        <div class="weekly-bars" id="weekly-bars"></div>
-        <div class="weekly-avg" id="weekly-avg"></div>
-      </div>
-    </div>
 
-    <!-- Monats-Kalender mit Heatmap -->
-    <div class="monthly-stats" id="monthly-stats-section">
-      <div class="card">
-        <div class="cal-header">
-          <button class="cal-nav" onclick="navCalendarMonth(-1)" aria-label="Vorheriger Monat">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <div>
-            <div class="eyebrow">Monat</div>
-            <div class="cal-title" id="cal-title">—</div>
+        <div id="stats-week" class="stats-pane">
+          <div style="display:flex;justify-content:flex-end;align-items:baseline;margin-bottom:2px">
+            <div style="font-size:0.72rem;color:var(--text-tertiary);font-family:var(--ff-display);font-style:italic" id="weekly-range"></div>
           </div>
-          <button class="cal-nav" onclick="navCalendarMonth(1)" aria-label="Nächster Monat">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
+          <div class="weekly-bars" id="weekly-bars"></div>
+          <div class="weekly-avg" id="weekly-avg"></div>
         </div>
-        <div class="cal-grid cal-weekdays">
-          <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+
+        <div id="stats-month" class="stats-pane" hidden>
+          <div class="cal-header">
+            <button class="cal-nav" onclick="navCalendarMonth(-1)" aria-label="Vorheriger Monat">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="cal-title" id="cal-title">—</div>
+            <button class="cal-nav" onclick="navCalendarMonth(1)" aria-label="Nächster Monat">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+          <div class="cal-grid cal-weekdays">
+            <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div class="cal-legend">
+            <span class="cal-legend-label">Weniger</span>
+            <span class="cal-legend-cell" style="background:var(--border-light)"></span>
+            <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 22%, var(--bg-card))"></span>
+            <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 45%, var(--bg-card))"></span>
+            <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 75%, var(--bg-card))"></span>
+            <span class="cal-legend-cell" style="background:var(--accent)"></span>
+            <span class="cal-legend-label">Mehr</span>
+          </div>
+          <div class="cal-summary" id="cal-summary"></div>
         </div>
-        <div class="cal-grid" id="cal-grid"></div>
-        <div class="cal-legend">
-          <span class="cal-legend-label">Weniger</span>
-          <span class="cal-legend-cell" style="background:var(--border-light)"></span>
-          <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 22%, var(--bg-card))"></span>
-          <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 45%, var(--bg-card))"></span>
-          <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 75%, var(--bg-card))"></span>
-          <span class="cal-legend-cell" style="background:var(--accent)"></span>
-          <span class="cal-legend-label">Mehr</span>
-        </div>
-        <div class="cal-summary" id="cal-summary"></div>
       </div>
     </div>
 
@@ -3557,7 +3592,11 @@ function switchView(viewName) {
     if (typeof loadWaterToday === 'function') loadWaterToday();
     if (typeof loadFastingStatus === 'function') loadFastingStatus();
   }
-  if (viewName === 'dashboard') { loadWeeklyStats(); loadMonthlyCalendar(); }
+  if (viewName === 'dashboard') {
+    var tab = 'week';
+    try { tab = localStorage.getItem('at-stats-tab') || 'week'; } catch(e) {}
+    if (tab === 'month') loadMonthlyCalendar(); else loadWeeklyStats();
+  }
 }
 
 function refreshSettingsInputs() {
@@ -3575,8 +3614,7 @@ function showApp() {
   document.getElementById('bottom-nav').style.display = 'flex';
   loadDayEntries();
   renderMealCards();
-  loadWeeklyStats();
-  loadMonthlyCalendar();
+  restoreStatsTab();
   loadWaterToday();
   loadFastingStatus();
   loadStreak();
@@ -3610,7 +3648,9 @@ function changeDate(delta) {
   document.getElementById('date-display').textContent = formatDate(selectedDate);
   loadDayEntries();
   loadWaterToday();
-  loadMonthlyCalendar();
+  // Kalender nur refreshen wenn gerade angezeigt
+  var monthPane = document.getElementById('stats-month');
+  if (monthPane && !monthPane.hidden) loadMonthlyCalendar();
 }
 
 // ============================================
@@ -5297,6 +5337,26 @@ async function loadWeeklyStats() {
     <div class="weekly-avg-item"><div class="weekly-avg-val" style="color:var(--fat-color)">${avgF}g</div><div class="weekly-avg-label">⌀ Fett</div></div>`;
 
   document.getElementById('weekly-range').textContent = `${days[0].date.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${days[6].date.toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
+}
+
+// ============================================
+// STATS TAB-TOGGLE (Woche / Monat)
+// ============================================
+function switchStatsTab(tab) {
+  document.querySelectorAll('.stats-tab').forEach(function(t) {
+    t.classList.toggle('active', t.dataset.tab === tab);
+  });
+  document.getElementById('stats-week').hidden = tab !== 'week';
+  document.getElementById('stats-month').hidden = tab !== 'month';
+  try { localStorage.setItem('at-stats-tab', tab); } catch(e) {}
+  if (tab === 'month') loadMonthlyCalendar();
+  else loadWeeklyStats();
+}
+function restoreStatsTab() {
+  var tab = 'week';
+  try { tab = localStorage.getItem('at-stats-tab') || 'week'; } catch(e) {}
+  if (tab !== 'week' && tab !== 'month') tab = 'week';
+  switchStatsTab(tab);
 }
 
 // ============================================
