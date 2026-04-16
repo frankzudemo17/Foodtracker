@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#E8EDE2">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://pmsapistypygnrdbxokq.supabase.co blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self' https://pmsapistypygnrdbxokq.supabase.co https://world.openfoodfacts.org https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://pmsapistypygnrdbxokq.supabase.co blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self' https://pmsapistypygnrdbxokq.supabase.co https://world.openfoodfacts.org https://search.openfoodfacts.org https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152.png">
@@ -4049,6 +4049,24 @@ function buildSearchVariants(query) {
 }
 
 async function fetchOffOnce(query, signal) {
+  // 1) Neuer Elasticsearch-Endpoint (search-a-licious, seit 2024)
+  try {
+    var newUrl = 'https://search.openfoodfacts.org/search'
+      + '?q=' + encodeURIComponent(query)
+      + '&fields=code,product_name,product_name_de,brands,image_front_small_url,nutriments,_id'
+      + '&langs=de,en&page_size=6';
+    var r = await fetch(newUrl, { signal: signal });
+    if (r.ok) {
+      var d = await r.json();
+      if (d && Array.isArray(d.hits) && d.hits.length > 0) {
+        return { products: d.hits };
+      }
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw e;
+  }
+
+  // 2) Fallback: klassischer cgi/search.pl
   var url = 'https://world.openfoodfacts.org/cgi/search.pl'
     + '?search_terms=' + encodeURIComponent(query)
     + '&search_simple=1&action=process&json=1&page_size=6'
