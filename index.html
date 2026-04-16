@@ -15,7 +15,7 @@
 <title>Aufgetischt</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..800,0..100,0..1&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <!-- Barcode scanner loaded dynamically -->
 
@@ -80,8 +80,8 @@
   --radius-xl: 20px;
   --radius-full: 999px;
 
-  /* Typografie */
-  --ff-display: 'Fraunces', 'Times New Roman', serif;
+  /* Typografie — modern, humanist, hip */
+  --ff-display: 'Figtree', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --ff-body: 'Instrument Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --ff-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 
@@ -162,25 +162,24 @@ body {
 }
 
 /* Typografie-Klassen */
-.font-display { font-family: var(--ff-display); font-optical-sizing: auto; letter-spacing: -0.02em; }
-.font-serif { font-family: var(--ff-display); font-optical-sizing: auto; }
-.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "lnum"; }
+.font-display { font-family: var(--ff-display); letter-spacing: -0.025em; font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "lnum"; font-family: var(--ff-display); }
 
 /* Streak-Badge */
 .streak-badge {
   display: none;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 7px 13px;
   border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
   border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
   font-family: var(--ff-display);
-  font-weight: 500;
-  font-size: 0.82rem;
+  font-weight: 700;
+  font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.015em;
   line-height: 1;
 }
 .streak-badge svg { stroke: currentColor; animation: flameFlicker 2.2s ease-in-out infinite; }
@@ -268,19 +267,16 @@ body {
 
 .app-logo {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 72, "SOFT" 50;
-  font-size: 1.5rem;
-  font-weight: 500;
+  font-size: 1.45rem;
+  font-weight: 600;
   color: var(--text-primary);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.035em;
   line-height: 1;
 }
 .app-logo em {
-  font-style: italic;
-  font-variation-settings: "opsz" 72, "SOFT" 100, "WONK" 1;
+  font-style: normal;
   color: var(--accent);
-  font-weight: 400;
+  font-weight: 600;
 }
 .header-actions { display: flex; gap: 8px; align-items: center; }
 
@@ -432,13 +428,11 @@ body {
 .ob-emoji { font-size: 2.5rem; margin-bottom: 12px; text-align: center; }
 .ob-title {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 144;
   font-size: 2rem;
-  font-weight: 400;
+  font-weight: 700;
   text-align: center;
   margin-bottom: 10px;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   line-height: 1.1;
 }
 .ob-subtitle {
@@ -447,8 +441,7 @@ body {
   text-align: center;
   margin-bottom: 32px;
   line-height: 1.5;
-  font-family: var(--ff-display);
-  font-style: italic;
+  font-family: var(--ff-body);
   letter-spacing: -0.005em;
 }
 
@@ -635,14 +628,12 @@ body {
 }
 .date-selector .date-text {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 48;
-  font-size: 1.15rem;
-  font-weight: 500;
+  font-size: 1.05rem;
+  font-weight: 600;
   min-width: 180px;
   text-align: center;
   color: var(--text-primary);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 .date-btn {
   width: 36px; height: 36px; border-radius: var(--radius-full);
@@ -680,12 +671,10 @@ body {
 }
 .calorie-ring .kcal-value {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 144;
-  font-size: 3rem;
-  font-weight: 400;
+  font-size: 3.2rem;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.05em;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
@@ -704,7 +693,6 @@ body {
   color: var(--text-secondary);
   margin-top: 10px;
   font-variant-numeric: tabular-nums;
-  font-style: italic;
   font-weight: 400;
 }
 
@@ -743,10 +731,9 @@ body {
 }
 .macro-value {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-size: 1.25rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-size: 1.2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 .macro-goal {
@@ -795,21 +782,20 @@ body {
 .module-bar > div { height: 100%; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
 .module-hero {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
   font-size: 1.4rem;
-  font-weight: 400;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   line-height: 1;
   text-align: center;
   margin-top: 4px;
   color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 .module-sub {
   font-size: 0.68rem;
   text-align: center;
   color: var(--text-tertiary);
   margin-top: 4px;
-  font-style: italic;
 }
 .module-actions { display: flex; gap: 6px; }
 .module-btn {
@@ -865,11 +851,10 @@ body {
 .meal-icon.snacks { background: color-mix(in srgb, var(--accent-light) 70%, var(--bg-card)); }
 .meal-name {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 48;
-  font-size: 1.05rem;
-  font-weight: 500;
-  letter-spacing: -0.015em;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
 }
 .meal-kcal {
   font-size: 0.75rem;
@@ -910,14 +895,13 @@ body {
 }
 .meal-item-kcal {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-size: 1rem;
+  font-weight: 600;
+  font-size: 0.95rem;
   color: var(--text-primary);
   white-space: nowrap;
   margin-left: 12px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .meal-item-actions { display: flex; align-items: center; gap: 2px; margin-left: 6px; }
 .item-delete-btn {
@@ -967,11 +951,9 @@ body {
 }
 .modal-title {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 72;
-  font-weight: 500;
-  font-size: 1.35rem;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  font-size: 1.25rem;
+  letter-spacing: -0.025em;
   color: var(--text-primary);
 }
 .modal-close {
@@ -1066,12 +1048,11 @@ body {
 }
 .result-kcal {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-size: 0.95rem;
-  font-weight: 400;
+  font-size: 0.9rem;
+  font-weight: 600;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   white-space: nowrap;
 }
 
@@ -1095,10 +1076,9 @@ body {
 .food-preview-info { min-width: 0; flex: 1; }
 .food-preview-info h3 {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-size: 1.1rem;
-  font-weight: 500;
-  letter-spacing: -0.015em;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -1123,15 +1103,14 @@ body {
   border-radius: var(--radius-md);
   background: var(--bg-secondary);
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-size: 1.25rem;
-  font-weight: 400;
+  font-size: 1.2rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
   text-align: center;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 .field-input:focus {
   border-color: var(--text-primary);
@@ -1191,10 +1170,9 @@ body {
 .nutri-item:last-child { border-right: none; }
 .nutri-value {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-size: 1.4rem;
-  letter-spacing: -0.025em;
+  font-weight: 700;
+  font-size: 1.3rem;
+  letter-spacing: -0.035em;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
 }
@@ -1257,14 +1235,14 @@ body {
   border-radius: var(--radius-sm);
   background: var(--bg-secondary);
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-size: 1.05rem;
-  font-weight: 400;
+  font-size: 1rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
   text-align: center;
   outline: none;
   transition: border-color 0.2s;
+  letter-spacing: -0.025em;
 }
 .goal-input:focus { border-color: var(--text-primary); }
 .toggle {
@@ -1304,11 +1282,9 @@ body {
 .recipe-card-body { padding: 20px; }
 .recipe-card-title {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 72;
-  font-weight: 500;
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: -0.035em;
   line-height: 1.15;
   color: var(--text-primary);
 }
@@ -1437,29 +1413,25 @@ body {
 }
 .auth-brand {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 144, "SOFT" 50;
   font-size: 3rem;
-  font-weight: 400;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 10px;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.055em;
   line-height: 1;
   position: relative;
 }
 .auth-brand em {
-  font-style: italic;
-  font-variation-settings: "opsz" 144, "SOFT" 100, "WONK" 1;
+  font-style: normal;
   color: var(--accent);
-  font-weight: 400;
+  font-weight: 700;
 }
 .auth-tagline {
-  font-family: var(--ff-display);
-  font-style: italic;
-  font-size: 1.05rem;
+  font-family: var(--ff-body);
+  font-size: 1rem;
   color: var(--text-secondary);
   margin-bottom: 48px;
-  letter-spacing: 0.005em;
+  letter-spacing: -0.005em;
 }
 .auth-form {
   width: 100%; max-width: 360px;
@@ -1580,10 +1552,9 @@ body {
 .weekly-avg-item { text-align: center; }
 .weekly-avg-val {
   font-family: var(--ff-display);
-  font-optical-sizing: auto;
   font-size: 1.1rem;
-  font-weight: 400;
-  letter-spacing: -0.015em;
+  font-weight: 700;
+  letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
 }
 .weekly-avg-label {
@@ -1960,7 +1931,9 @@ body {
     </div>
     <div class="header-actions">
       <div id="streak-badge" class="streak-badge" title="Tage in Folge geloggt">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M12 2.5c0 3-4 4-4 8a4 4 0 008 0c0-2.5-2-4-2-6 0 1-1 2-2 2z"/><path d="M12 14.5a2 2 0 104 0c0-1-1-1.5-1-2.5-.5 1-1.5 1-1.5 1"/></svg>
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px" aria-hidden="true">
+          <path fill="currentColor" d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/>
+        </svg>
         <span class="streak-count num">0</span>
       </div>
       <button class="btn-icon" onclick="toggleTheme()" title="Theme wechseln">
@@ -2052,7 +2025,7 @@ body {
 
   <!-- Search -->
   <div id="view-search" class="view">
-    <div style="padding:20px 20px 10px"><h2 class="font-display" style="font-size:1.7rem;font-weight:500;margin-bottom:18px;letter-spacing:-0.025em">Lebensmittel</h2>
+    <div style="padding:20px 20px 10px"><h2 class="font-display" style="font-size:1.75rem;font-weight:700;margin-bottom:18px;letter-spacing:-0.04em">Lebensmittel</h2>
       <div class="search-box">
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input class="search-input" id="global-search" type="text" placeholder="Suche nach Lebensmitteln..." oninput="debounceSearch(this.value)">
@@ -2065,7 +2038,7 @@ body {
   <!-- Recipes -->
   <div id="view-recipes" class="view">
     <div style="padding:20px 20px 12px;display:flex;justify-content:space-between;align-items:center">
-      <h2 class="font-display" style="font-size:1.7rem;font-weight:500;letter-spacing:-0.025em">Rezepte</h2>
+      <h2 class="font-display" style="font-size:1.75rem;font-weight:700;letter-spacing:-0.04em">Rezepte</h2>
       <button class="btn btn-primary btn-sm" onclick="openRecipeForm()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Neues Rezept</button>
     </div>
     <div id="recipes-list" class="recipes-grid"><div class="empty-state"><div class="empty-state-icon">📖</div><div class="empty-state-text">Noch keine Rezepte vorhanden.<br>Erstelle dein erstes Rezept!</div></div></div>
@@ -2074,8 +2047,8 @@ body {
   <!-- Settings -->
   <div id="view-settings" class="view">
     <div style="padding:20px 20px 8px">
-      <h2 class="font-display" style="font-size:1.7rem;font-weight:500;margin-bottom:4px;letter-spacing:-0.025em" id="settings-name">Profil</h2>
-      <p style="font-size:0.82rem;color:var(--text-tertiary);font-family:var(--ff-display);font-style:italic" id="settings-email"></p>
+      <h2 class="font-display" style="font-size:1.75rem;font-weight:700;margin-bottom:4px;letter-spacing:-0.04em" id="settings-name">Profil</h2>
+      <p style="font-size:0.85rem;color:var(--text-tertiary);font-family:var(--ff-body)" id="settings-email"></p>
     </div>
     <div class="settings-section" style="margin-top:16px">
       <div class="settings-group">
@@ -2151,8 +2124,8 @@ body {
   <!-- Info / Wissenschaft -->
   <div id="view-info" class="view">
     <div style="padding:20px 20px 10px">
-      <h2 class="font-display" style="font-size:1.7rem;font-weight:500;margin-bottom:6px;letter-spacing:-0.025em">Wissen</h2>
-      <p style="font-size:0.88rem;color:var(--text-secondary);font-family:var(--ff-display);font-style:italic;letter-spacing:-0.005em">Die Wissenschaft hinter deinen Zielen</p>
+      <h2 class="font-display" style="font-size:1.75rem;font-weight:700;margin-bottom:6px;letter-spacing:-0.04em">Wissen</h2>
+      <p style="font-size:0.88rem;color:var(--text-secondary);font-family:var(--ff-body);letter-spacing:-0.005em">Die Wissenschaft hinter deinen Zielen</p>
     </div>
     <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:12px">
 
@@ -2458,10 +2431,10 @@ body {
 <div id="modal-milestone" class="modal-overlay" onclick="closeMilestone()">
   <div class="modal-sheet" style="max-width:400px;background:var(--bg-primary)" onclick="event.stopPropagation()">
     <div style="text-align:center;padding:36px 28px 32px">
-      <div style="font-family:var(--ff-display);font-size:5rem;font-weight:400;line-height:1;letter-spacing:-0.05em;color:var(--accent);margin-bottom:8px" class="num" id="milestone-number">10</div>
+      <div style="font-family:var(--ff-display);font-size:5.5rem;font-weight:800;line-height:1;letter-spacing:-0.07em;color:var(--accent);margin-bottom:8px;font-variant-numeric:tabular-nums" id="milestone-number">10</div>
       <div class="eyebrow" style="margin-bottom:18px">Tage in Folge</div>
-      <h3 id="milestone-line" style="font-family:var(--ff-display);font-weight:500;font-size:1.5rem;line-height:1.25;letter-spacing:-0.02em;margin-bottom:10px">Du bist ja crazy!</h3>
-      <p style="font-family:var(--ff-display);font-style:italic;color:var(--text-secondary);font-size:1rem;line-height:1.45;margin-bottom:26px" id="milestone-sub">Weiter so — das ist Disziplin, die sich auszahlt.</p>
+      <h3 id="milestone-line" style="font-family:var(--ff-display);font-weight:700;font-size:1.5rem;line-height:1.2;letter-spacing:-0.035em;margin-bottom:10px">Du bist ja crazy!</h3>
+      <p style="font-family:var(--ff-body);color:var(--text-secondary);font-size:0.95rem;line-height:1.5;margin-bottom:26px" id="milestone-sub">Weiter so — das ist Disziplin, die sich auszahlt.</p>
       <button class="btn btn-primary btn-block" style="padding:15px" onclick="closeMilestone()">Weiter geht's</button>
     </div>
   </div>
@@ -3552,6 +3525,59 @@ function debounceSearch(query, inModal) {
   }
 }
 
+// Generiert Wort-Varianten für Smart-Retry.
+// "cini mini" → ["cini minis", "mini", "cini"]  (plural + letztes/erstes Wort)
+// "cini minis" → ["cini mini"]
+// "apfel" → []  (ein Wort ohne Plural-Hinweis: nichts zu tun)
+function buildSearchVariants(query) {
+  var q = query.trim();
+  if (!q) return [];
+  var words = q.split(/\s+/);
+  var variants = [];
+  var last = words[words.length - 1];
+
+  // 1) Plural-/Singular-Toggle für letztes Wort
+  if (last.length > 2) {
+    if (last.endsWith('s')) {
+      var singular = last.slice(0, -1);
+      variants.push(words.slice(0, -1).concat(singular).join(' '));
+    } else {
+      variants.push(words.slice(0, -1).concat(last + 's').join(' '));
+    }
+  }
+
+  // 2) Bei mehreren Wörtern: letztes Wort allein (oft Markenname)
+  if (words.length > 1) {
+    variants.push(last);
+    // 3) Und Plural/Singular vom letzten Wort allein
+    if (last.length > 2) {
+      variants.push(last.endsWith('s') ? last.slice(0, -1) : last + 's');
+    }
+    // 4) Erstes Wort allein (oft Produkttyp)
+    if (words[0].length > 2) variants.push(words[0]);
+  }
+
+  // Duplikate und Original entfernen
+  var seen = new Set([q.toLowerCase()]);
+  return variants.filter(function(v) {
+    var k = v.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+async function fetchOffOnce(query, signal) {
+  var url = 'https://world.openfoodfacts.org/cgi/search.pl'
+    + '?search_terms=' + encodeURIComponent(query)
+    + '&search_simple=1&action=process&json=1&page_size=6'
+    + '&fields=product_name,product_name_de,brands,nutriments,image_front_small_url,code,_id'
+    + '&lc=de&cc=de';
+  var resp = await fetch(url, { signal: signal });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  return await resp.json();
+}
+
 async function loadOffResults(query, inModal, retry, gen) {
   if (gen !== searchGen) return;
   var container = inModal ? document.getElementById('modal-search-results') : document.getElementById('search-results');
@@ -3559,38 +3585,45 @@ async function loadOffResults(query, inModal, retry, gen) {
   var localResults = searchLocalFoods(query);
   var customResults = searchCustomFoods(query);
 
-  // Alten Fetch abbrechen
   if (offAbortController) { try { offAbortController.abort(); } catch(e) {} }
   offAbortController = new AbortController();
 
-  // Hard-Timeout 3 Sek — OFF ist oft langsam, User soll nicht warten
-  var timeoutId = setTimeout(function() { try { offAbortController.abort(); } catch(e) {} }, 3000);
+  // Hard-Timeout für gesamten Suchlauf (inkl. Varianten): 4 Sek
+  var timeoutId = setTimeout(function() { try { offAbortController.abort(); } catch(e) {} }, 4000);
 
   var offData = { products: [] };
   try {
-    var url = 'https://world.openfoodfacts.org/cgi/search.pl'
-      + '?search_terms=' + encodeURIComponent(query)
-      + '&search_simple=1&action=process&json=1&page_size=6'
-      + '&fields=product_name,product_name_de,brands,nutriments,image_front_small_url,code,_id'
-      + '&lc=de&cc=de';
-    var resp = await fetch(url, { signal: offAbortController.signal });
+    // Primäre Suche
+    offData = await fetchOffOnce(query, offAbortController.signal);
+    if (gen !== searchGen) { clearTimeout(timeoutId); return; }
+
+    // Smart-Retry: Bei 0 Treffern Varianten probieren (Plural/Singular etc.)
+    if (!offData.products || offData.products.length === 0) {
+      var variants = buildSearchVariants(query);
+      for (var i = 0; i < variants.length; i++) {
+        if (gen !== searchGen) { clearTimeout(timeoutId); return; }
+        try {
+          var alt = await fetchOffOnce(variants[i], offAbortController.signal);
+          if (alt && alt.products && alt.products.length > 0) {
+            offData = alt;
+            break;
+          }
+        } catch (ve) {
+          if (ve.name === 'AbortError') { clearTimeout(timeoutId); return; }
+          // andere Fehler: nächste Variante probieren
+        }
+      }
+    }
+
     clearTimeout(timeoutId);
     if (gen !== searchGen) return;
-    if (resp.ok) {
-      offData = await resp.json();
-      if (gen !== searchGen) return;
-      offCache[qLower] = offData;
-      setTimeout(function() { delete offCache[qLower]; }, 600000); // 10 Min Cache
-    } else if (retry < 1) {
-      setTimeout(function() { loadOffResults(query, inModal, retry + 1, gen); }, 1500);
-      return;
-    }
+    offCache[qLower] = offData;
+    setTimeout(function() { delete offCache[qLower]; }, 600000);
   } catch(e) {
     clearTimeout(timeoutId);
     if (e.name === 'AbortError') {
-      // Abbruch durch Timeout oder neue Query — wenn neue Query, nichts tun
       if (gen !== searchGen) return;
-      // Timeout: lokale Ergebnisse bleiben sichtbar, kein Retry
+      // Timeout: lokale Ergebnisse bleiben, kein Retry
     } else if (retry < 1) {
       setTimeout(function() { loadOffResults(query, inModal, retry + 1, gen); }, 1500);
       return;
