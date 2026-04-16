@@ -5696,6 +5696,8 @@ function runConfetti() {
   requestAnimationFrame(frame);
 }
 
+// Merkt sich die letzten 5 gezeigten Indices damit keine Wiederholungen kommen
+var recentMilestoneIdx = [];
 function celebrateStreak(count) {
   var name = (currentProfile && currentProfile.display_name) ? currentProfile.display_name.split(' ')[0] : 'Freund';
   var line;
@@ -5703,7 +5705,14 @@ function celebrateStreak(count) {
     // Spezieller Jahrhundert-Spruch — garantiert nur bei Tag 100
     line = { title: 'Ein Jahrhundert!', sub: 'Du hast dir Tante Mathildas Kirschkuchen verdient, {name}.' };
   } else {
-    var idx = Math.floor(Math.random() * MILESTONE_LINES.length);
+    // Aus Pool, aber die letzten 5 ausschließen
+    var avail = [];
+    for (var i = 0; i < MILESTONE_LINES.length; i++) {
+      if (recentMilestoneIdx.indexOf(i) === -1) avail.push(i);
+    }
+    var idx = avail[Math.floor(Math.random() * avail.length)];
+    recentMilestoneIdx.push(idx);
+    if (recentMilestoneIdx.length > 5) recentMilestoneIdx.shift();
     line = MILESTONE_LINES[idx];
   }
   document.getElementById('milestone-number').textContent = count;
@@ -6358,17 +6367,21 @@ document.addEventListener('DOMContentLoaded', function() {
   s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
   s.async = true;
   document.head.appendChild(s);
-  // Kill old service workers and clear caches
+  // Network-First Service Worker registrieren
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(function() {});
-    navigator.serviceWorker.getRegistrations().then(function(regs) {
-      regs.forEach(function(r) { r.unregister(); });
-    });
-  }
-  if ('caches' in window) {
-    caches.keys().then(function(names) {
-      names.forEach(function(name) { caches.delete(name); });
-    });
+    navigator.serviceWorker.register('./sw.js').then(function(reg) {
+      // Bei Update sofort aktivieren
+      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      reg.addEventListener('updatefound', function() {
+        var nw = reg.installing;
+        if (nw) nw.addEventListener('statechange', function() {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+            // Neue Version da — Seite automatisch neu laden
+            window.location.reload();
+          }
+        });
+      });
+    }).catch(function() {});
   }
 });
 
