@@ -1630,6 +1630,319 @@ body {
 }
 
 /* ============================================
+   WISSEN — Editorial Magazine
+   ============================================ */
+.wissen-hero {
+  padding: 32px 28px 20px;
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 32px;
+}
+.wissen-title {
+  font-family: var(--ff-display);
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+  color: var(--text-primary);
+  margin: 12px 0 20px;
+}
+.wissen-lede {
+  font-family: var(--ff-body);
+  font-size: 0.98rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+  max-width: 38ch;
+}
+.wissen-article {
+  padding: 0 28px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 44px;
+}
+.wissen-section {
+  position: relative;
+  padding-top: 8px;
+}
+.wissen-num {
+  font-family: var(--ff-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.wissen-h2 {
+  font-family: var(--ff-display);
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.wissen-kicker {
+  font-family: var(--ff-body);
+  font-size: 0.86rem;
+  color: var(--text-tertiary);
+  margin-bottom: 18px;
+  letter-spacing: -0.005em;
+}
+.wissen-body {
+  font-family: var(--ff-body);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+  margin: 14px 0;
+}
+.wissen-body strong { color: var(--text-primary); font-weight: 600; }
+.wissen-body em { font-style: italic; }
+
+.wissen-formula {
+  margin: 20px 0;
+  padding: 18px 20px;
+  background: var(--bg-card);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.wissen-formula-label {
+  font-family: var(--ff-body);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin-bottom: 10px;
+}
+.wissen-formula-eq {
+  font-family: var(--ff-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.6;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+}
+.wissen-formula-eq + .wissen-formula-eq { margin-top: 4px; }
+.wissen-formula-eq > span:first-child {
+  font-size: 0.72rem;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  min-width: 28px;
+  text-transform: uppercase;
+}
+
+.wissen-table {
+  margin: 18px 0;
+  border-top: 1px solid var(--border-light);
+}
+.wissen-table > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-light);
+  font-family: var(--ff-body);
+  font-size: 0.9rem;
+}
+.wissen-table > div > span:first-child {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+.wissen-table > div > span.num,
+.wissen-table > div > span:last-child {
+  font-family: var(--ff-display);
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95rem;
+}
+
+.wissen-refs {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+  counter-reset: ref;
+  border-top: 1px dashed var(--border);
+  padding-top: 16px;
+}
+.wissen-refs li {
+  counter-increment: ref;
+  position: relative;
+  padding-left: 28px;
+  margin-bottom: 10px;
+  font-family: var(--ff-body);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  letter-spacing: -0.003em;
+}
+.wissen-refs li::before {
+  content: counter(ref);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.wissen-refs li em { font-style: italic; color: var(--text-secondary); }
+
+.wissen-disclaimer {
+  margin-top: 8px;
+  padding: 24px 22px;
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg-card));
+  border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
+  border-radius: var(--radius-md);
+}
+.wissen-disclaimer p {
+  font-family: var(--ff-body);
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+}
+
+/* ============================================
+   MONTHLY CALENDAR — Heatmap
+   ============================================ */
+.monthly-stats { padding: 0 20px 20px; }
+.cal-header {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  justify-items: center;
+  margin-bottom: 14px;
+}
+.cal-header > div { text-align: center; }
+.cal-title {
+  font-family: var(--ff-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+  margin-top: 2px;
+}
+.cal-nav {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.cal-nav:hover { color: var(--text-primary); border-color: var(--border); }
+.cal-nav:active { transform: scale(0.92); }
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.cal-weekdays {
+  margin-bottom: 8px;
+}
+.cal-weekdays > div {
+  font-size: 0.62rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--ff-display);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+.cal-day.empty { background: transparent; cursor: default; pointer-events: none; }
+.cal-day.future { opacity: 0.3; cursor: default; pointer-events: none; }
+.cal-day.today {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  color: var(--accent);
+}
+.cal-day.selected {
+  box-shadow: 0 0 0 2px var(--text-primary) inset;
+}
+.cal-day:not(.empty):not(.future):hover { transform: scale(1.08); z-index: 1; }
+.cal-day:active { transform: scale(0.94); }
+.cal-day.has-data { color: var(--text-primary); }
+.cal-day.over { background: color-mix(in srgb, var(--danger) 25%, var(--bg-card)); color: var(--danger); }
+
+.cal-legend {
+  display: flex; align-items: center; justify-content: center;
+  gap: 4px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-light);
+}
+.cal-legend-label {
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.cal-legend-cell {
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  margin: 0 1px;
+}
+
+.cal-summary {
+  display: flex;
+  justify-content: space-around;
+  padding: 14px 4px 0;
+  margin-top: 4px;
+  border-top: 1px solid var(--border-light);
+}
+.cal-summary-item { text-align: center; }
+.cal-summary-val {
+  font-family: var(--ff-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.cal-summary-label {
+  font-size: 0.62rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-top: 2px;
+  font-weight: 500;
+}
+
+/* ============================================
    WEIGHT CHART
    ============================================ */
 .weight-section { padding: 0 20px 20px; }
@@ -2064,6 +2377,38 @@ body {
       </div>
     </div>
 
+    <!-- Monats-Kalender mit Heatmap -->
+    <div class="monthly-stats" id="monthly-stats-section">
+      <div class="card">
+        <div class="cal-header">
+          <button class="cal-nav" onclick="navCalendarMonth(-1)" aria-label="Vorheriger Monat">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div>
+            <div class="eyebrow">Monat</div>
+            <div class="cal-title" id="cal-title">—</div>
+          </div>
+          <button class="cal-nav" onclick="navCalendarMonth(1)" aria-label="Nächster Monat">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <div class="cal-grid cal-weekdays">
+          <div>Mo</div><div>Di</div><div>Mi</div><div>Do</div><div>Fr</div><div>Sa</div><div>So</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="cal-legend">
+          <span class="cal-legend-label">Weniger</span>
+          <span class="cal-legend-cell" style="background:var(--border-light)"></span>
+          <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 22%, var(--bg-card))"></span>
+          <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 45%, var(--bg-card))"></span>
+          <span class="cal-legend-cell" style="background:color-mix(in srgb, var(--accent) 75%, var(--bg-card))"></span>
+          <span class="cal-legend-cell" style="background:var(--accent)"></span>
+          <span class="cal-legend-label">Mehr</span>
+        </div>
+        <div class="cal-summary" id="cal-summary"></div>
+      </div>
+    </div>
+
     <!-- Meals -->
     <div class="meals-section" id="meals-container"></div>
   </div>
@@ -2199,103 +2544,119 @@ body {
 
   <!-- Info / Wissenschaft -->
   <div id="view-info" class="view">
-    <div style="padding:20px 20px 10px">
-      <h2 class="font-display" style="font-size:1.75rem;font-weight:700;margin-bottom:6px;letter-spacing:-0.04em">Wissen</h2>
-      <p style="font-size:0.88rem;color:var(--text-secondary);font-family:var(--ff-body);letter-spacing:-0.005em">Die Wissenschaft hinter deinen Zielen</p>
+    <div class="wissen-hero">
+      <div class="eyebrow">Issue · 01</div>
+      <h1 class="wissen-title">Die Wissenschaft<br>auf deinem Teller.</h1>
+      <p class="wissen-lede">Jede Zahl in dieser App hat einen Ursprung in peer-reviewed Forschung. Hier sind die Formeln, Annahmen und Studien die deinen Plan berechnen — ohne Marketing, mit Quellen.</p>
     </div>
-    <div style="padding:0 20px 20px;display:flex;flex-direction:column;gap:12px">
 
-      <div class="card">
-        <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">🔬 Grundumsatz (BMR)</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
-          <strong>Mifflin-St Jeor Gleichung (1990)</strong><br>
-          Männer: 10 × Gewicht(kg) + 6,25 × Größe(cm) − 5 × Alter + 5<br>
-          Frauen: 10 × Gewicht(kg) + 6,25 × Größe(cm) − 5 × Alter − 161<br><br>
-          Empfohlen von der <strong>Academy of Nutrition and Dietetics</strong> als genaueste Vorhersageformel. In 82% der Fälle innerhalb von 10% des gemessenen Werts.<br><br>
-          <em>Quelle: Mifflin MD, St Jeor ST, Hill LA, et al. A new predictive equation for resting energy expenditure in healthy individuals. Am J Clin Nutr. 1990;51(2):241-247.</em><br>
-          <em>Validierung: Frankenfield D, et al. Comparison of predictive equations for resting metabolic rate in healthy nonobese and obese adults: a systematic review. J Am Diet Assoc. 2005;105(5):775-89.</em>
+    <article class="wissen-article">
+
+      <section class="wissen-section">
+        <div class="wissen-num">01</div>
+        <h2 class="wissen-h2">Grundumsatz</h2>
+        <p class="wissen-kicker">Was dein Körper in absoluter Ruhe verbraucht.</p>
+        <p class="wissen-body">Der Grundumsatz (BMR, <em>Basal Metabolic Rate</em>) ist die Energiemenge, die du pro Tag brauchst, um nur zu existieren — Atmung, Herzschlag, Zellerhaltung.</p>
+        <div class="wissen-formula">
+          <div class="wissen-formula-label">Mifflin-St Jeor · 1990</div>
+          <div class="wissen-formula-eq"><span>♂</span> 10·Gewicht + 6,25·Größe − 5·Alter + 5</div>
+          <div class="wissen-formula-eq"><span>♀</span> 10·Gewicht + 6,25·Größe − 5·Alter − 161</div>
         </div>
-      </div>
+        <p class="wissen-body">Die Academy of Nutrition and Dietetics bewertet diese Formel als <strong>genaueste Vorhersage</strong> — in 82% der Fälle innerhalb von 10% des tatsächlich gemessenen Werts.</p>
+        <ol class="wissen-refs">
+          <li>Mifflin MD, St Jeor ST, Hill LA, et al. A new predictive equation for resting energy expenditure. <em>Am J Clin Nutr.</em> 1990;51(2):241–247.</li>
+          <li>Frankenfield D, et al. Comparison of predictive equations for resting metabolic rate. <em>J Am Diet Assoc.</em> 2005;105(5):775–789.</li>
+        </ol>
+      </section>
 
-      <div class="card">
-        <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">⚡ Gesamtumsatz (TDEE)</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
-          <strong>Physical Activity Level (PAL)</strong><br>
-          Sitzend: BMR × 1,2 | Leicht aktiv: × 1,375 | Moderat: × 1,55 | Aktiv: × 1,725 | Sehr aktiv: × 1,9<br><br>
-          <em>Quelle: WHO/FAO/UNU. Human energy requirements. Food and Nutrition Technical Report Series 1. Rome: 2004.</em>
+      <section class="wissen-section">
+        <div class="wissen-num">02</div>
+        <h2 class="wissen-h2">Gesamtumsatz</h2>
+        <p class="wissen-kicker">Dein Grundumsatz plus deine Bewegung.</p>
+        <p class="wissen-body">Auf den BMR wird ein Aktivitäts­faktor (PAL — <em>Physical Activity Level</em>) multipliziert. Die Werte stammen vom WHO/FAO/UNU-Expertengremium aus Langzeit­messungen per Doubly-Labeled-Water-Methode.</p>
+        <div class="wissen-table">
+          <div><span>Sitzend</span><span class="num">× 1,2</span></div>
+          <div><span>Leicht aktiv</span><span class="num">× 1,375</span></div>
+          <div><span>Moderat</span><span class="num">× 1,55</span></div>
+          <div><span>Aktiv</span><span class="num">× 1,725</span></div>
+          <div><span>Sehr aktiv</span><span class="num">× 1,9</span></div>
         </div>
-      </div>
+        <ol class="wissen-refs">
+          <li>WHO/FAO/UNU. Human energy requirements. <em>Food and Nutrition Technical Report Series 1.</em> Rome: 2004.</li>
+        </ol>
+      </section>
 
-      <div class="card">
-        <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">💪 Protein</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
-          <strong>ISSN Position Stand (2017)</strong><br>
-          <strong>EFSA, DGE &amp; AMDR</strong><br>
-          Basis: 0,83 g/kg/Tag (EFSA PRI, 2012) / 0,8 g/kg (DGE, 2017)<br>
-          AMDR: 10–35% der Gesamtenergie (Institute of Medicine, 2005)<br><br>
-          In dieser App wird der <strong>Prozent-der-Kalorien</strong>-Ansatz verwendet:<br>
-          Abnehmen: 25% der kcal (erhöhter Anteil bei reduzierter Energie — NNR 2023)<br>
-          Zunehmen: 20% der kcal (bei höherer Kalorienzufuhr ergibt das ausreichend g/kg für Muskelaufbau)<br>
-          Halten: 15% der kcal (DGE/NNR Planungswert)<br>
-          Sicherheitsgrenzen: min. 0,83 g/kg (EFSA), max. 35% der kcal (AMDR).<br><br>
-          <em>Quelle: EFSA. Scientific Opinion on Dietary Reference Values for protein. EFSA Journal. 2012;10(2):2557.</em><br>
-          <em>Quelle: Richter M, et al. Revised Reference Values for the Intake of Protein. Ann Nutr Metab. 2019;74(3):242-250.</em><br>
-          <em>Quelle: Nordic Nutrition Recommendations 2023. Chapter: Protein.</em>
+      <section class="wissen-section">
+        <div class="wissen-num">03</div>
+        <h2 class="wissen-h2">Protein</h2>
+        <p class="wissen-kicker">Warum der Anteil je nach Ziel variiert.</p>
+        <p class="wissen-body">Wir nutzen einen <strong>Prozent-der-Kalorien</strong>-Ansatz statt fixe g/kg-Werte — er reagiert automatisch auf Energie­defizit und -überschuss, wo Muskelerhalt wichtiger oder einfacher ist.</p>
+        <div class="wissen-table">
+          <div><span>Abnehmen</span><span class="num">25% der kcal</span></div>
+          <div><span>Zunehmen</span><span class="num">20% der kcal</span></div>
+          <div><span>Halten</span><span class="num">15% der kcal</span></div>
         </div>
-      </div>
+        <p class="wissen-body">Sicherheits­grenzen: mindestens 0,83 g/kg (EFSA Population Reference Intake), maximal 35% der kcal (obere AMDR-Grenze). Bei sehr aktiven Personen wird der Anteil um bis zu 5% erhöht.</p>
+        <ol class="wissen-refs">
+          <li>Jäger R, et al. ISSN Position Stand: protein and exercise. <em>J Int Soc Sports Nutr.</em> 2017;14:20.</li>
+          <li>EFSA Panel. Scientific Opinion on Dietary Reference Values for protein. <em>EFSA Journal.</em> 2012;10(2):2557.</li>
+          <li>Nordic Nutrition Recommendations 2023. Kapitel Protein.</li>
+        </ol>
+      </section>
 
-      <div class="card">
-        <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">🫒 Fett</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
-          <strong>AMDR (Acceptable Macronutrient Distribution Range)</strong><br>
-          Empfohlen: 20–35% der Gesamtenergie.<br>
-          In dieser App: 30% (Abnehmen/Halten), 25% (Zunehmen).<br>
-          Mindestens 0,8 g/kg für Hormonproduktion und Absorption fettlöslicher Vitamine.<br><br>
-          <em>Quelle: Institute of Medicine. Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. Washington, DC: National Academies Press; 2005.</em>
+      <section class="wissen-section">
+        <div class="wissen-num">04</div>
+        <h2 class="wissen-h2">Fett &amp; Kohlenhydrate</h2>
+        <p class="wissen-kicker">Die zwei Energie-Träger.</p>
+        <p class="wissen-body">Fett liefert konzentrierte Energie und essenzielle Fettsäuren (30% bei Abnehmen/Halten, 25% bei Zunehmen). Kohlenhydrate füllen den Rest — mit einer Untergrenze von 130 g/Tag, dem Bedarf des Gehirns plus Sicherheits­puffer.</p>
+        <div class="wissen-formula">
+          <div class="wissen-formula-label">AMDR · Institute of Medicine</div>
+          <div class="wissen-formula-eq"><span>Fett</span> 20–35% der Gesamtenergie</div>
+          <div class="wissen-formula-eq"><span>KH</span> 45–65%, min. 130 g/Tag</div>
         </div>
-      </div>
+        <ol class="wissen-refs">
+          <li>Institute of Medicine. <em>Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids.</em> Washington, DC: National Academies Press; 2005.</li>
+        </ol>
+      </section>
 
-      <div class="card">
-        <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">🌾 Kohlenhydrate</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
-          <strong>Restliche Kalorien nach Protein und Fett</strong><br>
-          Minimum: 130 g/Tag (DRI) — basierend auf dem Glukosebedarf des Gehirns (~100g/Tag) plus Sicherheitsmarge.<br><br>
-          <em>Quelle: Institute of Medicine. Dietary Reference Intakes. 2005. Chapter 6: Dietary Carbohydrates.</em>
+      <section class="wissen-section">
+        <div class="wissen-num">05</div>
+        <h2 class="wissen-h2">Gewichtsveränderung</h2>
+        <p class="wissen-kicker">Warum ±500 kcal/Tag ≈ 0,5 kg pro Woche.</p>
+        <div class="wissen-formula">
+          <div class="wissen-formula-label">Energiebilanz</div>
+          <div class="wissen-formula-eq"><span>1 kg Körperfett</span> ≈ 7.700 kcal</div>
         </div>
-      </div>
-
-      <div class="card">
-        <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">📉 Gewichtsveränderung</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
-          <strong>Energiebilanz-Prinzip</strong><br>
-          1 kg Körperfett ≈ 7.700 kcal<br>
-          Langsam: ±250 kcal/Tag → ~0,25 kg/Woche<br>
-          Moderat: ±500 kcal/Tag → ~0,5 kg/Woche<br>
-          Schnell: ±750 kcal/Tag → ~0,75 kg/Woche<br><br>
-          Sicherheitsgrenzen: min. 1.500 kcal/Tag (Männer), 1.200 kcal/Tag (Frauen).<br>
-          Empfohlene max. Abnahmerate: ~1% des Körpergewichts pro Woche.<br><br>
-          <strong>Adaptive Neuberechnung:</strong> Bei Gewichtsänderung werden BMR, TDEE und alle Makroziele automatisch neu berechnet, da der Energiebedarf mit dem Gewicht sinkt/steigt.<br><br>
-          <em>Quelle: Wishnofsky M. Caloric equivalents of gained or lost weight. Am J Clin Nutr. 1958;6(5):542-546.</em><br>
-          <em>Quelle: Hall KD, et al. Quantification of the effect of energy imbalance on bodyweight. Lancet. 2011;378(9793):826-37.</em>
+        <div class="wissen-table">
+          <div><span>Langsam</span><span class="num">±250 / Tag</span></div>
+          <div><span>Moderat</span><span class="num">±500 / Tag</span></div>
+          <div><span>Schnell</span><span class="num">±750 / Tag</span></div>
         </div>
-      </div>
+        <p class="wissen-body">Untergrenzen: 1.500 kcal (m) / 1.200 kcal (w). Maximal­empfohlene Rate: 1% des Körpergewichts pro Woche. Bei jeder Gewichts­änderung werden BMR, TDEE und Makros automatisch neu berechnet.</p>
+        <ol class="wissen-refs">
+          <li>Wishnofsky M. Caloric equivalents of gained or lost weight. <em>Am J Clin Nutr.</em> 1958;6(5):542–546.</li>
+          <li>Hall KD, et al. Quantification of the effect of energy imbalance on bodyweight. <em>Lancet.</em> 2011;378(9793):826–837.</li>
+        </ol>
+      </section>
 
-      <div class="card">
-        <div style="font-weight:600;margin-bottom:8px;color:var(--accent)">💧 Wasser & Ballaststoffe</div>
-        <div style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6">
-          Wasser: 35 ml/kg Körpergewicht pro Tag<br>
-          Ballaststoffe: ≥ 30 g pro Tag<br><br>
-          <em>Quelle: Deutsche Gesellschaft für Ernährung (DGE). Referenzwerte für die Nährstoffzufuhr. 2. Auflage, 5. aktualisierte Ausgabe, 2019.</em>
+      <section class="wissen-section">
+        <div class="wissen-num">06</div>
+        <h2 class="wissen-h2">Wasser &amp; Ballaststoffe</h2>
+        <div class="wissen-table">
+          <div><span>Wasser</span><span class="num">35 ml / kg / Tag</span></div>
+          <div><span>Ballaststoffe</span><span class="num">≥ 30 g / Tag</span></div>
         </div>
-      </div>
+        <ol class="wissen-refs">
+          <li>DGE. <em>Referenzwerte für die Nährstoffzufuhr.</em> 2. Auflage, 5. aktualisierte Ausgabe. 2019.</li>
+        </ol>
+      </section>
 
-      <div class="card" style="background:var(--accent-light);border-color:var(--accent)">
-        <div style="font-size:0.85rem;color:var(--text-primary);line-height:1.6">
-          <strong>⚠️ Hinweis:</strong> Diese App ersetzt keine professionelle Ernährungsberatung. Die Berechnungen sind Schätzungen basierend auf statistischen Durchschnittswerten. Individuelle Faktoren wie Stoffwechselerkrankungen, Medikamente oder genetische Disposition werden nicht berücksichtigt. Bei gesundheitlichen Bedenken konsultiere bitte einen Arzt oder Ernährungsberater.
-        </div>
-      </div>
+      <aside class="wissen-disclaimer">
+        <div class="eyebrow" style="color:var(--accent);margin-bottom:8px">Hinweis</div>
+        <p>Diese App ersetzt keine professionelle Ernährungs­beratung. Die Berechnungen sind Schätzungen auf Basis statistischer Durchschnitts­werte. Individuelle Faktoren wie Stoffwechsel­erkrankungen, Medikamente oder genetische Disposition werden nicht berücksichtigt. Bei gesundheitlichen Bedenken bitte ärztlichen Rat einholen.</p>
+      </aside>
 
-    </div>
+    </article>
   </div>
 
   <nav class="bottom-nav" id="bottom-nav" style="display:none">
@@ -2541,7 +2902,7 @@ const MEAL_ICONS = {
   breakfast: '<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>',
   lunch: '<svg class="ico" viewBox="0 0 24 24"><path d="M3 11h18M5 11a7 7 0 0114 0M2 15h20M4 19h16"/></svg>',
   dinner: '<svg class="ico" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>',
-  snacks: '<svg class="ico" viewBox="0 0 24 24"><path d="M12 3C8 3 6 6 6 9c0 2 1 4 2 5l1 7h6l1-7c1-1 2-3 2-5 0-3-2-6-6-6z"/><path d="M9 9h.01M15 9h.01M12 12h.01"/></svg>'
+  snacks: '<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="0.9" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="0.9" fill="currentColor" stroke="none"/><circle cx="10" cy="15" r="0.9" fill="currentColor" stroke="none"/><circle cx="15" cy="14.5" r="0.9" fill="currentColor" stroke="none"/><circle cx="13" cy="11.5" r="0.7" fill="currentColor" stroke="none"/></svg>'
 };
 const MEAL_CONFIG = {
   breakfast: { name: 'Frühstück', icon: MEAL_ICONS.breakfast, class: 'breakfast' },
@@ -3196,7 +3557,7 @@ function switchView(viewName) {
     if (typeof loadWaterToday === 'function') loadWaterToday();
     if (typeof loadFastingStatus === 'function') loadFastingStatus();
   }
-  if (viewName === 'dashboard') { loadWeeklyStats(); }
+  if (viewName === 'dashboard') { loadWeeklyStats(); loadMonthlyCalendar(); }
 }
 
 function refreshSettingsInputs() {
@@ -3215,6 +3576,7 @@ function showApp() {
   loadDayEntries();
   renderMealCards();
   loadWeeklyStats();
+  loadMonthlyCalendar();
   loadWaterToday();
   loadFastingStatus();
   loadStreak();
@@ -3248,6 +3610,7 @@ function changeDate(delta) {
   document.getElementById('date-display').textContent = formatDate(selectedDate);
   loadDayEntries();
   loadWaterToday();
+  loadMonthlyCalendar();
 }
 
 // ============================================
@@ -4934,6 +5297,117 @@ async function loadWeeklyStats() {
     <div class="weekly-avg-item"><div class="weekly-avg-val" style="color:var(--fat-color)">${avgF}g</div><div class="weekly-avg-label">⌀ Fett</div></div>`;
 
   document.getElementById('weekly-range').textContent = `${days[0].date.toLocaleDateString('de-DE',{day:'numeric',month:'short'})} – ${days[6].date.toLocaleDateString('de-DE',{day:'numeric',month:'short'})}`;
+}
+
+// ============================================
+// FEATURE: MONTHLY CALENDAR HEATMAP
+// ============================================
+let calendarViewDate = new Date(); // Erster Tag des angezeigten Monats
+calendarViewDate.setDate(1);
+
+function navCalendarMonth(delta) {
+  calendarViewDate.setMonth(calendarViewDate.getMonth() + delta);
+  loadMonthlyCalendar();
+}
+
+async function loadMonthlyCalendar() {
+  if (!currentUser || !db) return;
+
+  var viewYear = calendarViewDate.getFullYear();
+  var viewMonth = calendarViewDate.getMonth();
+  var firstDay = new Date(viewYear, viewMonth, 1);
+  var lastDay = new Date(viewYear, viewMonth + 1, 0);
+  var daysInMonth = lastDay.getDate();
+
+  // Wochentag des ersten Tages (Mo=0, So=6)
+  var firstWeekday = (firstDay.getDay() + 6) % 7;
+
+  // Titel
+  var monthNames = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  document.getElementById('cal-title').textContent = monthNames[viewMonth] + ' ' + viewYear;
+
+  // Daten laden
+  var startStr = getDateStr(firstDay);
+  var endStr = getDateStr(lastDay);
+  var { data } = await db.from('food_entries').select('entry_date,kcal')
+    .eq('user_id', currentUser.id).gte('entry_date', startStr).lte('entry_date', endStr);
+
+  var byDay = {};
+  (data || []).forEach(function(e) {
+    if (!byDay[e.entry_date]) byDay[e.entry_date] = 0;
+    byDay[e.entry_date] += e.kcal || 0;
+  });
+
+  var goal = currentProfile?.daily_kcal_goal || 2000;
+  var todayStr = getDateStr(new Date());
+  var selectedStr = getDateStr(selectedDate);
+
+  var grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // Leere Zellen vor dem 1. des Monats
+  for (var i = 0; i < firstWeekday; i++) {
+    var empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+
+  var totalKcal = 0, daysWithData = 0, daysInGoal = 0;
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    var dateObj = new Date(viewYear, viewMonth, d);
+    var dStr = getDateStr(dateObj);
+    var kcal = byDay[dStr] || 0;
+    var cell = document.createElement('div');
+    cell.className = 'cal-day';
+    cell.textContent = d;
+    cell.dataset.date = dStr;
+
+    if (dStr > todayStr) {
+      cell.classList.add('future');
+    } else if (kcal > 0) {
+      cell.classList.add('has-data');
+      totalKcal += kcal;
+      daysWithData++;
+      var pct = kcal / goal;
+      if (pct > 1.1) {
+        cell.classList.add('over');
+        cell.title = Math.round(kcal) + ' kcal (über Ziel)';
+      } else {
+        // Sage-zu-Accent-Verlauf basierend auf % vom Ziel
+        var intensity = Math.min(1, pct);
+        var mix = Math.round(intensity * 80); // 0-80% accent mix
+        cell.style.background = 'color-mix(in srgb, var(--accent) ' + mix + '%, var(--bg-card))';
+        if (intensity > 0.45) cell.style.color = '#FDFBF7';
+        cell.title = Math.round(kcal) + ' kcal';
+        if (pct >= 0.85 && pct <= 1.1) daysInGoal++;
+      }
+    } else {
+      cell.title = 'Kein Eintrag';
+    }
+
+    if (dStr === todayStr) cell.classList.add('today');
+    if (dStr === selectedStr) cell.classList.add('selected');
+
+    if (!cell.classList.contains('future')) {
+      cell.addEventListener('click', function() {
+        var pick = new Date(this.dataset.date + 'T00:00:00');
+        selectedDate = pick;
+        document.getElementById('date-display').textContent = formatDate(selectedDate);
+        loadDayEntries();
+        loadMonthlyCalendar();
+      });
+    }
+
+    grid.appendChild(cell);
+  }
+
+  // Summary
+  var avg = daysWithData > 0 ? Math.round(totalKcal / daysWithData) : 0;
+  document.getElementById('cal-summary').innerHTML =
+    '<div class="cal-summary-item"><div class="cal-summary-val">' + daysWithData + '</div><div class="cal-summary-label">Tage geloggt</div></div>' +
+    '<div class="cal-summary-item"><div class="cal-summary-val">' + avg + '</div><div class="cal-summary-label">⌀ kcal</div></div>' +
+    '<div class="cal-summary-item"><div class="cal-summary-val">' + daysInGoal + '</div><div class="cal-summary-label">im Ziel</div></div>';
 }
 
 // ============================================
