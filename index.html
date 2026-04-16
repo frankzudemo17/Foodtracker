@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#FAF5F0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://pmsapistypygnrdbxokq.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self' https://pmsapistypygnrdbxokq.supabase.co https://world.openfoodfacts.org https://cdn.jsdelivr.net https://unpkg.com">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://pmsapistypygnrdbxokq.supabase.co blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self' https://pmsapistypygnrdbxokq.supabase.co https://world.openfoodfacts.org https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152.png">
@@ -531,7 +531,9 @@ body {
 .search-input:focus { border-color: var(--accent); }
 .search-input::placeholder { color: var(--text-tertiary); }
 .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); }
-.search-actions { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; }
+.search-actions { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); display: flex; gap: 4px; align-items: center; }
+.search-spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; display: none; margin-right: 4px; }
+.search-spinner.active { display: inline-block; }
 .scan-btn {
   padding: 8px 12px; border-radius: var(--radius-sm); border: none;
   background: var(--accent); color: #fff; font-size: 0.8rem;
@@ -1184,7 +1186,7 @@ body {
       <div class="search-box">
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input class="search-input" id="global-search" type="text" placeholder="Suche nach Lebensmitteln..." oninput="debounceSearch(this.value)">
-        <div class="search-actions"><button class="scan-btn" onclick="openScanner()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan</button></div>
+        <div class="search-actions"><span class="search-spinner" id="spinner-global"></span><button class="scan-btn" onclick="openScanner()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan</button></div>
       </div>
     </div>
     <div id="search-results" class="search-results" style="padding:0 20px 20px"></div>
@@ -1395,14 +1397,17 @@ body {
       <div class="search-box">
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input class="search-input" id="modal-search" type="text" placeholder="Lebensmittel suchen..." oninput="debounceSearch(this.value, true)">
-        <div class="search-actions"><button class="scan-btn" onclick="openScanner()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan</button></div>
+        <div class="search-actions"><span class="search-spinner" id="spinner-modal"></span><button class="scan-btn" onclick="openScanner()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan</button></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+        <button class="btn btn-secondary btn-sm" onclick="openFoodList('recent')" style="flex-direction:column;padding:12px 6px;height:auto;line-height:1.2"><span style="font-size:1.3rem;margin-bottom:2px">📋</span><span style="font-size:0.75rem;font-weight:600">Kürzlich</span></button>
+        <button class="btn btn-secondary btn-sm" onclick="openFoodList('favorites')" style="flex-direction:column;padding:12px 6px;height:auto;line-height:1.2"><span style="font-size:1.3rem;margin-bottom:2px">⭐</span><span style="font-size:0.75rem;font-weight:600">Favoriten</span></button>
+        <button class="btn btn-secondary btn-sm" onclick="openFoodList('custom')" style="flex-direction:column;padding:12px 6px;height:auto;line-height:1.2"><span style="font-size:1.3rem;margin-bottom:2px">📦</span><span style="font-size:0.75rem;font-weight:600">Meine</span></button>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-        <button class="btn btn-secondary btn-sm" onclick="showCustomFoodForm()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Eigenes Lebensmittel</button>
+        <button class="btn btn-secondary btn-sm" onclick="showCustomFoodForm()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Eigenes anlegen</button>
         <button class="btn btn-secondary btn-sm" onclick="openQuickAdd(currentMealType)">⚡ Nur Kalorien</button>
       </div>
-      <div id="favorites-section" class="recent-foods"></div>
-      <div id="recent-foods-section" class="recent-foods"></div>
       <div id="modal-search-results" class="search-results"></div>
     </div>
   </div>
@@ -1505,6 +1510,20 @@ body {
 <div id="modal-recipe-detail" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-recipe-detail')">
   <div class="modal-sheet"><div class="modal-handle"></div><div class="modal-header"><div class="modal-title">Rezept</div><button class="modal-close" onclick="closeModal('modal-recipe-detail')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body" id="recipe-detail-body"></div>
+  </div>
+</div>
+
+<!-- Food-Liste (Kürzlich / Favoriten / Meine) -->
+<div id="modal-food-list" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-food-list')">
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title" id="food-list-title">Liste</div><button class="modal-close" onclick="closeModal('modal-food-list')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="search-box" style="margin-bottom:12px">
+        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input class="search-input" id="food-list-filter" type="text" placeholder="Filtern..." oninput="renderFoodList()">
+      </div>
+      <div id="food-list-content"></div>
+    </div>
   </div>
 </div>
 
@@ -2370,7 +2389,6 @@ function openAddFoodModal(mealType) {
   document.getElementById('modal-search').value = '';
   document.getElementById('modal-search-results').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Suche nach Lebensmitteln oder scanne einen Barcode</div></div>';
   openModal('modal-add-food');
-  loadRecentFoods();
   setTimeout(() => document.getElementById('modal-search').focus(), 350);
 }
 
@@ -2615,23 +2633,31 @@ function searchCustomFoods(query) {
   return matches.slice(0, 10).map(function(m) { return m.food; });
 }
 
+function setSpinner(inModal, active) {
+  var id = inModal ? 'spinner-modal' : 'spinner-global';
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('active', !!active);
+}
+
 function debounceSearch(query, inModal) {
   clearTimeout(searchTimeout);
   var container = inModal ? document.getElementById('modal-search-results') : document.getElementById('search-results');
-  if (query.length < 2) { container.innerHTML = ''; return; }
+  if (query.length < 2) { container.innerHTML = ''; setSpinner(inModal, false); return; }
   searchGen++;
   var myGen = searchGen;
 
-  // SOFORT: Lokale + eigene Lebensmittel rendern (ohne Netzwerk)
   var localResults = searchLocalFoods(query);
   var customResults = searchCustomFoods(query);
   var qLower = query.trim().toLowerCase();
   var offData = offCache[qLower] || { products: [] };
-  renderSearchResults(container, offData, localResults, customResults);
+  var offPending = query.length >= 3 && !offCache[qLower];
+  renderSearchResults(container, offData, localResults, customResults, offPending, query);
 
-  // OFF nur für Produkt-Suchen (ab 3 Zeichen, und wenn nicht schon im Cache)
-  if (query.length >= 3 && !offCache[qLower]) {
+  if (offPending) {
+    setSpinner(inModal, true);
     searchTimeout = setTimeout(function() { loadOffResults(query, inModal, 0, myGen); }, 500);
+  } else {
+    setSpinner(inModal, false);
   }
 }
 
@@ -2680,10 +2706,11 @@ async function loadOffResults(query, inModal, retry, gen) {
     }
   }
   if (gen !== searchGen) return;
-  renderSearchResults(container, offData, localResults, customResults);
+  setSpinner(inModal, false);
+  renderSearchResults(container, offData, localResults, customResults, false, query);
 }
 
-function renderSearchResults(container, offData, localResults, customFoods) {
+function renderSearchResults(container, offData, localResults, customFoods, offPending, currentQuery) {
   let html = '';
 
   // --- Eigene Lebensmittel ---
@@ -2726,7 +2753,12 @@ function renderSearchResults(container, offData, localResults, customFoods) {
   }
 
   if (!html) {
-    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Keine Ergebnisse gefunden.<br>Versuche einen anderen Begriff oder füge es als eigenes Lebensmittel hinzu.</div></div>';
+    if (offPending) {
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">⏳</div><div class="empty-state-text">Suche läuft...</div></div>';
+    } else {
+      var safeQ = escapeHtml(currentQuery || '');
+      container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Keine Treffer für „' + safeQ + '"</div><button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="showCustomFoodForm(\'' + safeQ.replace(/'/g, "&#39;") + '\')">Als eigenes Lebensmittel anlegen</button></div>';
+    }
     return;
   }
   container.innerHTML = html;
@@ -2951,13 +2983,15 @@ async function waitForHtml5Qrcode(maxMs) {
 }
 
 async function startScanner() {
-  if (html5QrCode || nativeScannerActive || scannerStarting) return;
+  if (html5QrCode || nativeScannerActive || zxingActive || scannerStarting) return;
   scannerStarting = true;
 
   try {
-    // Native BarcodeDetector bevorzugt — deutlich höhere Trefferrate
+    // 1. Native BarcodeDetector (Chrome/Edge/Safari 17+) — schnellster Pfad
     if (await tryStartNativeScanner()) return;
-    // Fallback: html5-qrcode
+    // 2. ZXing — Industriestandard, robust auf allen Browsern
+    if (await tryStartZXingScanner()) return;
+    // 3. html5-qrcode — letzter Fallback
     await startHtml5QrcodeFallback();
   } catch (err) {
     console.error('Scanner start error:', err);
@@ -2965,6 +2999,101 @@ async function startScanner() {
   } finally {
     scannerStarting = false;
   }
+}
+
+// ---------------- ZXing-Pfad ----------------
+let zxingReader = null;
+let zxingActive = false;
+let zxingLibLoaded = false;
+
+function loadZXing() {
+  if (zxingLibLoaded) return Promise.resolve();
+  return new Promise(function(resolve, reject) {
+    if (window.ZXingBrowser) { zxingLibLoaded = true; return resolve(); }
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@zxing/browser@0.1.5/umd/index.min.js';
+    s.async = true;
+    s.onload = function() { zxingLibLoaded = true; resolve(); };
+    s.onerror = function() { reject(new Error('ZXing konnte nicht geladen werden')); };
+    document.head.appendChild(s);
+  });
+}
+
+async function tryStartZXingScanner() {
+  try {
+    await loadZXing();
+    if (!window.ZXingBrowser || !window.ZXingBrowser.BrowserMultiFormatReader) return false;
+
+    var reader = document.getElementById('barcode-reader');
+    reader.innerHTML = '<video playsinline autoplay muted style="width:100%;display:block;border-radius:var(--radius-md)"></video><div style="position:absolute;top:50%;left:6%;right:6%;height:70px;transform:translateY(-50%);border:2px solid rgba(255,255,255,0.85);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.35);pointer-events:none"></div>';
+    reader.style.position = 'relative';
+    nativeVideoEl = reader.querySelector('video');
+
+    zxingReader = new window.ZXingBrowser.BrowserMultiFormatReader();
+
+    // Kamera-Auswahl: back bevorzugt
+    var devices = [];
+    try { devices = await window.ZXingBrowser.BrowserMultiFormatReader.listVideoInputDevices(); } catch(e) {}
+    var deviceId = null;
+    if (devices.length > 0) {
+      var back = devices.find(function(d) { return /back|rear|environment|hinten/i.test(d.label || ''); });
+      deviceId = back ? back.deviceId : devices[devices.length - 1].deviceId;
+      if (devices.length > 1) document.getElementById('camera-switch-btn').style.display = '';
+      scannerCameras = devices;
+    }
+
+    zxingActive = true;
+    setScannerHint('Kamera aktiv — Barcode ins Feld halten');
+
+    // Scan loop: ZXing callt callback bei erfolgreicher Erkennung
+    zxingReader.decodeFromVideoDevice(deviceId, nativeVideoEl, function(result, err) {
+      if (result && zxingActive) {
+        onBarcodeScanned(result.getText());
+      }
+      // err ist normal (NotFoundException heisst nur: in diesem Frame kein Code)
+    });
+
+    // Torch-Check (etwas verzögert, damit Stream läuft)
+    setTimeout(function() {
+      try {
+        var stream = nativeVideoEl.srcObject;
+        if (stream) {
+          var track = stream.getVideoTracks()[0];
+          nativeVideoStream = stream;
+          var caps = track.getCapabilities ? track.getCapabilities() : {};
+          if (caps.torch) document.getElementById('torch-btn').style.display = '';
+        }
+      } catch(e) {}
+    }, 600);
+
+    return true;
+  } catch (e) {
+    console.error('ZXing start:', e);
+    await stopZXingScanner();
+    if (e && (e.name === 'NotAllowedError' || e.name === 'NotFoundError' || e.name === 'NotReadableError')) {
+      handleScannerError(e);
+      return true; // nicht weiter probieren
+    }
+    return false;
+  }
+}
+
+async function stopZXingScanner() {
+  zxingActive = false;
+  if (zxingReader) {
+    try { zxingReader.reset(); } catch(e) {}
+    zxingReader = null;
+  }
+  if (nativeVideoStream) {
+    try { nativeVideoStream.getTracks().forEach(function(t) { t.stop(); }); } catch(e) {}
+    nativeVideoStream = null;
+  }
+  if (nativeVideoEl) {
+    try { nativeVideoEl.srcObject = null; } catch(e) {}
+    nativeVideoEl = null;
+  }
+  var reader = document.getElementById('barcode-reader');
+  if (reader) reader.innerHTML = '';
 }
 
 async function tryStartNativeScanner() {
@@ -3116,33 +3245,23 @@ function handleScannerError(err) {
 }
 
 async function switchCamera() {
-  if (html5QrCode) {
-    if (scannerCameras.length < 2) return;
-    scannerCameraIdx = (scannerCameraIdx + 1) % scannerCameras.length;
-    try {
-      await html5QrCode.stop(); html5QrCode = null;
-      scannerTorchOn = false;
-      document.getElementById('torch-btn').textContent = '🔦 Licht an';
-      setScannerHint('Wechsle Kamera...');
-      await startScanner();
-    } catch (e) { setScannerHint('Wechsel fehlgeschlagen', true); }
-  } else if (nativeScannerActive) {
-    // Native: toggle facingMode
-    await stopNativeScanner();
-    scannerTorchOn = false;
-    document.getElementById('torch-btn').textContent = '🔦 Licht an';
-    setScannerHint('Wechsle Kamera...');
-    // toggeln mit veraendertem facingMode — einfachster Weg: über mediaDevices.enumerateDevices
-    try {
-      var devs = await navigator.mediaDevices.enumerateDevices();
-      var cams = devs.filter(function(d) { return d.kind === 'videoinput'; });
-      if (cams.length > 1) {
-        scannerCameraIdx = (scannerCameraIdx + 1) % cams.length;
-        scannerCameras = cams;
-      }
-    } catch(e) {}
-    await startScanner();
-  }
+  // Welcher Pfad? Alle stoppen, dann neu starten
+  var running = html5QrCode || nativeScannerActive || zxingActive;
+  if (!running) return;
+  scannerCameraIdx = (scannerCameraIdx + 1) % Math.max(scannerCameras.length, 1);
+  scannerTorchOn = false;
+  document.getElementById('torch-btn').textContent = '🔦 Licht an';
+  document.getElementById('torch-btn').style.display = 'none';
+  setScannerHint('Wechsle Kamera...');
+  if (html5QrCode) { try { await html5QrCode.stop(); } catch(e) {} html5QrCode = null; }
+  if (nativeScannerActive) await stopNativeScanner();
+  if (zxingActive) await stopZXingScanner();
+  try {
+    var devs = await navigator.mediaDevices.enumerateDevices();
+    var cams = devs.filter(function(d) { return d.kind === 'videoinput'; });
+    if (cams.length > 0) scannerCameras = cams;
+  } catch(e) {}
+  await startScanner();
 }
 
 async function toggleTorch() {
@@ -3238,6 +3357,7 @@ async function closeScannerModal() {
     html5QrCode = null;
   }
   if (nativeScannerActive) await stopNativeScanner();
+  if (zxingActive) await stopZXingScanner();
   scannerTorchOn = false;
   closeModal('modal-scanner');
 }
@@ -3448,10 +3568,15 @@ async function scanNutritionLabel(input) {
   input.value = '';
 }
 
-function showCustomFoodForm() {
+function showCustomFoodForm(prefillName) {
   ['custom-food-name','custom-food-brand','custom-kcal','custom-protein','custom-carbs','custom-fat'].forEach(id => document.getElementById(id).value = '');
+  if (prefillName) document.getElementById('custom-food-name').value = prefillName;
   document.getElementById('scan-status').style.display = 'none';
   openModal('modal-custom-food');
+  setTimeout(function() {
+    var el = document.getElementById(prefillName ? 'custom-kcal' : 'custom-food-name');
+    if (el) el.focus();
+  }, 200);
 }
 
 async function saveCustomFood() {
@@ -3946,37 +4071,162 @@ async function logWeight() {
 }
 
 // ============================================
-// FEATURE: RECENT FOODS (Kürzlich gegessen)
+// FEATURE: 3-BUTTONS — Kürzlich / Favoriten / Meine
 // ============================================
-async function loadRecentFoods() {
-  if (!currentUser || !db) return;
-  const { data } = await db.from('food_entries').select('food_name,kcal,protein_g,carbs_g,fat_g,amount,unit,brand,image_url,barcode,off_product_id')
-    .eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(30);
+let foodListMode = 'recent'; // 'recent' | 'favorites' | 'custom'
+let foodListData = [];
 
-  if (!data || data.length === 0) return;
+async function openFoodList(mode) {
+  foodListMode = mode;
+  document.getElementById('food-list-filter').value = '';
+  document.getElementById('food-list-title').textContent =
+    mode === 'recent' ? '📋 Kürzlich gegessen' :
+    mode === 'favorites' ? '⭐ Favoriten' : '📦 Meine Lebensmittel';
+  document.getElementById('food-list-content').innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto"></div></div>';
+  openModal('modal-food-list');
+  await refreshFoodListData();
+  renderFoodList();
+}
 
-  // Deduplizieren nach food_name
-  const seen = new Set();
-  const unique = data.filter(e => {
-    const key = e.food_name.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).slice(0, 12);
+async function refreshFoodListData() {
+  if (!currentUser) { foodListData = []; return; }
+  try {
+    if (foodListMode === 'recent') {
+      const { data } = await db.from('food_entries')
+        .select('food_name,kcal,protein_g,carbs_g,fat_g,amount,unit,brand,image_url,barcode,off_product_id,created_at')
+        .eq('user_id', currentUser.id).order('created_at', { ascending: false }).limit(60);
+      // Deduplizieren + zählen wie oft
+      const map = new Map();
+      (data || []).forEach(e => {
+        const key = (e.food_name || '').toLowerCase() + '|' + (e.brand || '');
+        if (!map.has(key)) map.set(key, { ...e, count: 1, last: e.created_at });
+        else { const cur = map.get(key); cur.count++; if (e.created_at > cur.last) cur.last = e.created_at; }
+      });
+      foodListData = Array.from(map.values()).sort((a, b) => (b.last || '').localeCompare(a.last || ''));
+    } else if (foodListMode === 'favorites') {
+      foodListData = [...favoritesCache];
+    } else if (foodListMode === 'custom') {
+      await refreshCustomFoodsCache();
+      foodListData = [...customFoodsCache];
+    }
+  } catch (e) {
+    console.error('refreshFoodListData:', e);
+    foodListData = [];
+  }
+}
 
-  const container = document.getElementById('recent-foods-section');
-  if (!container) return;
-  container.innerHTML = '<div style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px">KÜRZLICH GEGESSEN</div>' +
-    unique.map(e => {
-      // Wichtig: Nur bei g/ml ist (kcal/amount)*100 sinnvoll. Stk/Portion sind bereits pro 1 Einheit.
+function relativeDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffDays === 0) return 'heute';
+  if (diffDays === 1) return 'gestern';
+  if (diffDays < 7) return 'vor ' + diffDays + ' Tagen';
+  if (diffDays < 30) return 'vor ' + Math.floor(diffDays / 7) + ' Wochen';
+  return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'short' });
+}
+
+function renderFoodList() {
+  const filterRaw = document.getElementById('food-list-filter').value;
+  const filter = normalizeForSearch(filterRaw);
+  const container = document.getElementById('food-list-content');
+
+  let items = foodListData;
+  if (filter) {
+    items = items.filter(x => {
+      const n = normalizeForSearch(x.food_name || x.name || '');
+      const b = normalizeForSearch(x.brand || '');
+      return n.includes(filter) || b.includes(filter);
+    });
+  }
+
+  if (items.length === 0) {
+    const emptyMsg = foodListMode === 'recent' ? 'Noch nichts geloggt'
+      : foodListMode === 'favorites' ? 'Noch keine Favoriten — tippe in der Suche auf den Stern ⭐'
+      : 'Noch keine eigenen Lebensmittel — lege unten eins an';
+    const cta = foodListMode === 'custom'
+      ? '<button class="btn btn-primary btn-sm" style="margin-top:16px" onclick="closeModal(\'modal-food-list\');showCustomFoodForm()">Neues anlegen</button>'
+      : '';
+    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-text">' + emptyMsg + '</div>' + cta + '</div>';
+    return;
+  }
+
+  if (foodListMode === 'recent') {
+    container.innerHTML = items.map(e => {
       const isMass = (e.unit === 'g' || e.unit === 'ml') && e.amount > 0;
       const kcalPer100 = isMass ? Math.round((e.kcal / e.amount) * 100) : Math.round(e.kcal * 10) / 10;
       const protPer100 = isMass ? Math.round(((e.protein_g || 0) / e.amount) * 100 * 10) / 10 : Math.round((e.protein_g || 0) * 10) / 10;
       const carbsPer100 = isMass ? Math.round(((e.carbs_g || 0) / e.amount) * 100 * 10) / 10 : Math.round((e.carbs_g || 0) * 10) / 10;
       const fatPer100 = isMass ? Math.round(((e.fat_g || 0) / e.amount) * 100 * 10) / 10 : Math.round((e.fat_g || 0) * 10) / 10;
-      const fd = encodeURIComponent(JSON.stringify({ name: e.food_name, brand: e.brand || '', kcal: kcalPer100, protein: protPer100, carbs: carbsPer100, fat: fatPer100, fiber: 0, image: e.image_url || '', barcode: e.barcode || '', off_id: e.off_product_id || '', unitHint: e.unit || 'g' }));
-      return `<span class="recent-food-chip" onclick="selectProduct('${fd}')">${escapeHtml(e.food_name)} <span class="chip-kcal">${Math.round(e.kcal)}</span></span>`;
+      const fd = encodeURIComponent(JSON.stringify({
+        name: e.food_name, brand: e.brand || '',
+        kcal: kcalPer100, protein: protPer100, carbs: carbsPer100, fat: fatPer100, fiber: 0,
+        image: e.image_url || '', barcode: e.barcode || '', off_id: e.off_product_id || '', unitHint: e.unit || 'g'
+      }));
+      return `<div class="search-result-item" onclick="closeModal('modal-food-list');selectProduct('${fd}')">
+        <div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">🍽️</div>
+        <div class="result-info">
+          <div class="result-name">${escapeHtml(e.food_name)}</div>
+          <div class="result-brand">${e.count > 1 ? e.count + '× · ' : ''}${relativeDate(e.last)}${e.brand ? ' · ' + escapeHtml(e.brand) : ''}</div>
+        </div>
+        <div class="result-kcal">${Math.round(e.kcal)} kcal</div>
+      </div>`;
     }).join('');
+  } else if (foodListMode === 'favorites') {
+    container.innerHTML = items.map(f => {
+      const fd = encodeURIComponent(JSON.stringify({
+        name: f.food_name, brand: f.brand || '',
+        kcal: f.kcal_per_100, protein: f.protein_per_100, carbs: f.carbs_per_100, fat: f.fat_per_100, fiber: 0,
+        image: f.image_url || '', barcode: f.barcode || '', off_id: f.off_id || '', unitHint: f.unit_hint || 'g'
+      }));
+      return `<div class="search-result-item" style="position:relative">
+        <div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;color:var(--accent)">⭐</div>
+        <div class="result-info" onclick="closeModal('modal-food-list');selectProduct('${fd}')" style="cursor:pointer">
+          <div class="result-name">${escapeHtml(f.food_name)}</div>
+          <div class="result-brand">${escapeHtml(f.brand || '')}</div>
+        </div>
+        <div class="result-kcal">${Math.round(f.kcal_per_100)} kcal</div>
+        <button class="item-delete-btn" onclick="event.stopPropagation();removeFavoriteById('${f.id}')" title="Aus Favoriten entfernen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+      </div>`;
+    }).join('');
+  } else if (foodListMode === 'custom') {
+    container.innerHTML = items.map(f => {
+      const fd = encodeURIComponent(JSON.stringify(f));
+      return `<div class="search-result-item" style="position:relative">
+        <div style="width:48px;height:48px;border-radius:var(--radius-sm);background:var(--accent-light);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0">📦</div>
+        <div class="result-info" onclick="closeModal('modal-food-list');selectCustomFoodEnc('${fd}')" style="cursor:pointer">
+          <div class="result-name">${escapeHtml(f.food_name)}</div>
+          <div class="result-brand">${escapeHtml(f.brand || 'Eigenes Lebensmittel')} · E${Math.round(f.protein_per_100)}g K${Math.round(f.carbs_per_100)}g F${Math.round(f.fat_per_100)}g /100g</div>
+        </div>
+        <div class="result-kcal">${Math.round(f.kcal_per_100)} kcal</div>
+        <button class="item-delete-btn" onclick="event.stopPropagation();deleteCustomFood('${f.id}')" title="Löschen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></button>
+      </div>`;
+    }).join('');
+  }
+}
+
+async function removeFavoriteById(id) {
+  if (!currentUser) return;
+  const { error } = await db.from('favorites').delete().eq('id', id).eq('user_id', currentUser.id);
+  if (error) { showToast('Fehler'); return; }
+  favoritesCache = favoritesCache.filter(f => f.id !== id);
+  foodListData = foodListData.filter(f => f.id !== id);
+  renderFoodList();
+  renderFavoritesSection();
+  showToast('Entfernt');
+}
+
+async function deleteCustomFood(id) {
+  if (!currentUser) return;
+  if (!confirm('Lebensmittel wirklich löschen?')) return;
+  const { error } = await db.from('custom_foods').delete().eq('id', id).eq('user_id', currentUser.id);
+  if (error) { showToast('Fehler beim Löschen'); return; }
+  customFoodsCache = customFoodsCache.filter(f => f.id !== id);
+  foodListData = foodListData.filter(f => f.id !== id);
+  renderFoodList();
+  showToast('Gelöscht');
 }
 
 // ============================================
@@ -4197,14 +4447,7 @@ async function loadFavorites() {
 }
 
 function renderFavoritesSection() {
-  var container = document.getElementById('favorites-section');
-  if (!container) return;
-  if (favoritesCache.length === 0) { container.innerHTML = ''; return; }
-  container.innerHTML = '<div style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px">⭐ FAVORITEN</div>' +
-    favoritesCache.slice(0, 12).map(function(f) {
-      var fd = encodeURIComponent(JSON.stringify({ name: f.food_name, brand: f.brand || '', kcal: f.kcal_per_100, protein: f.protein_per_100, carbs: f.carbs_per_100, fat: f.fat_per_100, fiber: 0, image: f.image_url || '', barcode: f.barcode || '', off_id: f.off_id || '', unitHint: f.unit_hint || 'g' }));
-      return '<span class="recent-food-chip" onclick="selectProduct(\'' + fd + '\')" style="background:var(--accent-light);border-color:var(--accent)">⭐ ' + escapeHtml(f.food_name) + ' <span class="chip-kcal">' + Math.round(f.kcal_per_100) + '</span></span>';
-    }).join('');
+  // Kompatibilität: alte Aufrufer — Sektion wurde durch 3-Buttons ersetzt. No-op.
 }
 
 async function toggleFavorite(foodObj) {
