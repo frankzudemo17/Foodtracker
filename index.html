@@ -2453,7 +2453,7 @@ body {
     <div style="padding:20px 20px 10px"><h2 class="font-display" style="font-size:1.75rem;font-weight:700;margin-bottom:18px;letter-spacing:-0.04em">Lebensmittel</h2>
       <div class="search-box">
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="search-input" id="global-search" type="text" placeholder="Suche nach Lebensmitteln..." oninput="debounceSearch(this.value)">
+        <input class="search-input" id="global-search" type="text" placeholder="Suche nach Lebensmitteln..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="search-actions"><span class="search-spinner" id="spinner-global"></span><button class="scan-btn" onclick="openScanner()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan</button></div>
       </div>
     </div>
@@ -2711,7 +2711,7 @@ body {
     <div class="modal-body">
       <div class="search-box">
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="search-input" id="modal-search" type="text" placeholder="Lebensmittel suchen..." oninput="debounceSearch(this.value, true)">
+        <input class="search-input" id="modal-search" type="text" placeholder="Lebensmittel suchen..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
         <div class="search-actions"><span class="search-spinner" id="spinner-modal"></span><button class="scan-btn" onclick="openScanner()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg> Scan</button></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
@@ -2800,7 +2800,7 @@ body {
           <label class="form-label" style="margin:0">Zutaten</label>
         </div>
         <div style="display:flex;gap:6px;margin-bottom:10px">
-          <input class="form-input" id="recipe-ingredient-search" placeholder="Zutat suchen..." oninput="debounceRecipeSearch(this.value)" style="flex:1">
+          <input class="form-input" id="recipe-ingredient-search" placeholder="Zutat suchen..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="flex:1">
         </div>
         <div id="recipe-search-results" style="max-height:200px;overflow-y:auto;margin-bottom:12px"></div>
         <div id="recipe-ingredients-list"></div>
@@ -2835,7 +2835,7 @@ body {
     <div class="modal-body">
       <div class="search-box" style="margin-bottom:12px">
         <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input class="search-input" id="food-list-filter" type="text" placeholder="Filtern..." oninput="renderFoodList()">
+        <input class="search-input" id="food-list-filter" type="text" placeholder="Filtern..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </div>
       <div id="food-list-content"></div>
     </div>
@@ -6319,8 +6319,25 @@ async function deleteAccount() {
   }
 }
 
+// Mehr-Event-Listener gegen iOS/Android IME-Verzögerung:
+// input   → normaler Tippvorgang
+// compositionend → bei Predictive-Text / Autocomplete-Bar
+// keyup   → Fallback für seltene Edge-Cases (z.B. Autofill)
+function wireInput(id, handler) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var fire = function() { handler(el.value); };
+  ['input', 'compositionend', 'keyup', 'change', 'paste'].forEach(function(ev) {
+    el.addEventListener(ev, fire);
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   initApp();
+  wireInput('global-search', function(v) { debounceSearch(v, false); });
+  wireInput('modal-search', function(v) { debounceSearch(v, true); });
+  wireInput('recipe-ingredient-search', function(v) { debounceRecipeSearch(v); });
+  wireInput('food-list-filter', function() { renderFoodList(); });
   // Load barcode scanner optionally
   var s = document.createElement('script');
   s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
