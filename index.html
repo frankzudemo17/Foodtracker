@@ -5610,7 +5610,7 @@ async function logWeight() {
 // FEATURE: STREAK-MILESTONE — Konfetti + Sprüche alle 10 Tage
 // ============================================
 const MILESTONE_LINES = [
-  { title: '{name}, du bist der Beste!', sub: '10 Tage in Folge geloggt — Respekt.' },
+  { title: '{name}, du bist der Beste!', sub: '{count} Tage in Folge geloggt — Respekt.' },
   { title: 'Respekt, Bro!', sub: 'Was du hier durchziehst, ist Disziplin pur.' },
   { title: 'Du bist ja crazy!', sub: 'Ehrlich, das machen die wenigsten.' },
   { title: 'Boom! Streak geknackt.', sub: 'Du hast das drauf, {name}.' },
@@ -5619,7 +5619,12 @@ const MILESTONE_LINES = [
   { title: 'Holy moly, {name}!', sub: 'So viele Tage am Stück — du bist eine Maschine.' },
   { title: 'Nicht aufzuhalten!', sub: 'Das nächste Level wartet schon, {name}.' },
   { title: 'Stark wie Kaffee.', sub: 'Und genauso zuverlässig, {name}.' },
-  { title: 'King/Queen Energy.', sub: 'Einfach weitermachen, {name}.' }
+  { title: 'King/Queen Energy.', sub: 'Einfach weitermachen, {name}.' },
+  { title: 'GOAT!', sub: 'Der Beweis liegt auf dem Tisch, {name}.' },
+  { title: 'Carry on, my wayward son.', sub: '{count}-Tage-Hunt erfolgreich, {name}.' },
+  { title: 'Sheeesh.', sub: 'So wird\'s gemacht, {name}.' },
+  { title: 'You\'re cooking, bro.', sub: 'Rezept für Erfolg, {name}.' },
+  { title: 'Kamehamehaaa!', sub: 'Dein Power-Level explodiert, {name}.' }
 ];
 
 let confettiAnimating = false;
@@ -5693,11 +5698,18 @@ function runConfetti() {
 
 function celebrateStreak(count) {
   var name = (currentProfile && currentProfile.display_name) ? currentProfile.display_name.split(' ')[0] : 'Freund';
-  var idx = Math.floor(Math.random() * MILESTONE_LINES.length);
-  var line = MILESTONE_LINES[idx];
+  var line;
+  if (count === 100) {
+    // Spezieller Jahrhundert-Spruch — garantiert nur bei Tag 100
+    line = { title: 'Ein Jahrhundert!', sub: 'Du hast dir Tante Mathildas Kirschkuchen verdient, {name}.' };
+  } else {
+    var idx = Math.floor(Math.random() * MILESTONE_LINES.length);
+    line = MILESTONE_LINES[idx];
+  }
   document.getElementById('milestone-number').textContent = count;
-  document.getElementById('milestone-line').textContent = line.title.replace(/\{name\}/g, name);
-  document.getElementById('milestone-sub').textContent = line.sub.replace(/\{name\}/g, name);
+  var replace = function(s) { return s.replace(/\{name\}/g, name).replace(/\{count\}/g, count); };
+  document.getElementById('milestone-line').textContent = replace(line.title);
+  document.getElementById('milestone-sub').textContent = replace(line.sub);
   openModal('modal-milestone');
   // Leichte Haptik wenn verfügbar
   try { if (navigator.vibrate) navigator.vibrate([10, 40, 10, 40, 10]); } catch (e) {}
