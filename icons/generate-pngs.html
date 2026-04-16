@@ -42,16 +42,41 @@
 
 <script>
 const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#E8EDE2"/>
-  <circle cx="256" cy="256" r="160" fill="#A34509" fill-opacity="0.05"/>
-  <g transform="translate(128 100)">
-    <ellipse cx="128" cy="56" rx="116" ry="24" fill="#A34509"/>
-    <ellipse cx="128" cy="48" rx="64" ry="11" fill="#F6F8F2" fill-opacity="0.42"/>
-    <rect x="116" y="78" width="24" height="172" rx="4" fill="#A34509"/>
-    <rect x="112" y="160" width="32" height="8" rx="2" fill="#A34509"/>
-    <rect x="114" y="163" width="28" height="2" fill="#8A390A"/>
-    <ellipse cx="128" cy="262" rx="76" ry="16" fill="#A34509"/>
-    <rect x="80" y="280" width="96" height="10" rx="5" fill="#A34509" fill-opacity="0.25"/>
+  <defs>
+    <pattern id="check" x="0" y="0" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="rotate(45 0 0)">
+      <rect width="64" height="64" fill="#E8EDE2"/>
+      <rect x="32" y="0" width="32" height="32" fill="#DCE3D5"/>
+      <rect x="0" y="32" width="32" height="32" fill="#DCE3D5"/>
+    </pattern>
+    <radialGradient id="vignette" cx="0.5" cy="0.5" r="0.7">
+      <stop offset="0.5" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#1C2014" stop-opacity="0.14"/>
+    </radialGradient>
+    <clipPath id="rounded"><rect width="512" height="512" rx="112"/></clipPath>
+  </defs>
+  <g clip-path="url(#rounded)">
+    <rect width="512" height="512" fill="#E8EDE2"/>
+    <rect width="512" height="512" fill="url(#check)"/>
+    <rect width="512" height="512" fill="url(#vignette)"/>
+    <g transform="translate(92 180) rotate(-10 24 90)">
+      <rect x="0" y="0" width="7" height="46" rx="2.5" fill="#A34509"/>
+      <rect x="13" y="0" width="7" height="46" rx="2.5" fill="#A34509"/>
+      <rect x="26" y="0" width="7" height="46" rx="2.5" fill="#A34509"/>
+      <rect x="39" y="0" width="7" height="46" rx="2.5" fill="#A34509"/>
+      <path d="M -2 44 L 48 44 L 42 60 L 4 60 Z" fill="#A34509"/>
+      <rect x="18" y="60" width="12" height="128" rx="3" fill="#A34509"/>
+      <ellipse cx="24" cy="190" rx="9" ry="6" fill="#A34509"/>
+    </g>
+    <g transform="translate(380 178) rotate(10 18 95)">
+      <path d="M 6 0 L 28 0 Q 32 0 32 6 L 32 92 Q 32 96 28 96 L 6 96 Z" fill="#A34509"/>
+      <rect x="10" y="96" width="16" height="96" rx="3" fill="#A34509"/>
+      <ellipse cx="18" cy="194" rx="9" ry="6" fill="#A34509"/>
+    </g>
+    <ellipse cx="256" cy="410" rx="140" ry="14" fill="#1C2014" fill-opacity="0.14"/>
+    <circle cx="256" cy="256" r="150" fill="#FDFBF7" stroke="#A34509" stroke-width="10"/>
+    <circle cx="256" cy="256" r="108" fill="none" stroke="#A34509" stroke-width="2" opacity="0.4"/>
+    <circle cx="256" cy="256" r="92" fill="none" stroke="#A34509" stroke-width="1" opacity="0.25"/>
+    <ellipse cx="218" cy="188" rx="44" ry="10" fill="#FFFFFF" fill-opacity="0.55"/>
   </g>
 </svg>`;
 
