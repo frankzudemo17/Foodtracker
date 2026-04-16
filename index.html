@@ -6323,10 +6323,17 @@ async function deleteAccount() {
 // input   → normaler Tippvorgang
 // compositionend → bei Predictive-Text / Autocomplete-Bar
 // keyup   → Fallback für seltene Edge-Cases (z.B. Autofill)
+// Guard: Handler läuft nur wenn sich der Value WIRKLICH geändert hat —
+// die 5 Events pro Tastendruck führen dann nicht zu 5× Suche.
 function wireInput(id, handler) {
   var el = document.getElementById(id);
   if (!el) return;
-  var fire = function() { handler(el.value); };
+  var lastVal = null;
+  var fire = function() {
+    if (el.value === lastVal) return;
+    lastVal = el.value;
+    handler(el.value);
+  };
   ['input', 'compositionend', 'keyup', 'change', 'paste'].forEach(function(ev) {
     el.addEventListener(ev, fire);
   });
