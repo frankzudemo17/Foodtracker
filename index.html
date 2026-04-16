@@ -2573,7 +2573,7 @@ body {
         </div>
       </div>
       <button class="btn btn-secondary btn-block" style="margin-top:24px;color:#d44" onclick="handleLogout()">Abmelden</button>
-      <div style="text-align:center;padding:12px;font-size:0.65rem;color:var(--text-tertiary)">v2.3</div>
+      <div style="text-align:center;padding:12px;font-size:0.65rem;color:var(--text-tertiary)">v3.20 · kein SW</div>
     </div>
   </div>
 
@@ -3716,11 +3716,23 @@ function renderMealCards() {
 }
 
 async function deleteEntry(id) {
-  if (!currentUser) return;
-  const { error } = await db.from('food_entries').delete().eq('id', id).eq('user_id', currentUser.id);
-  if (error) { showToast('Fehler beim Löschen'); return; }
-  todayEntries = todayEntries.filter(e => e.id !== id);
-  updateDashboard(); renderMealCards(); showToast('Eintrag gelöscht');
+  if (!currentUser) {
+    try {
+      var s = await db.auth.getSession();
+      if (s.data?.session) currentUser = s.data.session.user;
+    } catch(e) {}
+    if (!currentUser) { showToast('Nicht angemeldet — Seite neu laden'); return; }
+  }
+  try {
+    const { error } = await db.from('food_entries').delete().eq('id', id).eq('user_id', currentUser.id);
+    if (error) { console.error('delete:', error); showToast('Fehler: ' + (error.message || 'Löschen fehlgeschlagen')); return; }
+    todayEntries = todayEntries.filter(function(e) { return e.id !== id; });
+    updateDashboard(); renderMealCards();
+    showToast('Eintrag gelöscht');
+  } catch (e) {
+    console.error('delete exception:', e);
+    showToast('Fehler: ' + (e.message || 'Netzwerk-Problem'));
+  }
 }
 
 // ============================================
@@ -4053,31 +4065,55 @@ function buildSearchVariants(query) {
 }
 
 async function fetchOffOnce(query, signal) {
-  // 1) Neuer Elasticsearch-Endpoint (search-a-licious, seit 2024)
+  var lastErr = null;
+  var fields = 'code,product_name,product_name_de,brands,image_front_small_url,nutriments,_id';
+
+  // 1) v2/search auf world.openfoodfacts.org — selbe Origin wie der Barcode-Endpoint
+  //    (der im PWA-Modus zuverlaessig CORS-Header schickt)
   try {
-    var newUrl = 'https://search.openfoodfacts.org/search'
-      + '?q=' + encodeURIComponent(query)
-      + '&fields=code,product_name,product_name_de,brands,image_front_small_url,nutriments,_id'
-      + '&langs=de,en&page_size=6';
-    var r = await fetch(newUrl, { signal: signal });
+    var v2Url = 'https://world.openfoodfacts.org/api/v2/search'
+      + '?search_terms=' + encodeURIComponent(query)
+      + '&fields=' + fields
+      + '&page_size=6'
+      + '&lc=de&cc=de';
+    var r = await fetch(v2Url, { signal: signal });
     if (r.ok) {
       var d = await r.json();
-      if (d && Array.isArray(d.hits) && d.hits.length > 0) {
-        return { products: d.hits };
+      if (d && Array.isArray(d.products) && d.products.length > 0) {
+        return d;
       }
-    }
+    } else { lastErr = 'v2 HTTP ' + r.status; }
   } catch (e) {
     if (e && e.name === 'AbortError') throw e;
+    lastErr = 'v2 ' + (e.message || e.name);
   }
 
-  // 2) Fallback: klassischer cgi/search.pl
-  var url = 'https://world.openfoodfacts.org/cgi/search.pl'
+  // 2) search-a-licious (search.openfoodfacts.org, Elasticsearch)
+  try {
+    var saUrl = 'https://search.openfoodfacts.org/search'
+      + '?q=' + encodeURIComponent(query)
+      + '&fields=' + fields
+      + '&langs=de,en&page_size=6';
+    var r2 = await fetch(saUrl, { signal: signal });
+    if (r2.ok) {
+      var d2 = await r2.json();
+      if (d2 && Array.isArray(d2.hits) && d2.hits.length > 0) {
+        return { products: d2.hits };
+      }
+    } else { lastErr = 'sa HTTP ' + r2.status; }
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw e;
+    lastErr = 'sa ' + (e.message || e.name);
+  }
+
+  // 3) Klassischer cgi/search.pl
+  var cgiUrl = 'https://world.openfoodfacts.org/cgi/search.pl'
     + '?search_terms=' + encodeURIComponent(query)
     + '&search_simple=1&action=process&json=1&page_size=6'
-    + '&fields=product_name,product_name_de,brands,nutriments,image_front_small_url,code,_id'
+    + '&fields=' + fields
     + '&lc=de&cc=de';
-  var resp = await fetch(url, { signal: signal });
-  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  var resp = await fetch(cgiUrl, { signal: signal });
+  if (!resp.ok) throw new Error(lastErr ? lastErr + ' / cgi ' + resp.status : 'HTTP ' + resp.status);
   return await resp.json();
 }
 
@@ -6408,9 +6444,17 @@ document.addEventListener('DOMContentLoaded', function() {
   s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
   s.async = true;
   document.head.appendChild(s);
-  // Network-First Service Worker registrieren (keine Auto-Reload-Loop)
+  // KEIN SW-Register mehr — PWA soll wie normale Webseite arbeiten.
+  // Alten SWs und Caches bei jedem Load aktiv killen.
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(function() {});
+    navigator.serviceWorker.getRegistrations().then(function(regs) {
+      regs.forEach(function(r) { r.unregister(); });
+    });
+  }
+  if ('caches' in window) {
+    caches.keys().then(function(names) {
+      names.forEach(function(name) { caches.delete(name); });
+    });
   }
 });
 
