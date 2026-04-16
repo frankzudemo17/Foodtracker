@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#FAF5F0">
+<meta name="theme-color" content="#E8EDE2">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://pmsapistypygnrdbxokq.supabase.co blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' https: data: blob:; connect-src 'self' https://pmsapistypygnrdbxokq.supabase.co https://world.openfoodfacts.org https://cdn.jsdelivr.net https://unpkg.com; worker-src 'self' blob:">
 <link rel="manifest" href="./manifest.json">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
@@ -26,23 +26,23 @@
    Display: Fraunces (variable Serif) · Body: Instrument Sans
    ============================================ */
 :root {
-  /* Papier & Schichten */
-  --bg-primary: #F3EDE3;        /* warmes Leinen */
-  --bg-secondary: #FAF6EE;      /* Creme */
-  --bg-tertiary: #EBE3D4;       /* Sand */
-  --bg-card: #FFFDF8;           /* off-white Paper */
-  --bg-ink: #1C1814;            /* Tinte */
+  /* Papier & Schichten — Sage-Palette (getrocknete Kräuter / Küche) */
+  --bg-primary: #E8EDE2;        /* warmes Sage */
+  --bg-secondary: #F0F3EC;      /* helles Sage */
+  --bg-tertiary: #DCE3D5;       /* mittleres Sage */
+  --bg-card: #F6F8F2;           /* off-white mit Sage-Stich */
+  --bg-ink: #1C2014;            /* tiefes Grün-Schwarz */
 
   /* Text */
-  --text-primary: #1C1814;      /* warme Tinte */
-  --text-secondary: #5B5147;    /* Rauch-Braun */
-  --text-tertiary: #8F8578;     /* Leinen-Grau */
-  --text-muted: #B8AE9F;
+  --text-primary: #1C2014;      /* warme dunkle Tinte */
+  --text-secondary: #4E5744;    /* sage-rauch */
+  --text-tertiary: #8A9479;     /* sage-grau */
+  --text-muted: #B4BCA8;
 
   /* Linien */
-  --border: #D9CDB9;            /* warmes Sand-Grau */
-  --border-light: #E7DDCA;
-  --border-strong: #1C1814;
+  --border: #C7D0BC;            /* sage-border */
+  --border-light: #DDE3D5;
+  --border-strong: #1C2014;
 
   /* Akzent — Gebrannte Siena / Paprika */
   --accent: #A34509;            /* tiefer, erwachsener als vorher */
@@ -93,20 +93,21 @@
 }
 
 [data-theme="dark"] {
-  --bg-primary: #151311;        /* Tinte */
-  --bg-secondary: #1E1B17;
-  --bg-tertiary: #2A2620;
-  --bg-card: #1A1714;
-  --bg-ink: #F3EDE3;
+  --bg-primary: #13171112;       /* moosiges Tintenschwarz */
+  --bg-primary: #141611;
+  --bg-secondary: #1C1F17;
+  --bg-tertiary: #272B22;
+  --bg-card: #181B14;
+  --bg-ink: #E8EDE2;
 
-  --text-primary: #F0E9DA;
-  --text-secondary: #A89D8C;
-  --text-tertiary: #6B6254;
-  --text-muted: #4A433A;
+  --text-primary: #EAEEE0;
+  --text-secondary: #9DA890;
+  --text-tertiary: #636C58;
+  --text-muted: #434A3D;
 
-  --border: #332E26;
-  --border-light: #28241F;
-  --border-strong: #F0E9DA;
+  --border: #2E3328;
+  --border-light: #232722;
+  --border-strong: #EAEEE0;
 
   --accent: #E97C3F;
   --accent-light: #3A1F10;
@@ -148,17 +149,17 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01", "cv11";
   letter-spacing: -0.005em;
-  /* Subtile Leinen-Textur als Atmosphäre */
+  /* Subtile Sage-Atmosphäre */
   background-image:
-    radial-gradient(ellipse at top right, rgba(163,69,9,0.04), transparent 60%),
-    radial-gradient(ellipse at bottom left, rgba(111,127,92,0.04), transparent 60%);
+    radial-gradient(ellipse at top right, rgba(163,69,9,0.05), transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(111,127,92,0.08), transparent 60%);
   background-attachment: fixed;
 }
 
 [data-theme="dark"] body {
   background-image:
-    radial-gradient(ellipse at top right, rgba(233,124,63,0.06), transparent 60%),
-    radial-gradient(ellipse at bottom left, rgba(162,180,142,0.04), transparent 60%);
+    radial-gradient(ellipse at top right, rgba(233,124,63,0.07), transparent 60%),
+    radial-gradient(ellipse at bottom left, rgba(162,180,142,0.06), transparent 60%);
 }
 
 /* Typografie-Klassen */
@@ -3160,7 +3161,7 @@ function applyTheme(theme) {
   const toggle = document.getElementById('theme-toggle');
   const meta = document.querySelector('meta[name="theme-color"]');
   if (toggle) toggle.classList.toggle('active', theme === 'dark');
-  if (meta) meta.content = theme === 'dark' ? '#141218' : '#FAF5F0';
+  if (meta) meta.content = theme === 'dark' ? '#141611' : '#E8EDE2';
   const icon = document.getElementById('theme-icon');
   if (icon) icon.innerHTML = theme === 'dark'
     ? '<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path>'
