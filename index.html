@@ -708,81 +708,85 @@ body {
   font-weight: 500;
 }
 
-/* Makros — drei editoriale Spalten, strikt linksbündig */
+/* Makros — Stacked-Rows mit vollbreiter Progress-Bar. Skaliert für jede Label-Länge. */
 .macros-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 14px;
-  padding: 4px 22px 22px;
+  padding: 18px 22px 22px;
   width: 100%;
   border-top: 1px solid var(--border-light);
-  padding-top: 18px;
   margin-top: 4px;
 }
 .macro-item {
-  text-align: left;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
+  gap: 7px;
   min-width: 0;
 }
 .macro-icon { display: none; }
+.macro-row-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
 .macro-label {
   font-family: var(--ff-body);
-  font-size: 0.62rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--text-tertiary);
+  letter-spacing: -0.005em;
+  text-transform: none;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 2px;
-  text-align: left;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .macro-label::before {
   content: '';
-  width: 6px; height: 6px;
+  width: 7px; height: 7px;
   border-radius: 50%;
   background: currentColor;
-  opacity: 0.65;
   flex-shrink: 0;
 }
-.macro-item > div:nth-of-type(1) { /* Zeile mit Wert + Ziel */
-  text-align: left;
-  width: 100%;
+.macro-row-top > div:last-child {
   display: flex;
   align-items: baseline;
-  gap: 2px;
-  flex-wrap: nowrap;
+  gap: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 .macro-value {
   font-family: var(--ff-display);
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.025em;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 .macro-goal {
   font-family: var(--ff-body);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
   font-weight: 500;
-  white-space: nowrap;
 }
 .macro-bar {
   width: 100%;
-  height: 2px;
+  height: 4px;
   background: var(--border-light);
-  border-radius: 1px;
+  border-radius: 2px;
   overflow: hidden;
-  margin-top: 2px;
 }
 .macro-bar-fill {
   height: 100%;
+  border-radius: 2px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -2007,18 +2011,24 @@ body {
           </div>
           <div class="macros-row">
             <div class="macro-item">
-              <div class="macro-label" style="color:var(--protein-color)">Protein</div>
-              <div><span class="macro-value" id="val-protein">0</span><span class="macro-goal" id="goal-protein"> / 120g</span></div>
+              <div class="macro-row-top">
+                <div class="macro-label" style="color:var(--protein-color)">Protein</div>
+                <div><span class="macro-value" id="val-protein">0</span><span class="macro-goal" id="goal-protein"> / 120g</span></div>
+              </div>
               <div class="macro-bar"><div class="macro-bar-fill" id="bar-protein" style="width:0%;background:var(--protein-color)"></div></div>
             </div>
             <div class="macro-item">
-              <div class="macro-label" style="color:var(--carbs-color)">Kohlenhydrate</div>
-              <div><span class="macro-value" id="val-carbs">0</span><span class="macro-goal" id="goal-carbs"> / 250g</span></div>
+              <div class="macro-row-top">
+                <div class="macro-label" style="color:var(--carbs-color)">Kohlenhydrate</div>
+                <div><span class="macro-value" id="val-carbs">0</span><span class="macro-goal" id="goal-carbs"> / 250g</span></div>
+              </div>
               <div class="macro-bar"><div class="macro-bar-fill" id="bar-carbs" style="width:0%;background:var(--carbs-color)"></div></div>
             </div>
             <div class="macro-item">
-              <div class="macro-label" style="color:var(--fat-color)">Fett</div>
-              <div><span class="macro-value" id="val-fat">0</span><span class="macro-goal" id="goal-fat"> / 65g</span></div>
+              <div class="macro-row-top">
+                <div class="macro-label" style="color:var(--fat-color)">Fett</div>
+                <div><span class="macro-value" id="val-fat">0</span><span class="macro-goal" id="goal-fat"> / 65g</span></div>
+              </div>
               <div class="macro-bar"><div class="macro-bar-fill" id="bar-fat" style="width:0%;background:var(--fat-color)"></div></div>
             </div>
           </div>
