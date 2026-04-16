@@ -4280,6 +4280,7 @@ function openAmountModal(presetAmount, presetUnit) {
   updateNutritionPreview();
 
   var btn = document.getElementById('amount-confirm-btn');
+  btn.disabled = false;
   if (editingEntryId) {
     btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Änderung speichern';
   } else {
@@ -4354,7 +4355,7 @@ async function confirmAddFood() {
     try { const s = await db.auth.getSession(); if (s.data?.session) currentUser = s.data.session.user; } catch(e) {}
     if (!currentUser) { showToast('Nicht angemeldet — Seite neu laden'); return; }
   }
-  var amountRaw = document.getElementById('amount-value').value;
+  var amount = parseFloat(document.getElementById('amount-value').value) || 0;
   var unit = document.getElementById('amount-unit').value;
   var f = getAmountFactor();
   var entryData = {
@@ -4397,6 +4398,9 @@ async function confirmAddFood() {
     loadStreak();
     loadFastingStatus();
     selectedFood = null;
+  } catch (e) {
+    console.error('confirmAddFood exception:', e);
+    showToast('Fehler: ' + (e && e.message ? e.message : 'Unbekannter Fehler'));
   } finally {
     if (saveBtn) saveBtn.disabled = false;
   }
