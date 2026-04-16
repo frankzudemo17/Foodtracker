@@ -647,16 +647,16 @@ body {
 .date-btn:active { transform: scale(0.92); }
 
 /* ============================================
-   CALORIE RING — Klar, minimal, ästhetisch
+   CALORIE RING — elegant, kompakt, in Card
    ============================================ */
-.calorie-section { padding: 4px 20px 20px; }
+.calorie-section { padding: 0 20px 20px; }
 .calorie-ring-container {
   display: flex; flex-direction: column; align-items: center;
-  padding: 28px 4px 4px;
+  padding: 22px 12px 14px;
 }
 .calorie-ring {
   position: relative;
-  width: 220px; height: 220px;
+  width: 176px; height: 176px;
 }
 .calorie-ring svg {
   width: 100%; height: 100%;
@@ -666,55 +666,58 @@ body {
 .calorie-ring .ring-bg {
   fill: none;
   stroke: var(--border-light);
-  stroke-width: 4;
+  stroke-width: 6;
 }
 .calorie-ring .ring-progress {
   fill: none;
   stroke: var(--accent);
-  stroke-width: 4;
+  stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
+  filter: drop-shadow(0 2px 6px rgba(163,69,9,0.12));
 }
 .calorie-ring .ring-center {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center;
-  gap: 2px;
 }
 .calorie-ring .kcal-value {
   font-family: var(--ff-display);
-  font-size: 3.4rem;
+  font-size: 2.4rem;
   font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.055em;
+  line-height: 1;
+  letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 .calorie-ring .kcal-label {
   font-family: var(--ff-body);
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   color: var(--text-tertiary);
-  margin-top: 8px;
+  margin-top: 4px;
 }
 .calorie-ring .kcal-goal {
   font-family: var(--ff-body);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   color: var(--text-secondary);
-  margin-top: 6px;
+  margin-top: 4px;
   font-variant-numeric: tabular-nums;
   font-weight: 500;
 }
 
-/* Makros — strikt linksbündig, als drei editoriale Spalten */
+/* Makros — drei editoriale Spalten, strikt linksbündig */
 .macros-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-top: 36px;
+  gap: 14px;
+  padding: 4px 22px 22px;
   width: 100%;
+  border-top: 1px solid var(--border-light);
+  padding-top: 18px;
+  margin-top: 4px;
 }
 .macro-item {
   text-align: left;
@@ -1992,10 +1995,10 @@ body {
       <button class="date-btn" onclick="changeDate(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
     </div>
     <div class="calorie-section">
-      <div class="card" style="border:none;box-shadow:none;background:transparent;padding:0">
+      <div class="card" style="padding:0">
         <div class="calorie-ring-container">
           <div class="calorie-ring">
-            <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="54"/><circle class="ring-progress" id="kcal-ring" cx="60" cy="60" r="54" stroke-dasharray="339.29" stroke-dashoffset="339.29"/></svg>
+            <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-progress" id="kcal-ring" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/></svg>
             <div class="ring-center">
               <div class="kcal-value" id="kcal-eaten">0</div>
               <div class="kcal-label">kcal</div>
@@ -3249,7 +3252,7 @@ function updateDashboard() {
   const totals = getTotals();
   const goals = { kcal: currentProfile?.daily_kcal_goal || 2000, protein: currentProfile?.daily_protein_goal || 120, carbs: currentProfile?.daily_carbs_goal || 250, fat: currentProfile?.daily_fat_goal || 65 };
   const pct = Math.min(totals.kcal / goals.kcal, 1);
-  const circumference = 2 * Math.PI * 54;
+  const circumference = 2 * Math.PI * 52;
   const ring = document.getElementById('kcal-ring');
   ring.style.strokeDashoffset = circumference - (pct * circumference);
   ring.style.stroke = totals.kcal > goals.kcal ? 'var(--danger)' : 'var(--accent)';
