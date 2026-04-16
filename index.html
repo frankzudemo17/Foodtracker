@@ -920,35 +920,51 @@ body {
 }
 .meal-add-btn:hover { border-color: var(--accent); border-style: solid; color: var(--accent); }
 .meal-add-btn:active { transform: scale(0.92); }
-.meal-items { padding: 0 22px 14px; }
+.meal-items {
+  padding: 4px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 .meal-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 0;
-  border-top: 1px solid var(--border-light);
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 14%, transparent);
+  border-radius: var(--radius-sm);
+  gap: 8px;
+  transition: background 0.15s, border-color 0.15s;
 }
+.meal-item:hover { background: color-mix(in srgb, var(--accent) 11%, transparent); }
 .meal-item-info { flex: 1; min-width: 0; }
 .meal-item-name {
-  font-size: 0.92rem;
-  font-weight: 500;
-  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  letter-spacing: -0.005em;
 }
 .meal-item-detail {
-  font-size: 0.72rem;
-  color: var(--text-tertiary);
-  margin-top: 3px;
+  font-size: 0.7rem;
+  color: color-mix(in srgb, var(--accent) 75%, var(--text-secondary));
+  margin-top: 2px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 .meal-item-kcal {
   font-family: var(--ff-display);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.95rem;
-  color: var(--text-primary);
+  color: var(--accent);
   white-space: nowrap;
-  margin-left: 12px;
+  margin-left: 10px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+}
+.meal-item-actions { display: flex; align-items: center; gap: 2px; margin-left: 4px; }
+[data-theme="dark"] .meal-item {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .meal-item-actions { display: flex; align-items: center; gap: 2px; margin-left: 6px; }
 .item-delete-btn {
