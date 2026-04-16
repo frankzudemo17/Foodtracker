@@ -2255,6 +2255,7 @@ function showApp() {
   loadFastingStatus();
   loadStreak();
   loadFavorites();
+  refreshCustomFoodsCache();
 }
 
 // ============================================
@@ -2530,11 +2531,56 @@ const LOCAL_FOODS = [
   ['Skyr Vanille',80,10.0,7.5,0.2,0,'🥛'],['Proteinpudding',80,10.0,8.0,1.0,0.5,'🥛'],
 ];
 
+// Normalisiert Strings für Fuzzy-Suche: Umlaute, ß, Diakritika, Kleinschreibung
+function normalizeForSearch(s) {
+  if (!s) return '';
+  return String(s)
+    .toLowerCase()
+    .replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/ü/g, 'u').replace(/ß/g, 'ss')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // weitere Akzente strippen
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Score: exakt > startet-mit > enthält-als-Wort > enthält
+// Höherer Score = besser
+function scoreMatch(nameNorm, queryNorm) {
+  if (!queryNorm) return 0;
+  if (nameNorm === queryNorm) return 1000;
+  if (nameNorm.startsWith(queryNorm)) return 500 - nameNorm.length;
+  var words = nameNorm.split(' ');
+  for (var i = 0; i < words.length; i++) {
+    if (words[i] === queryNorm) return 400;
+    if (words[i].startsWith(queryNorm)) return 300 - i * 10;
+  }
+  if (nameNorm.includes(' ' + queryNorm)) return 200;
+  if (nameNorm.includes(queryNorm)) return 100 - nameNorm.length;
+  // Multi-Wort-Query: alle Teile müssen vorkommen
+  var parts = queryNorm.split(' ').filter(Boolean);
+  if (parts.length > 1 && parts.every(function(p) { return nameNorm.includes(p); })) {
+    return 50;
+  }
+  return 0;
+}
+
 function searchLocalFoods(query) {
-  const q = query.trim().toLowerCase();
-  return LOCAL_FOODS.filter(f => f[0].toLowerCase().includes(q)).map(f => ({
-    name: f[0], kcal: f[1], protein: f[2], carbs: f[3], fat: f[4], fiber: f[5], icon: f[6]
-  }));
+  const qNorm = normalizeForSearch(query);
+  if (!qNorm) return [];
+  var matches = [];
+  for (var i = 0; i < LOCAL_FOODS.length; i++) {
+    var f = LOCAL_FOODS[i];
+    var nameNorm = normalizeForSearch(f[0]);
+    var score = scoreMatch(nameNorm, qNorm);
+    if (score > 0) {
+      matches.push({ score: score, food: f });
+    }
+  }
+  matches.sort(function(a, b) { return b.score - a.score; });
+  return matches.slice(0, 30).map(function(m) {
+    var f = m.food;
+    return { name: f[0], kcal: f[1], protein: f[2], carbs: f[3], fat: f[4], fiber: f[5], icon: f[6] };
+  });
 }
 
 var offAbortController = null;
@@ -2544,69 +2590,97 @@ var offCache = {};
 // wenn Tipp-Geschwindigkeit > Netzwerk-Latenz.
 var searchGen = 0;
 
+// Lokaler Cache aller eigenen Lebensmittel — einmal vorgeladen,
+// Suche geht dann offline/instant und ohne Postgres-Roundtrip.
+var customFoodsCache = [];
+async function refreshCustomFoodsCache() {
+  if (!currentUser || !db) return;
+  try {
+    var { data } = await db.from('custom_foods').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
+    customFoodsCache = data || [];
+  } catch (e) { console.error('customFoods cache:', e); }
+}
+function searchCustomFoods(query) {
+  var qNorm = normalizeForSearch(query);
+  if (!qNorm) return [];
+  var matches = [];
+  for (var i = 0; i < customFoodsCache.length; i++) {
+    var f = customFoodsCache[i];
+    var nameNorm = normalizeForSearch(f.food_name);
+    var brandNorm = normalizeForSearch(f.brand || '');
+    var score = Math.max(scoreMatch(nameNorm, qNorm), brandNorm ? scoreMatch(brandNorm, qNorm) - 50 : 0);
+    if (score > 0) matches.push({ score: score, food: f });
+  }
+  matches.sort(function(a, b) { return b.score - a.score; });
+  return matches.slice(0, 10).map(function(m) { return m.food; });
+}
+
 function debounceSearch(query, inModal) {
   clearTimeout(searchTimeout);
   var container = inModal ? document.getElementById('modal-search-results') : document.getElementById('search-results');
   if (query.length < 2) { container.innerHTML = ''; return; }
-  // Neue Generation — alle in-flight-Antworten ungültig machen
   searchGen++;
   var myGen = searchGen;
+
+  // SOFORT: Lokale + eigene Lebensmittel rendern (ohne Netzwerk)
   var localResults = searchLocalFoods(query);
+  var customResults = searchCustomFoods(query);
   var qLower = query.trim().toLowerCase();
-  // Gecachte OFF-Ergebnisse sofort zeigen
-  if (offCache[qLower]) {
-    renderSearchResults(container, offCache[qLower], localResults, []);
-  } else {
-    renderSearchResults(container, { products: [] }, localResults, []);
-  }
-  // OFF erst ab 3 Zeichen
+  var offData = offCache[qLower] || { products: [] };
+  renderSearchResults(container, offData, localResults, customResults);
+
+  // OFF nur für Produkt-Suchen (ab 3 Zeichen, und wenn nicht schon im Cache)
   if (query.length >= 3 && !offCache[qLower]) {
-    searchTimeout = setTimeout(function() { loadOffResults(query, inModal, 0, myGen); }, 600);
-  } else if (offCache[qLower] && currentUser) {
-    // Custom-Foods auch bei Cache-Hit nachladen
-    loadCustomFoodsForSearch(query, container, offCache[qLower], localResults, myGen);
+    searchTimeout = setTimeout(function() { loadOffResults(query, inModal, 0, myGen); }, 500);
   }
 }
 
 async function loadOffResults(query, inModal, retry, gen) {
-  if (gen !== searchGen) return; // Veraltet — neuere Anfrage läuft
+  if (gen !== searchGen) return;
   var container = inModal ? document.getElementById('modal-search-results') : document.getElementById('search-results');
-  var localResults = searchLocalFoods(query);
   var qLower = query.trim().toLowerCase();
+  var localResults = searchLocalFoods(query);
+  var customResults = searchCustomFoods(query);
+
+  // Alten Fetch abbrechen
   if (offAbortController) { try { offAbortController.abort(); } catch(e) {} }
   offAbortController = new AbortController();
+
+  // Hard-Timeout 3 Sek — OFF ist oft langsam, User soll nicht warten
+  var timeoutId = setTimeout(function() { try { offAbortController.abort(); } catch(e) {} }, 3000);
+
   var offData = { products: [] };
   try {
-    var resp = await fetch('https://world.openfoodfacts.org/cgi/search.pl?search_terms=' + encodeURIComponent(query) + '&search_simple=1&action=process&json=1&page_size=8&fields=product_name,brands,nutriments,image_front_small_url,code,_id&lc=de', { signal: offAbortController.signal });
-    if (gen !== searchGen) return; // veraltet
+    var url = 'https://world.openfoodfacts.org/cgi/search.pl'
+      + '?search_terms=' + encodeURIComponent(query)
+      + '&search_simple=1&action=process&json=1&page_size=6'
+      + '&fields=product_name,product_name_de,brands,nutriments,image_front_small_url,code,_id'
+      + '&lc=de&cc=de';
+    var resp = await fetch(url, { signal: offAbortController.signal });
+    clearTimeout(timeoutId);
+    if (gen !== searchGen) return;
     if (resp.ok) {
       offData = await resp.json();
       if (gen !== searchGen) return;
       offCache[qLower] = offData;
-      setTimeout(function() { delete offCache[qLower]; }, 300000);
+      setTimeout(function() { delete offCache[qLower]; }, 600000); // 10 Min Cache
     } else if (retry < 1) {
-      setTimeout(function() { loadOffResults(query, inModal, retry + 1, gen); }, 2000);
+      setTimeout(function() { loadOffResults(query, inModal, retry + 1, gen); }, 1500);
       return;
     }
   } catch(e) {
-    if (e.name === 'AbortError') return;
-    if (retry < 1) { setTimeout(function() { loadOffResults(query, inModal, retry + 1, gen); }, 2000); return; }
+    clearTimeout(timeoutId);
+    if (e.name === 'AbortError') {
+      // Abbruch durch Timeout oder neue Query — wenn neue Query, nichts tun
+      if (gen !== searchGen) return;
+      // Timeout: lokale Ergebnisse bleiben sichtbar, kein Retry
+    } else if (retry < 1) {
+      setTimeout(function() { loadOffResults(query, inModal, retry + 1, gen); }, 1500);
+      return;
+    }
   }
   if (gen !== searchGen) return;
-  await loadCustomFoodsForSearch(query, container, offData, localResults, gen);
-}
-
-async function loadCustomFoodsForSearch(query, container, offData, localResults, gen) {
-  var customFoods = [];
-  try {
-    if (currentUser && db) {
-      var res = await db.from('custom_foods').select('*').eq('user_id', currentUser.id).ilike('food_name', '%' + query + '%').limit(5);
-      if (gen !== searchGen) return; // veraltet
-      customFoods = res.data || [];
-    }
-  } catch(e) {}
-  if (gen !== searchGen) return;
-  renderSearchResults(container, offData, localResults, customFoods);
+  renderSearchResults(container, offData, localResults, customResults);
 }
 
 function renderSearchResults(container, offData, localResults, customFoods) {
@@ -2779,8 +2853,13 @@ function updateNutritionPreview() {
 }
 
 async function confirmAddFood() {
-  if (!selectedFood || !currentUser) return;
-  var amount = parseFloat(document.getElementById('amount-value').value) || 100;
+  if (!selectedFood) { showToast('Kein Lebensmittel ausgewählt — bitte neu wählen'); return; }
+  if (!currentUser) {
+    // Session ggf. wiederherstellen (iOS Hintergrund-Race)
+    try { const s = await db.auth.getSession(); if (s.data?.session) currentUser = s.data.session.user; } catch(e) {}
+    if (!currentUser) { showToast('Nicht angemeldet — Seite neu laden'); return; }
+  }
+  var amountRaw = document.getElementById('amount-value').value;
   var unit = document.getElementById('amount-unit').value;
   var f = getAmountFactor();
   var entryData = {
@@ -2794,39 +2873,47 @@ async function confirmAddFood() {
     image_url: selectedFood.image||null, off_product_id: selectedFood.off_id||null
   };
 
-  if (editingEntryId) {
-    // UPDATE existing entry
-    var { error } = await db.from('food_entries').update(entryData).eq('id', editingEntryId).eq('user_id', currentUser.id);
-    if (error) { showToast('Fehler beim Speichern'); return; }
-    var idx = todayEntries.findIndex(function(e) { return e.id === editingEntryId; });
-    if (idx >= 0) todayEntries[idx] = { ...todayEntries[idx], ...entryData };
-    closeModal('modal-amount');
-    showToast('Eintrag aktualisiert!');
-    editingEntryId = null;
-  } else {
-    // INSERT new entry
-    entryData.user_id = currentUser.id;
-    entryData.entry_date = getDateStr(selectedDate);
-    entryData.meal_type = currentMealType;
-    var { data, error } = await db.from('food_entries').insert([entryData]).select().single();
-    if (error) { showToast('Fehler beim Speichern'); return; }
-    todayEntries.push(data);
-    closeModal('modal-amount'); closeModal('modal-add-food');
-    showToast(selectedFood.name + ' hinzugefügt!');
+  // Button-Spam-Schutz: Button während Speicherung deaktivieren
+  var saveBtn = document.getElementById('amount-confirm-btn');
+  if (saveBtn) saveBtn.disabled = true;
+
+  try {
+    if (editingEntryId) {
+      // UPDATE existing entry
+      var { error } = await db.from('food_entries').update(entryData).eq('id', editingEntryId).eq('user_id', currentUser.id);
+      if (error) { console.error('update:', error); showToast('Fehler: ' + (error.message || 'Speichern fehlgeschlagen')); return; }
+      var idx = todayEntries.findIndex(function(e) { return e.id === editingEntryId; });
+      if (idx >= 0) todayEntries[idx] = { ...todayEntries[idx], ...entryData };
+      closeModal('modal-amount');
+      showToast('Eintrag aktualisiert');
+      editingEntryId = null;
+    } else {
+      // INSERT new entry
+      entryData.user_id = currentUser.id;
+      entryData.entry_date = getDateStr(selectedDate);
+      entryData.meal_type = currentMealType;
+      var { data, error } = await db.from('food_entries').insert([entryData]).select().single();
+      if (error) { console.error('insert:', error); showToast('Fehler: ' + (error.message || 'Speichern fehlgeschlagen')); return; }
+      todayEntries.push(data);
+      closeModal('modal-amount'); closeModal('modal-add-food');
+      showToast(selectedFood.name + ' hinzugefügt');
+    }
+    updateDashboard(); renderMealCards();
+    loadStreak();
+    loadFastingStatus();
+    selectedFood = null;
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
   }
-  updateDashboard(); renderMealCards();
-  loadStreak();
-  loadFastingStatus();
-  selectedFood = null;
 }
 
 // ============================================
-// BARCODE SCANNER (komplett überarbeitet)
-// - Kamera-Auswahl mit Fallback (back → front)
-// - Torch/Licht-Button (wenn vom Gerät unterstützt)
-// - Manuelle Eingabe als Fallback
-// - Bibliotheks-Wartelogik (lazy-load via DOMContentLoaded)
-// - Doppelstart-Schutz, Misread-Schutz (gleicher Code 2x in 1.5s)
+// BARCODE SCANNER v3 — Native BarcodeDetector als Primäroption
+// - Nutzt getUserMedia + window.BarcodeDetector (Chrome/Edge/Safari 17+)
+//   → deutlich höhere Trefferrate (OS-API: ZXing/VisionKit)
+// - Fallback auf html5-qrcode wenn nativ nicht verfügbar
+// - Torch-Support via MediaStreamTrack constraints
+// - Manuelle Eingabe immer als Fallback
 // ============================================
 let scannerStarting = false;
 let scannerCameras = [];
@@ -2834,6 +2921,10 @@ let scannerCameraIdx = 0;
 let scannerLastCode = null;
 let scannerLastCodeAt = 0;
 let scannerTorchOn = false;
+let nativeScannerActive = false;
+let nativeVideoStream = null;
+let nativeScanLoop = null;
+let nativeVideoEl = null;
 
 function setScannerHint(text, isError) {
   var el = document.getElementById('scanner-hint');
@@ -2860,112 +2951,211 @@ async function waitForHtml5Qrcode(maxMs) {
 }
 
 async function startScanner() {
-  if (html5QrCode || scannerStarting) return; // Doppelstart-Schutz
+  if (html5QrCode || nativeScannerActive || scannerStarting) return;
   scannerStarting = true;
 
   try {
-    var ready = await waitForHtml5Qrcode(5000);
-    if (!ready) {
-      setScannerHint('Scanner-Bibliothek konnte nicht geladen werden. Internet prüfen oder Manuell eingeben.', true);
-      return;
-    }
-
-    // Kameras enumerieren — gibt uns Wechsel-Möglichkeit + Hintergrundkamera-Erkennung
-    try {
-      scannerCameras = await Html5Qrcode.getCameras();
-    } catch (e) {
-      scannerCameras = [];
-    }
-
-    if (scannerCameras.length > 1) {
-      document.getElementById('camera-switch-btn').style.display = '';
-      // Beste Hintergrundkamera vorauswählen
-      var backIdx = scannerCameras.findIndex(function(c) {
-        return /back|rear|environment|hinten/i.test(c.label || '');
-      });
-      scannerCameraIdx = backIdx >= 0 ? backIdx : scannerCameras.length - 1;
-    } else {
-      scannerCameraIdx = 0;
-    }
-
-    html5QrCode = new Html5Qrcode('barcode-reader', { verbose: false });
-
-    // Responsive qrbox — passt sich an Container-Breite an
-    var config = {
-      fps: 10,
-      qrbox: function(w, h) {
-        var min = Math.min(w, h);
-        var width = Math.floor(min * 0.85);
-        var height = Math.floor(width * 0.55); // EAN ist breiter als hoch
-        return { width: width, height: height };
-      },
-      aspectRatio: 1.333,
-      disableFlip: false,
-      experimentalFeatures: { useBarCodeDetectorIfSupported: true }
-    };
-    if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
-      config.formatsToSupport = [
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.ITF
-      ];
-    }
-
-    var cameraSpec = scannerCameras.length > 0
-      ? scannerCameras[scannerCameraIdx].id
-      : { facingMode: 'environment' };
-
-    await html5QrCode.start(cameraSpec, config, onBarcodeScanned, function(){});
-    setScannerHint('Kamera aktiv — Barcode mittig ins Feld halten');
-
-    // Torch-Support prüfen (asynchron, nicht blockierend)
-    setTimeout(function() {
-      try {
-        var caps = html5QrCode.getRunningTrackCapabilities && html5QrCode.getRunningTrackCapabilities();
-        if (caps && caps.torch) {
-          document.getElementById('torch-btn').style.display = '';
-        }
-      } catch (e) {}
-    }, 500);
+    // Native BarcodeDetector bevorzugt — deutlich höhere Trefferrate
+    if (await tryStartNativeScanner()) return;
+    // Fallback: html5-qrcode
+    await startHtml5QrcodeFallback();
   } catch (err) {
     console.error('Scanner start error:', err);
-    var msg = 'Kamera nicht verfügbar';
-    if (err && err.name === 'NotAllowedError') msg = 'Kamera-Zugriff verweigert. Berechtigung in den Browser-Einstellungen erlauben.';
-    else if (err && err.name === 'NotFoundError') msg = 'Keine Kamera gefunden.';
-    else if (err && err.name === 'NotReadableError') msg = 'Kamera wird bereits verwendet.';
-    else if (err && err.message) msg = 'Kamera-Fehler: ' + err.message;
-    setScannerHint(msg + ' Du kannst den Code auch manuell eingeben.', true);
-    if (html5QrCode) { try { await html5QrCode.stop(); } catch(e) {} html5QrCode = null; }
+    handleScannerError(err);
   } finally {
     scannerStarting = false;
   }
 }
 
-async function switchCamera() {
-  if (!html5QrCode || scannerCameras.length < 2) return;
-  scannerCameraIdx = (scannerCameraIdx + 1) % scannerCameras.length;
+async function tryStartNativeScanner() {
+  if (!('BarcodeDetector' in window)) return false;
   try {
-    await html5QrCode.stop();
-    html5QrCode = null;
+    var supported = await window.BarcodeDetector.getSupportedFormats();
+    var formats = ['ean_13','ean_8','upc_a','upc_e','code_128','code_39','itf'].filter(function(f) { return supported.includes(f); });
+    if (formats.length === 0) return false;
+
+    var detector = new window.BarcodeDetector({ formats: formats });
+
+    // Video-Container vorbereiten
+    var reader = document.getElementById('barcode-reader');
+    reader.innerHTML = '<video playsinline autoplay muted style="width:100%;display:block;border-radius:var(--radius-md)"></video><div style="position:absolute;top:50%;left:8%;right:8%;height:60px;transform:translateY(-50%);border:2px solid rgba(255,255,255,0.8);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.35);pointer-events:none"></div>';
+    reader.style.position = 'relative';
+    nativeVideoEl = reader.querySelector('video');
+
+    // Kamera starten — back camera bevorzugt, mit Autofocus + HD
+    var constraints = {
+      audio: false,
+      video: {
+        facingMode: { ideal: 'environment' },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        focusMode: 'continuous',
+        advanced: [{ focusMode: 'continuous' }]
+      }
+    };
+    nativeVideoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    nativeVideoEl.srcObject = nativeVideoStream;
+    await nativeVideoEl.play();
+
+    nativeScannerActive = true;
+    setScannerHint('Kamera aktiv — Barcode ins Feld halten');
+
+    // Torch-Check
+    try {
+      var track = nativeVideoStream.getVideoTracks()[0];
+      var caps = track.getCapabilities ? track.getCapabilities() : {};
+      if (caps.torch) document.getElementById('torch-btn').style.display = '';
+    } catch(e) {}
+
+    // Scan-Loop alle 150ms — deutlich häufiger als html5-qrcode default
+    var consecutiveFails = 0;
+    nativeScanLoop = setInterval(async function() {
+      if (!nativeScannerActive || !nativeVideoEl) return;
+      try {
+        var codes = await detector.detect(nativeVideoEl);
+        if (codes && codes.length > 0) {
+          consecutiveFails = 0;
+          onBarcodeScanned(codes[0].rawValue);
+        }
+      } catch (e) {
+        consecutiveFails++;
+        if (consecutiveFails > 50) {
+          // Detektor dauerhaft unzuverlässig — auf Fallback wechseln
+          clearInterval(nativeScanLoop);
+          await stopNativeScanner();
+          startHtml5QrcodeFallback();
+        }
+      }
+    }, 150);
+
+    return true;
+  } catch (e) {
+    console.error('native scanner:', e);
+    await stopNativeScanner();
+    if (e && (e.name === 'NotAllowedError' || e.name === 'NotFoundError' || e.name === 'NotReadableError')) {
+      handleScannerError(e);
+      return true; // Kein Fallback — Berechtigung/Hardware-Problem
+    }
+    return false; // Fallback versuchen
+  }
+}
+
+async function stopNativeScanner() {
+  nativeScannerActive = false;
+  if (nativeScanLoop) { clearInterval(nativeScanLoop); nativeScanLoop = null; }
+  if (nativeVideoStream) {
+    try { nativeVideoStream.getTracks().forEach(function(t) { t.stop(); }); } catch(e) {}
+    nativeVideoStream = null;
+  }
+  if (nativeVideoEl) {
+    try { nativeVideoEl.srcObject = null; } catch(e) {}
+    nativeVideoEl = null;
+  }
+  var reader = document.getElementById('barcode-reader');
+  if (reader) reader.innerHTML = '';
+}
+
+async function startHtml5QrcodeFallback() {
+  var ready = await waitForHtml5Qrcode(5000);
+  if (!ready) {
+    setScannerHint('Scanner-Bibliothek nicht verfügbar — bitte manuell eingeben oder Internet prüfen.', true);
+    return;
+  }
+
+  try { scannerCameras = await Html5Qrcode.getCameras(); } catch (e) { scannerCameras = []; }
+
+  if (scannerCameras.length > 1) {
+    document.getElementById('camera-switch-btn').style.display = '';
+    var backIdx = scannerCameras.findIndex(function(c) { return /back|rear|environment|hinten/i.test(c.label || ''); });
+    scannerCameraIdx = backIdx >= 0 ? backIdx : scannerCameras.length - 1;
+  } else {
+    scannerCameraIdx = 0;
+  }
+
+  html5QrCode = new Html5Qrcode('barcode-reader', { verbose: false });
+  var config = {
+    fps: 15,
+    qrbox: function(w, h) {
+      var width = Math.floor(Math.min(w, h) * 0.85);
+      return { width: width, height: Math.floor(width * 0.55) };
+    },
+    aspectRatio: 1.333,
+    experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+  };
+  if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
+    config.formatsToSupport = [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.ITF
+    ];
+  }
+
+  var cameraSpec = scannerCameras.length > 0 ? scannerCameras[scannerCameraIdx].id : { facingMode: 'environment' };
+  await html5QrCode.start(cameraSpec, config, onBarcodeScanned, function(){});
+  setScannerHint('Kamera aktiv — Barcode mittig ins Feld halten');
+
+  setTimeout(function() {
+    try {
+      var caps = html5QrCode.getRunningTrackCapabilities && html5QrCode.getRunningTrackCapabilities();
+      if (caps && caps.torch) document.getElementById('torch-btn').style.display = '';
+    } catch (e) {}
+  }, 500);
+}
+
+function handleScannerError(err) {
+  var msg = 'Kamera nicht verfügbar';
+  if (err && err.name === 'NotAllowedError') msg = 'Kamera-Zugriff verweigert. Berechtigung in den Browser-Einstellungen erlauben.';
+  else if (err && err.name === 'NotFoundError') msg = 'Keine Kamera gefunden.';
+  else if (err && err.name === 'NotReadableError') msg = 'Kamera wird bereits verwendet.';
+  else if (err && err.message) msg = 'Kamera-Fehler: ' + err.message;
+  setScannerHint(msg + ' Du kannst den Code auch manuell eingeben.', true);
+}
+
+async function switchCamera() {
+  if (html5QrCode) {
+    if (scannerCameras.length < 2) return;
+    scannerCameraIdx = (scannerCameraIdx + 1) % scannerCameras.length;
+    try {
+      await html5QrCode.stop(); html5QrCode = null;
+      scannerTorchOn = false;
+      document.getElementById('torch-btn').textContent = '🔦 Licht an';
+      setScannerHint('Wechsle Kamera...');
+      await startScanner();
+    } catch (e) { setScannerHint('Wechsel fehlgeschlagen', true); }
+  } else if (nativeScannerActive) {
+    // Native: toggle facingMode
+    await stopNativeScanner();
     scannerTorchOn = false;
     document.getElementById('torch-btn').textContent = '🔦 Licht an';
     setScannerHint('Wechsle Kamera...');
+    // toggeln mit veraendertem facingMode — einfachster Weg: über mediaDevices.enumerateDevices
+    try {
+      var devs = await navigator.mediaDevices.enumerateDevices();
+      var cams = devs.filter(function(d) { return d.kind === 'videoinput'; });
+      if (cams.length > 1) {
+        scannerCameraIdx = (scannerCameraIdx + 1) % cams.length;
+        scannerCameras = cams;
+      }
+    } catch(e) {}
     await startScanner();
-  } catch (e) {
-    setScannerHint('Wechsel fehlgeschlagen', true);
   }
 }
 
 async function toggleTorch() {
-  if (!html5QrCode) return;
+  scannerTorchOn = !scannerTorchOn;
+  var btn = document.getElementById('torch-btn');
   try {
-    scannerTorchOn = !scannerTorchOn;
-    await html5QrCode.applyVideoConstraints({ advanced: [{ torch: scannerTorchOn }] });
-    document.getElementById('torch-btn').textContent = scannerTorchOn ? '🔦 Licht aus' : '🔦 Licht an';
+    if (html5QrCode) {
+      await html5QrCode.applyVideoConstraints({ advanced: [{ torch: scannerTorchOn }] });
+    } else if (nativeVideoStream) {
+      var track = nativeVideoStream.getVideoTracks()[0];
+      await track.applyConstraints({ advanced: [{ torch: scannerTorchOn }] });
+    } else { return; }
+    if (btn) btn.textContent = scannerTorchOn ? '🔦 Licht aus' : '🔦 Licht an';
   } catch (e) {
     showToast('Licht nicht verfügbar');
     scannerTorchOn = false;
@@ -3047,6 +3237,7 @@ async function closeScannerModal() {
     try { html5QrCode.clear(); } catch(e) {}
     html5QrCode = null;
   }
+  if (nativeScannerActive) await stopNativeScanner();
   scannerTorchOn = false;
   closeModal('modal-scanner');
 }
@@ -3264,13 +3455,46 @@ function showCustomFoodForm() {
 }
 
 async function saveCustomFood() {
+  if (!currentUser) { showToast('Nicht angemeldet'); return; }
   const name = document.getElementById('custom-food-name').value.trim();
   if (!name) { showToast('Bitte Name eingeben'); return; }
-  const food = { user_id: currentUser.id, food_name: name, brand: document.getElementById('custom-food-brand').value.trim()||null, kcal_per_100: parseFloat(document.getElementById('custom-kcal').value)||0, protein_per_100: parseFloat(document.getElementById('custom-protein').value)||0, carbs_per_100: parseFloat(document.getElementById('custom-carbs').value)||0, fat_per_100: parseFloat(document.getElementById('custom-fat').value)||0 };
-  const { error } = await db.from('custom_foods').insert([food]);
-  if (error) { showToast('Fehler'); return; }
-  selectedFood = { name: food.food_name, brand: food.brand||'', kcal_per_100: food.kcal_per_100, protein_per_100: food.protein_per_100, carbs_per_100: food.carbs_per_100, fat_per_100: food.fat_per_100, fiber_per_100: 0, image: '', barcode: '', off_id: '' };
-  closeModal('modal-custom-food'); openAmountModal(); showToast('Gespeichert!');
+  if (name.length > 100) { showToast('Name zu lang (max. 100 Zeichen)'); return; }
+  const kcal = parseFloat(document.getElementById('custom-kcal').value) || 0;
+  if (kcal < 0 || kcal > 9999) { showToast('Kalorien ungültig (0–9999)'); return; }
+
+  const food = {
+    user_id: currentUser.id,
+    food_name: name,
+    brand: document.getElementById('custom-food-brand').value.trim() || null,
+    kcal_per_100: kcal,
+    protein_per_100: parseFloat(document.getElementById('custom-protein').value) || 0,
+    carbs_per_100: parseFloat(document.getElementById('custom-carbs').value) || 0,
+    fat_per_100: parseFloat(document.getElementById('custom-fat').value) || 0
+  };
+
+  // Button-Spam-Schutz
+  var btn = document.querySelector('#modal-custom-food .btn-primary');
+  if (btn) btn.disabled = true;
+
+  try {
+    const { data, error } = await db.from('custom_foods').insert([food]).select().single();
+    if (error) { console.error('saveCustomFood:', error); showToast('Fehler: ' + (error.message || 'Speichern fehlgeschlagen')); return; }
+    // Cache aktualisieren damit sofort auffindbar
+    if (data) customFoodsCache.unshift(data);
+
+    selectedFood = {
+      name: food.food_name, brand: food.brand || '',
+      kcal_per_100: food.kcal_per_100, protein_per_100: food.protein_per_100,
+      carbs_per_100: food.carbs_per_100, fat_per_100: food.fat_per_100,
+      fiber_per_100: 0, image: '', barcode: '', off_id: ''
+    };
+    editingEntryId = null;
+    closeModal('modal-custom-food');
+    openAmountModal();
+    showToast('Gespeichert ✓');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ============================================
@@ -4038,7 +4262,10 @@ function openQuickAdd(mealType) {
 }
 
 async function confirmQuickAdd() {
-  if (!currentUser) return;
+  if (!currentUser) {
+    try { const s = await db.auth.getSession(); if (s.data?.session) currentUser = s.data.session.user; } catch(e) {}
+    if (!currentUser) { showToast('Nicht angemeldet — Seite neu laden'); return; }
+  }
   var kcal = parseFloat(document.getElementById('qa-kcal').value) || 0;
   if (kcal <= 0 || kcal > 9999) { showToast('Bitte Kalorien eingeben (1–9999)'); return; }
   var name = document.getElementById('qa-name').value.trim() || 'Schnell-Eintrag';
