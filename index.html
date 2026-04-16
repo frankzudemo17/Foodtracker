@@ -2560,7 +2560,11 @@ body {
       <div class="settings-group">
         <div class="settings-group-title">Daten &amp; Konto</div>
         <div class="settings-item">
-          <div class="settings-item-left"><div class="settings-item-icon" style="background:var(--green-light);color:var(--green)">📤</div><div><div class="settings-item-label">Daten exportieren</div><div class="settings-item-desc">Alle Einträge als CSV</div></div></div>
+          <div class="settings-item-left"><div class="settings-item-icon" style="background:var(--protein-light);color:var(--protein-color)">🔄</div><div><div class="settings-item-label">App aktualisieren</div><div class="settings-item-desc">Cache leeren &amp; frisch laden</div></div></div>
+          <button class="btn btn-secondary btn-sm" onclick="hardRefreshApp()">Aktualisieren</button>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-left"><div class="settings-item-icon" style="background:var(--fiber-light);color:var(--fiber-color)">📤</div><div><div class="settings-item-label">Daten exportieren</div><div class="settings-item-desc">Alle Einträge als CSV</div></div></div>
           <button class="btn btn-secondary btn-sm" onclick="exportUserData()">Export</button>
         </div>
         <div class="settings-item">
@@ -6248,6 +6252,30 @@ async function confirmQuickAdd() {
   renderMealCards();
   loadFastingStatus();
   showToast('Eintrag hinzugefügt');
+}
+
+// ============================================
+// HARD REFRESH — löscht Caches + SW + lädt neu
+// ============================================
+async function hardRefreshApp() {
+  if (!confirm('App-Cache leeren und neu laden?\n\nDeine Daten bleiben erhalten — nur zwischengespeicherte Dateien werden aktualisiert.')) return;
+  showToast('Aktualisiere...');
+  try {
+    if ('caches' in window) {
+      var keys = await caches.keys();
+      await Promise.all(keys.map(function(k) { return caches.delete(k); }));
+    }
+    if ('serviceWorker' in navigator) {
+      var regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(function(r) { return r.unregister(); }));
+    }
+  } catch (e) { console.error('hardRefresh:', e); }
+  // Harter Reload mit Cache-Bypass
+  setTimeout(function() {
+    var url = new URL(window.location.href);
+    url.searchParams.set('_fresh', Date.now());
+    window.location.href = url.toString();
+  }, 400);
 }
 
 // ============================================
