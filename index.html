@@ -647,100 +647,140 @@ body {
 .date-btn:active { transform: scale(0.92); }
 
 /* ============================================
-   CALORIE RING — Hero-Serif-Zahlen
+   CALORIE RING — Klar, minimal, ästhetisch
    ============================================ */
-.calorie-section { padding: 0 20px 16px; }
+.calorie-section { padding: 4px 20px 20px; }
 .calorie-ring-container {
   display: flex; flex-direction: column; align-items: center;
-  padding: 24px 8px 8px;
+  padding: 28px 4px 4px;
 }
-.calorie-ring { position: relative; width: 200px; height: 200px; }
-.calorie-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.calorie-ring {
+  position: relative;
+  width: 220px; height: 220px;
+}
+.calorie-ring svg {
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
 .calorie-ring .ring-bg {
-  fill: none; stroke: var(--border-light); stroke-width: 7;
+  fill: none;
+  stroke: var(--border-light);
+  stroke-width: 4;
 }
 .calorie-ring .ring-progress {
-  fill: none; stroke: var(--accent); stroke-width: 7; stroke-linecap: round;
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 4;
+  stroke-linecap: round;
   transition: stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.3s;
-  filter: drop-shadow(0 2px 4px rgba(163,69,9,0.15));
 }
 .calorie-ring .ring-center {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center;
+  gap: 2px;
 }
 .calorie-ring .kcal-value {
   font-family: var(--ff-display);
-  font-size: 3.2rem;
+  font-size: 3.4rem;
   font-weight: 700;
-  line-height: 1;
-  letter-spacing: -0.05em;
+  line-height: 0.95;
+  letter-spacing: -0.055em;
   font-variant-numeric: tabular-nums;
   color: var(--text-primary);
 }
 .calorie-ring .kcal-label {
   font-family: var(--ff-body);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.22em;
   color: var(--text-tertiary);
-  margin-top: 6px;
+  margin-top: 8px;
 }
 .calorie-ring .kcal-goal {
   font-family: var(--ff-body);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
-  margin-top: 10px;
+  margin-top: 6px;
   font-variant-numeric: tabular-nums;
-  font-weight: 400;
+  font-weight: 500;
 }
 
-.macros-row { display: flex; gap: 16px; margin-top: 28px; width: 100%; }
-.macro-item { flex: 1; text-align: left; }
+/* Makros — strikt linksbündig, als drei editoriale Spalten */
+.macros-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 36px;
+  width: 100%;
+}
+.macro-item {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
 .macro-icon { display: none; }
 .macro-label {
   font-family: var(--ff-body);
-  font-size: 0.66rem;
+  font-size: 0.62rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   color: var(--text-tertiary);
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 2px;
+  text-align: left;
 }
 .macro-label::before {
   content: '';
   width: 6px; height: 6px;
   border-radius: 50%;
   background: currentColor;
-  opacity: 0.6;
+  opacity: 0.65;
+  flex-shrink: 0;
 }
-.macro-bar {
-  height: 2px;
-  background: var(--border-light);
-  border-radius: 1px;
-  margin: 6px 0 6px;
-  overflow: hidden;
-}
-.macro-bar-fill {
-  height: 100%;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+.macro-item > div:nth-of-type(1) { /* Zeile mit Wert + Ziel */
+  text-align: left;
+  width: 100%;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  flex-wrap: nowrap;
 }
 .macro-value {
   font-family: var(--ff-display);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.035em;
   font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
 }
 .macro-goal {
   font-family: var(--ff-body);
   font-size: 0.72rem;
   color: var(--text-tertiary);
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.macro-bar {
+  width: 100%;
+  height: 2px;
+  background: var(--border-light);
+  border-radius: 1px;
+  overflow: hidden;
+  margin-top: 2px;
+}
+.macro-bar-fill {
+  height: 100%;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ============================================
@@ -1952,10 +1992,10 @@ body {
       <button class="date-btn" onclick="changeDate(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
     </div>
     <div class="calorie-section">
-      <div class="card">
+      <div class="card" style="border:none;box-shadow:none;background:transparent;padding:0">
         <div class="calorie-ring-container">
           <div class="calorie-ring">
-            <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="52"/><circle class="ring-progress" id="kcal-ring" cx="60" cy="60" r="52" stroke-dasharray="326.73" stroke-dashoffset="326.73"/></svg>
+            <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="54"/><circle class="ring-progress" id="kcal-ring" cx="60" cy="60" r="54" stroke-dasharray="339.29" stroke-dashoffset="339.29"/></svg>
             <div class="ring-center">
               <div class="kcal-value" id="kcal-eaten">0</div>
               <div class="kcal-label">kcal</div>
@@ -1982,31 +2022,6 @@ body {
         </div>
       </div>
     </div>
-    <!-- Wasser & Fasten — Editorial Module -->
-    <div class="module-grid">
-      <div class="module-card">
-        <div class="module-head">
-          <span class="eyebrow">Hydration</span>
-          <span class="module-meta num" id="water-display">0 / 0 ml</span>
-        </div>
-        <div class="module-bar"><div id="water-bar" style="background:var(--protein-color);width:0%"></div></div>
-        <div class="module-actions">
-          <button class="module-btn" onclick="addWater(-250)" aria-label="Minus 250 Milliliter">−</button>
-          <button class="module-btn" onclick="addWater(250)">+250</button>
-          <button class="module-btn" onclick="addWater(500)">+500</button>
-        </div>
-      </div>
-      <div class="module-card module-fasting" onclick="openFastingSettings()">
-        <div class="module-head">
-          <span class="eyebrow">Fasten</span>
-          <span class="module-meta num" id="fasting-window-label">16:8</span>
-        </div>
-        <div class="module-bar"><div id="fasting-bar" style="background:var(--fiber-color);width:0%"></div></div>
-        <div class="module-hero num" id="fasting-time">—</div>
-        <div class="module-sub" id="fasting-status">Tippen zum Einstellen</div>
-      </div>
-    </div>
-
     <!-- Weekly Stats -->
     <div class="weekly-stats" id="weekly-stats-section">
       <div class="card">
@@ -2103,6 +2118,37 @@ body {
         <div class="settings-item">
           <div class="settings-item-left"><div class="settings-item-icon" style="background:var(--blue-light);color:var(--blue)">📊</div><div><div class="settings-item-label">Ziele neu berechnen</div><div class="settings-item-desc">Onboarding wiederholen</div></div></div>
           <button class="btn btn-secondary btn-sm" onclick="restartOnboarding()">Starten</button>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Extras</div>
+        <div class="settings-item">
+          <div class="settings-item-left">
+            <div class="settings-item-icon" style="background:var(--protein-light);color:var(--protein-color)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M12 2.5c-2 4-6 7-6 11a6 6 0 0012 0c0-4-4-7-6-11z"/></svg>
+            </div>
+            <div>
+              <div class="settings-item-label">Wasser heute</div>
+              <div class="settings-item-desc" id="water-setting-badge">— ml</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-secondary btn-sm" onclick="addWater(-250)" style="padding:6px 10px;min-width:32px">−</button>
+            <button class="btn btn-secondary btn-sm" onclick="addWater(250)" style="padding:6px 10px">+250</button>
+            <button class="btn btn-secondary btn-sm" onclick="addWater(500)" style="padding:6px 10px">+500</button>
+          </div>
+        </div>
+        <div class="settings-item">
+          <div class="settings-item-left">
+            <div class="settings-item-icon" style="background:var(--fiber-light);color:var(--fiber-color)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            </div>
+            <div>
+              <div class="settings-item-label">Fasten-Fenster</div>
+              <div class="settings-item-desc" id="fasting-setting-label">16:8 Stunden</div>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="openFastingSettings()">Ändern</button>
         </div>
       </div>
       <div class="settings-group">
@@ -3114,8 +3160,13 @@ function switchView(viewName) {
   document.body.scrollTop = 0;
   document.documentElement.scrollTop = 0;
   if (viewName === 'recipes') loadRecipes();
-  if (viewName === 'settings') { loadWeightChart(); refreshSettingsInputs(); }
-  if (viewName === 'dashboard') { loadWeeklyStats(); if (typeof loadWaterToday === 'function') loadWaterToday(); if (typeof loadFastingStatus === 'function') loadFastingStatus(); }
+  if (viewName === 'settings') {
+    loadWeightChart();
+    refreshSettingsInputs();
+    if (typeof loadWaterToday === 'function') loadWaterToday();
+    if (typeof loadFastingStatus === 'function') loadFastingStatus();
+  }
+  if (viewName === 'dashboard') { loadWeeklyStats(); }
 }
 
 function refreshSettingsInputs() {
@@ -3198,10 +3249,10 @@ function updateDashboard() {
   const totals = getTotals();
   const goals = { kcal: currentProfile?.daily_kcal_goal || 2000, protein: currentProfile?.daily_protein_goal || 120, carbs: currentProfile?.daily_carbs_goal || 250, fat: currentProfile?.daily_fat_goal || 65 };
   const pct = Math.min(totals.kcal / goals.kcal, 1);
-  const circumference = 2 * Math.PI * 52;
+  const circumference = 2 * Math.PI * 54;
   const ring = document.getElementById('kcal-ring');
   ring.style.strokeDashoffset = circumference - (pct * circumference);
-  ring.style.stroke = totals.kcal > goals.kcal ? '#d44' : 'var(--accent)';
+  ring.style.stroke = totals.kcal > goals.kcal ? 'var(--danger)' : 'var(--accent)';
   document.getElementById('kcal-eaten').textContent = Math.round(totals.kcal);
   const remaining = goals.kcal - Math.round(totals.kcal);
   document.getElementById('kcal-remaining').textContent = remaining >= 0 ? `${remaining} übrig` : `${Math.abs(remaining)} drüber`;
@@ -3249,7 +3300,8 @@ function openAddFoodModal(mealType) {
   editingEntryId = null;
   currentMealType = mealType;
   const config = MEAL_CONFIG[mealType];
-  document.getElementById('modal-meal-title').textContent = config.icon + ' ' + config.name;
+  // Nur Name, kein Icon — war vorher als Literal-SVG-String sichtbar
+  document.getElementById('modal-meal-title').textContent = config.name;
   document.getElementById('modal-search').value = '';
   document.getElementById('modal-search-results').innerHTML = '<div class="empty-state"><div class="empty-state-icon">🔍</div><div class="empty-state-text">Suche nach Lebensmitteln oder scanne einen Barcode</div></div>';
   openModal('modal-add-food');
@@ -5316,9 +5368,13 @@ async function loadWaterToday() {
 }
 
 function renderWater(ml, goal) {
-  document.getElementById('water-display').textContent = ml + ' / ' + goal + ' ml';
-  var pct = Math.min(100, goal > 0 ? (ml / goal) * 100 : 0);
-  document.getElementById('water-bar').style.width = pct + '%';
+  var disp = document.getElementById('water-display');
+  var bar = document.getElementById('water-bar');
+  if (disp) disp.textContent = ml + ' / ' + goal + ' ml';
+  if (bar) bar.style.width = Math.min(100, goal > 0 ? (ml / goal) * 100 : 0) + '%';
+  // Settings-Anzeige
+  var setBadge = document.getElementById('water-setting-badge');
+  if (setBadge) setBadge.textContent = ml + ' / ' + goal + ' ml';
 }
 
 async function addWater(deltaMl) {
@@ -5356,19 +5412,27 @@ let fastingInterval = null;
 async function loadFastingStatus() {
   if (!currentUser) return;
   var win = currentProfile?.fasting_window_hours || 16;
-  document.getElementById('fasting-window-label').textContent = win + ':' + (24 - win);
+  var label = document.getElementById('fasting-window-label');
+  if (label) label.textContent = win + ':' + (24 - win);
+  var settingLabel = document.getElementById('fasting-setting-label');
+  if (settingLabel) settingLabel.textContent = win + ':' + (24 - win) + ' Stunden';
 
-  // Zeitpunkt der letzten Mahlzeit ermitteln
   try {
     var { data } = await db.from('food_entries').select('created_at')
       .eq('user_id', currentUser.id)
       .order('created_at', { ascending: false }).limit(1);
     var lastEntry = data && data[0] ? new Date(data[0].created_at) : null;
     if (fastingInterval) clearInterval(fastingInterval);
+
+    var timeEl = document.getElementById('fasting-time');
+    var statusEl = document.getElementById('fasting-status');
+    var barEl = document.getElementById('fasting-bar');
+    if (!timeEl && !statusEl && !barEl) return; // Nicht auf Dashboard — nichts zu rendern
+
     if (!lastEntry) {
-      document.getElementById('fasting-time').textContent = '—';
-      document.getElementById('fasting-status').textContent = 'Noch kein Eintrag';
-      document.getElementById('fasting-bar').style.width = '0%';
+      if (timeEl) timeEl.textContent = '—';
+      if (statusEl) statusEl.textContent = 'Noch kein Eintrag';
+      if (barEl) barEl.style.width = '0%';
       return;
     }
     function tick() {
@@ -5378,20 +5442,20 @@ async function loadFastingStatus() {
       var h = Math.floor(elapsedH);
       var m = Math.floor((elapsedMs / 60000) % 60);
       var pct = Math.min(100, (elapsedH / win) * 100);
-      document.getElementById('fasting-time').textContent = h + 'h ' + String(m).padStart(2,'0') + 'm';
-      document.getElementById('fasting-bar').style.width = pct + '%';
+      if (timeEl) timeEl.textContent = h + 'h ' + String(m).padStart(2,'0') + 'm';
+      if (barEl) barEl.style.width = pct + '%';
       if (elapsedH >= win) {
-        document.getElementById('fasting-status').textContent = '✅ Fenster offen';
-        document.getElementById('fasting-bar').style.background = 'var(--green)';
+        if (statusEl) statusEl.textContent = '✅ Fenster offen';
+        if (barEl) barEl.style.background = 'var(--success)';
       } else {
         var remH = Math.floor(win - elapsedH);
         var remM = Math.floor((win - elapsedH - remH) * 60);
-        document.getElementById('fasting-status').textContent = 'noch ' + remH + 'h ' + remM + 'm';
-        document.getElementById('fasting-bar').style.background = 'var(--purple)';
+        if (statusEl) statusEl.textContent = 'noch ' + remH + 'h ' + remM + 'm';
+        if (barEl) barEl.style.background = 'var(--fiber-color)';
       }
     }
     tick();
-    fastingInterval = setInterval(tick, 30000); // alle 30s aktualisieren
+    fastingInterval = setInterval(tick, 30000);
   } catch (e) { console.error('fasting:', e); }
 }
 
