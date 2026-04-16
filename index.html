@@ -5920,15 +5920,16 @@ function showToast(msg) { const t = document.getElementById('toast'); t.textCont
 // ============================================
 async function loadWaterToday() {
   if (!currentUser || !db) return;
-  var dateStr = getDateStr(selectedDate);
+  // Wasser ist immer "heute" (nicht das gewählte Dashboard-Datum)
+  var today = getDateStr(new Date());
   var goal = currentProfile?.daily_water_ml_goal || 2000;
   try {
     var { data, error } = await db.from('water_log').select('amount_ml')
-      .eq('user_id', currentUser.id).eq('logged_date', dateStr);
-    if (error) { console.error('water load:', error); return; }
+      .eq('user_id', currentUser.id).eq('logged_date', today);
+    if (error) { console.error('water load:', error); renderWater(0, goal); return; }
     var total = (data || []).reduce(function(s, r) { return s + (r.amount_ml || 0); }, 0);
     renderWater(total, goal);
-  } catch (e) { console.error('water:', e); }
+  } catch (e) { console.error('water:', e); renderWater(0, goal); }
 }
 
 function renderWater(ml, goal) {
@@ -5942,30 +5943,47 @@ function renderWater(ml, goal) {
 }
 
 async function addWater(deltaMl) {
-  if (!currentUser || !db) return;
-  // Nur Heute editierbar — kein Eintrag in Vergangenheit/Zukunft
-  var dateStr = getDateStr(new Date());
-  if (dateStr !== getDateStr(selectedDate)) {
-    showToast('Wasser kann nur für heute geändert werden');
-    return;
+  if (!currentUser || !db) { showToast('Nicht angemeldet'); return; }
+  // Wasser bezieht sich IMMER auf heute, nicht auf das aktuell gewählte Datum im Dashboard
+  var today = getDateStr(new Date());
+
+  try {
+    var sel = await db.from('water_log').select('id,amount_ml')
+      .eq('user_id', currentUser.id).eq('logged_date', today).maybeSingle();
+    if (sel.error) {
+      console.error('water select:', sel.error);
+      showToast('Fehler: ' + (sel.error.message || 'Laden fehlgeschlagen'));
+      return;
+    }
+    var current = sel.data?.amount_ml || 0;
+    var next = Math.max(0, Math.min(20000, current + deltaMl));
+
+    if (sel.data?.id) {
+      var upd = await db.from('water_log').update({ amount_ml: next })
+        .eq('id', sel.data.id).eq('user_id', currentUser.id);
+      if (upd.error) {
+        console.error('water update:', upd.error);
+        showToast('Fehler: ' + (upd.error.message || 'Speichern fehlgeschlagen'));
+        return;
+      }
+    } else {
+      var ins = await db.from('water_log').insert([{
+        user_id: currentUser.id, logged_date: today, amount_ml: next
+      }]);
+      if (ins.error) {
+        console.error('water insert:', ins.error);
+        showToast('Fehler: ' + (ins.error.message || 'Speichern fehlgeschlagen'));
+        return;
+      }
+    }
+
+    var goal = currentProfile?.daily_water_ml_goal || 2000;
+    renderWater(next, goal);
+    showToast(deltaMl > 0 ? '+' + deltaMl + ' ml' : deltaMl + ' ml · ' + next + ' ml heute');
+  } catch (e) {
+    console.error('addWater:', e);
+    showToast('Fehler beim Speichern');
   }
-  // Aktuellen Stand laden, dann upserten
-  var { data } = await db.from('water_log').select('id,amount_ml')
-    .eq('user_id', currentUser.id).eq('logged_date', dateStr).maybeSingle();
-  var current = data?.amount_ml || 0;
-  var next = Math.max(0, Math.min(20000, current + deltaMl));
-  if (data?.id) {
-    var { error } = await db.from('water_log').update({ amount_ml: next })
-      .eq('id', data.id).eq('user_id', currentUser.id);
-    if (error) { showToast('Fehler beim Speichern'); return; }
-  } else {
-    var { error } = await db.from('water_log').insert([{
-      user_id: currentUser.id, logged_date: dateStr, amount_ml: next
-    }]);
-    if (error) { showToast('Fehler beim Speichern'); return; }
-  }
-  var goal = currentProfile?.daily_water_ml_goal || 2000;
-  renderWater(next, goal);
 }
 
 // ============================================
