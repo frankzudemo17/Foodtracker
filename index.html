@@ -6345,13 +6345,8 @@ async function deleteAccount() {
 function wireInput(id, handler) {
   var el = document.getElementById(id);
   if (!el) return;
-  var lastVal = null;
-  var fire = function() {
-    if (el.value === lastVal) return;
-    lastVal = el.value;
-    handler(el.value);
-  };
-  ['input', 'compositionend', 'keyup', 'change', 'paste'].forEach(function(ev) {
+  var fire = function() { handler(el.value); };
+  ['input', 'compositionend', 'keyup', 'paste'].forEach(function(ev) {
     el.addEventListener(ev, fire);
   });
 }
@@ -6367,21 +6362,9 @@ document.addEventListener('DOMContentLoaded', function() {
   s.src = 'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
   s.async = true;
   document.head.appendChild(s);
-  // Network-First Service Worker registrieren
+  // Network-First Service Worker registrieren (keine Auto-Reload-Loop)
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').then(function(reg) {
-      // Bei Update sofort aktivieren
-      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      reg.addEventListener('updatefound', function() {
-        var nw = reg.installing;
-        if (nw) nw.addEventListener('statechange', function() {
-          if (nw.state === 'installed' && navigator.serviceWorker.controller) {
-            // Neue Version da — Seite automatisch neu laden
-            window.location.reload();
-          }
-        });
-      });
-    }).catch(function() {});
+    navigator.serviceWorker.register('./sw.js').catch(function() {});
   }
 });
 
