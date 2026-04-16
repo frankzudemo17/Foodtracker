@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Icon-PNG-Generator — Aufgetischt</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #F3EDE3; padding: 24px; max-width: 720px; margin: 0 auto; color: #1C1814; }
+  h1 { font-size: 1.4rem; margin-bottom: 6px; }
+  p { color: #5B5147; line-height: 1.5; margin-bottom: 18px; font-size: 0.9rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; margin: 20px 0; }
+  .box { background: white; border-radius: 12px; padding: 14px; text-align: center; border: 1px solid #E8E2DA; }
+  .box canvas { max-width: 128px; height: auto; border-radius: 8px; margin-bottom: 8px; background: #EEE; }
+  .box .label { font-size: 0.78rem; color: #5B5147; margin-bottom: 8px; font-family: ui-monospace, monospace; }
+  .box button { background: #A34509; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 0.82rem; font-weight: 500; width: 100%; }
+  .box button:hover { background: #8A390A; }
+  .all-btn { display: block; margin: 24px auto; padding: 14px 30px; background: #A34509; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .step { background: #F5E8C8; padding: 14px 18px; border-radius: 10px; margin: 14px 0; font-size: 0.85rem; line-height: 1.55; }
+  .step strong { color: #A34509; }
+  code { background: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; font-size: 0.82rem; }
+</style>
+</head>
+<body>
+
+<h1>🎨 Icon-Generator für Aufgetischt</h1>
+<p>Erzeugt alle PNG-Icons aus dem neuen Bistrotisch-Logo. Öffne diese Datei im Browser — die Icons werden automatisch gerendert.</p>
+
+<div class="step">
+  <strong>Wie benutzen:</strong><br>
+  1. Diese Datei im Browser öffnen (Doppelklick, oder <code>file:///</code> URL)<br>
+  2. Unten einzeln <em>Download</em> klicken, oder oben <em>Alle herunterladen</em><br>
+  3. Dateien in den <code>icons/</code>-Ordner verschieben (bestehende überschreiben)<br>
+  4. Im Repo committen und pushen
+</div>
+
+<button class="all-btn" onclick="downloadAll()">⬇ Alle Icons herunterladen</button>
+
+<div class="grid" id="grid"></div>
+
+<div class="step" style="margin-top:28px">
+  <strong>Nicht genutzt?</strong> Schließe das Fenster — es werden keine Daten gespeichert. Die Quell-Datei <code>icon.svg</code> bleibt wie sie ist.
+</div>
+
+<script>
+const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#E8EDE2"/>
+  <circle cx="256" cy="256" r="160" fill="#A34509" fill-opacity="0.05"/>
+  <g transform="translate(128 100)">
+    <ellipse cx="128" cy="56" rx="116" ry="24" fill="#A34509"/>
+    <ellipse cx="128" cy="48" rx="64" ry="11" fill="#F6F8F2" fill-opacity="0.42"/>
+    <rect x="116" y="78" width="24" height="172" rx="4" fill="#A34509"/>
+    <rect x="112" y="160" width="32" height="8" rx="2" fill="#A34509"/>
+    <rect x="114" y="163" width="28" height="2" fill="#8A390A"/>
+    <ellipse cx="128" cy="262" rx="76" ry="16" fill="#A34509"/>
+    <rect x="80" y="280" width="96" height="10" rx="5" fill="#A34509" fill-opacity="0.25"/>
+  </g>
+</svg>`;
+
+const SIZES = [
+  { size: 120, name: 'icon-120.png' },
+  { size: 152, name: 'icon-152.png' },
+  { size: 167, name: 'icon-167.png' },
+  { size: 180, name: 'apple-touch-icon.png' },
+  { size: 192, name: 'icon-192.png' },
+  { size: 512, name: 'icon-512.png' }
+];
+
+function renderSvgToCanvas(size) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const blob = new Blob([SVG], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, size, size);
+      URL.revokeObjectURL(url);
+      resolve(canvas);
+    };
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+function downloadCanvas(canvas, filename) {
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, 'image/png');
+}
+
+async function build() {
+  const grid = document.getElementById('grid');
+  for (const { size, name } of SIZES) {
+    const box = document.createElement('div');
+    box.className = 'box';
+    box.innerHTML = `<div class="label">${size}×${size}<br>${name}</div>`;
+    const canvas = await renderSvgToCanvas(size);
+    const preview = document.createElement('canvas');
+    preview.width = 128;
+    preview.height = 128;
+    preview.getContext('2d').drawImage(canvas, 0, 0, 128, 128);
+    box.insertBefore(preview, box.firstChild);
+    const btn = document.createElement('button');
+    btn.textContent = '⬇ Download';
+    btn.onclick = () => downloadCanvas(canvas, name);
+    box.appendChild(btn);
+    grid.appendChild(box);
+  }
+}
+
+async function downloadAll() {
+  for (const { size, name } of SIZES) {
+    const canvas = await renderSvgToCanvas(size);
+    downloadCanvas(canvas, name);
+    await new Promise(r => setTimeout(r, 300));
+  }
+}
+
+build();
+</script>
+
+</body>
+</html>

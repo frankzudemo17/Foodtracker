@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Sage Hintergrund mit abgerundeten Ecken -->
+  <rect width="512" height="512" rx="112" fill="#E8EDE2"/>
+  <!-- Subtiler Halo -->
+  <circle cx="256" cy="256" r="160" fill="#A34509" fill-opacity="0.05"/>
+
+  <!-- Bistrotisch -->
+  <g transform="translate(128 100)">
+    <!-- Tischplatte (Ellipse) -->
+    <ellipse cx="128" cy="56" rx="116" ry="24" fill="#A34509"/>
+    <!-- Plate-Highlight auf Tischplatte -->
+    <ellipse cx="128" cy="48" rx="64" ry="11" fill="#F6F8F2" fill-opacity="0.42"/>
+    <!-- Säule -->
+    <rect x="116" y="78" width="24" height="172" rx="4" fill="#A34509"/>
+    <!-- Dekorative Einschnürung in der Säule -->
+    <rect x="112" y="160" width="32" height="8" rx="2" fill="#A34509"/>
+    <rect x="114" y="163" width="28" height="2" fill="#8A390A"/>
+    <!-- Fußteller -->
+    <ellipse cx="128" cy="262" rx="76" ry="16" fill="#A34509"/>
+    <!-- Bodenmarkierung (Schatten) -->
+    <rect x="80" y="280" width="96" height="10" rx="5" fill="#A34509" fill-opacity="0.25"/>
+  </g>
+</svg>
