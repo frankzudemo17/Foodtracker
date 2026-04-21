@@ -4233,50 +4233,51 @@ function buildSearchVariants(query) {
 
 async function fetchOffOnce(query, signal) {
   var lastErr = null;
-  var fields = 'code,product_name,product_name_de,brands,image_front_small_url,nutriments,_id';
+  // completeness: Score 0–1 wie vollstaendig die Produktdaten sind — clientseitig gefiltert.
+  var fields = 'code,product_name,product_name_de,brands,image_front_small_url,nutriments,_id,completeness';
 
-  // 1) v2/search auf world.openfoodfacts.org — selbe Origin wie der Barcode-Endpoint
-  //    (der im PWA-Modus zuverlaessig CORS-Header schickt)
-  try {
-    var v2Url = 'https://world.openfoodfacts.org/api/v2/search'
-      + '?search_terms=' + encodeURIComponent(query)
-      + '&fields=' + fields
-      + '&page_size=6'
-      + '&lc=de&cc=de';
-    var r = await fetch(v2Url, { signal: signal });
-    if (r.ok) {
-      var d = await r.json();
-      if (d && Array.isArray(d.products) && d.products.length > 0) {
-        return d;
-      }
-    } else { lastErr = 'v2 HTTP ' + r.status; }
-  } catch (e) {
-    if (e && e.name === 'AbortError') throw e;
-    lastErr = 'v2 ' + (e.message || e.name);
-  }
-
-  // 2) search-a-licious (search.openfoodfacts.org, Elasticsearch)
+  // 1) search-a-licious (Elasticsearch) — Relevance-basiert, primaer, weil Freitextsuche
+  //    besser trifft als die popularitaetsgetriebene v2-API.
   try {
     var saUrl = 'https://search.openfoodfacts.org/search'
       + '?q=' + encodeURIComponent(query)
       + '&fields=' + fields
-      + '&langs=de,en&page_size=6';
-    var r2 = await fetch(saUrl, { signal: signal });
-    if (r2.ok) {
-      var d2 = await r2.json();
-      if (d2 && Array.isArray(d2.hits) && d2.hits.length > 0) {
-        return { products: d2.hits };
+      + '&langs=de,en&page_size=10';
+    var r = await fetch(saUrl, { signal: signal });
+    if (r.ok) {
+      var d = await r.json();
+      if (d && Array.isArray(d.hits) && d.hits.length > 0) {
+        return { products: d.hits };
       }
-    } else { lastErr = 'sa HTTP ' + r2.status; }
+    } else { lastErr = 'sa HTTP ' + r.status; }
   } catch (e) {
     if (e && e.name === 'AbortError') throw e;
     lastErr = 'sa ' + (e.message || e.name);
   }
 
-  // 3) Klassischer cgi/search.pl
+  // 2) v2/search auf world.openfoodfacts.org — Fallback bei SA-Ausfall
+  try {
+    var v2Url = 'https://world.openfoodfacts.org/api/v2/search'
+      + '?search_terms=' + encodeURIComponent(query)
+      + '&fields=' + fields
+      + '&page_size=10'
+      + '&lc=de&cc=de';
+    var r2 = await fetch(v2Url, { signal: signal });
+    if (r2.ok) {
+      var d2 = await r2.json();
+      if (d2 && Array.isArray(d2.products) && d2.products.length > 0) {
+        return d2;
+      }
+    } else { lastErr = 'v2 HTTP ' + r2.status; }
+  } catch (e) {
+    if (e && e.name === 'AbortError') throw e;
+    lastErr = 'v2 ' + (e.message || e.name);
+  }
+
+  // 3) Klassischer cgi/search.pl — letzter Rettungsanker
   var cgiUrl = 'https://world.openfoodfacts.org/cgi/search.pl'
     + '?search_terms=' + encodeURIComponent(query)
-    + '&search_simple=1&action=process&json=1&page_size=6'
+    + '&search_simple=1&action=process&json=1&page_size=10'
     + '&fields=' + fields
     + '&lc=de&cc=de';
   var resp = await fetch(cgiUrl, { signal: signal });
@@ -4367,7 +4368,16 @@ function renderSearchResults(container, offData, localResults, customFoods, offP
   }
 
   // --- Open Food Facts (Verpackte Produkte) ---
-  const products = (offData.products || []).filter(p => p.product_name && p.nutriments && (p.nutriments['energy-kcal_100g'] !== undefined || p.nutriments['energy-kcal'] !== undefined));
+  // Completeness >= 0.4 filtert Leer-Produkte raus (OFF-Score 0–1).
+  // slice(0,6) begrenzt Anzeige — page_size=10 im Fetch laesst Puffer nach Filter.
+  const products = (offData.products || [])
+    .filter(p =>
+      p.product_name &&
+      p.nutriments &&
+      (p.nutriments['energy-kcal_100g'] !== undefined || p.nutriments['energy-kcal'] !== undefined) &&
+      (p.completeness === undefined || p.completeness >= 0.4)
+    )
+    .slice(0, 6);
   if (products.length > 0) {
     if (localResults.length > 0 || customFoods.length > 0) {
       html += '<div style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);margin-bottom:8px">VERPACKTE PRODUKTE</div>';
