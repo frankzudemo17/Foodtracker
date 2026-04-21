@@ -39,6 +39,29 @@ CREATE TABLE IF NOT EXISTS public.favorites (
 CREATE INDEX IF NOT EXISTS idx_favorites_user_created
   ON public.favorites (user_id, created_at DESC);
 
+CREATE TABLE IF NOT EXISTS public.cheat_days (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  cheat_date  date NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_cheat_days_user_date UNIQUE (user_id, cheat_date)
+);
+
+CREATE INDEX IF NOT EXISTS idx_cheat_days_user_date
+  ON public.cheat_days (user_id, cheat_date);
+
+CREATE TABLE IF NOT EXISTS public.pause_periods (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  pause_start  date NOT NULL,
+  pause_end    date NOT NULL,
+  created_at   timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT chk_pause_range CHECK (pause_end >= pause_start)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pause_periods_user_range
+  ON public.pause_periods (user_id, pause_end DESC);
+
 -- =================================================
 -- 2) PROFILE: Fasten-Fenster ergänzen
 -- =================================================
@@ -136,6 +159,8 @@ ALTER TABLE public.weight_log    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.recipes       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.water_log     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.favorites     ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cheat_days    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.pause_periods ENABLE ROW LEVEL SECURITY;
 
 -- =================================================
 -- 7) RLS POLICIES (Owner-Only + Public Recipes)
@@ -186,6 +211,18 @@ CREATE POLICY "water_log_all_own" ON public.water_log
 -- favorites
 DROP POLICY IF EXISTS "favorites_all_own" ON public.favorites;
 CREATE POLICY "favorites_all_own" ON public.favorites
+  FOR ALL USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+-- cheat_days
+DROP POLICY IF EXISTS "cheat_days_all_own" ON public.cheat_days;
+CREATE POLICY "cheat_days_all_own" ON public.cheat_days
+  FOR ALL USING (user_id = (SELECT auth.uid()))
+  WITH CHECK (user_id = (SELECT auth.uid()));
+
+-- pause_periods
+DROP POLICY IF EXISTS "pause_periods_all_own" ON public.pause_periods;
+CREATE POLICY "pause_periods_all_own" ON public.pause_periods
   FOR ALL USING (user_id = (SELECT auth.uid()))
   WITH CHECK (user_id = (SELECT auth.uid()));
 
