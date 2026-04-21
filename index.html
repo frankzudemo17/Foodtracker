@@ -647,7 +647,7 @@ body {
 .date-btn:hover { border-color: var(--text-primary); color: var(--text-primary); }
 .date-btn:active { transform: scale(0.92); }
 
-/* Cheatday-Button */
+/* Cheatday-Button — editorial, Sparkle-Icon, drei States */
 .cheatday-section {
   display: none;
   justify-content: center;
@@ -655,40 +655,86 @@ body {
 }
 .cheatday-section.show { display: flex; }
 .cheatday-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 9px 16px;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px 8px 13px;
   border-radius: var(--radius-full);
-  border: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
-  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   color: var(--accent);
   font-family: var(--ff-display);
   font-weight: 600;
-  font-size: 0.88rem;
-  letter-spacing: -0.01em;
+  font-size: 0.85rem;
+  letter-spacing: -0.015em;
+  line-height: 1;
   cursor: pointer;
-  transition: all 0.2s;
+  overflow: hidden;
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.15s ease, box-shadow 0.25s ease;
 }
-.cheatday-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-  transform: translateY(-1px);
+.cheatday-btn .ch-icon {
+  width: 15px; height: 15px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
-.cheatday-btn:active:not(:disabled) { transform: scale(0.97); }
-.cheatday-btn:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  border-style: dotted;
-}
-.cheatday-btn.active {
-  border-style: solid;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-}
+.cheatday-btn .ch-label { white-space: nowrap; }
 .cheatday-btn .ch-sub {
-  opacity: 0.7;
+  opacity: 0.62;
   font-weight: 500;
-  font-size: 0.82em;
+  font-size: 0.78em;
+  letter-spacing: 0;
   margin-left: 2px;
 }
+/* Sanfter Shimmer nur im "verfügbar"-Zustand */
+.cheatday-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--accent) 22%, transparent) 50%,
+    transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.9s ease;
+  pointer-events: none;
+}
+.cheatday-btn:not(.active):not(:disabled):hover::before { transform: translateX(120%); }
+.cheatday-btn:not(.active):not(:disabled):hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.cheatday-btn:active:not(:disabled) { transform: scale(0.97); }
+/* Aktiv: voll gefüllt, hoher Kontrast */
+.cheatday-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #FDFBF7;
+  box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.cheatday-btn.active .ch-icon { stroke-width: 1.6; }
+.cheatday-btn.active::before { display: none; }
+.cheatday-btn.active:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+/* Disabled: neutral gedimmt, kein Dotted */
+.cheatday-btn:disabled {
+  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--text-secondary) 6%, transparent);
+  border-color: color-mix(in srgb, var(--text-secondary) 18%, transparent);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.cheatday-btn:disabled::before { display: none; }
+.cheatday-btn:disabled .ch-icon { opacity: 0.6; }
 
 /* ============================================
    CALORIE RING — elegant, kompakt, in Card
@@ -2423,7 +2469,10 @@ body {
       <button class="date-btn" onclick="changeDate(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
     </div>
     <div id="cheatday-section" class="cheatday-section">
-      <button id="cheatday-btn" class="cheatday-btn" type="button">🎉 Cheatday aktivieren</button>
+      <button id="cheatday-btn" class="cheatday-btn" type="button" aria-label="Cheatday">
+        <svg class="ch-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.6 4.2 4.2 1.6-4.2 1.6L10 14.1 8.4 9.9 4.2 8.3l4.2-1.6z"/><path d="M15.5 13l0.7 1.8 1.8 0.7-1.8 0.7-0.7 1.8-0.7-1.8-1.8-0.7 1.8-0.7z" opacity="0.55"/></svg>
+        <span class="ch-label">Cheatday aktivieren</span>
+      </button>
     </div>
     <div class="calorie-section">
       <div class="card" style="padding:0">
@@ -6405,23 +6454,24 @@ function renderCheatdayButton() {
   }
   section.classList.add('show');
 
+  var sparkleSvg = '<svg class="ch-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.6 4.2 4.2 1.6-4.2 1.6L10 14.1 8.4 9.9 4.2 8.3l4.2-1.6z"/><path d="M15.5 13l0.7 1.8 1.8 0.7-1.8 0.7-0.7 1.8-0.7-1.8-1.8-0.7 1.8-0.7z" opacity="0.55"/></svg>';
   var isCheatToday = cheatDaysCache.has(todayStr);
   if (isCheatToday) {
     btn.classList.add('active');
     btn.disabled = false;
-    btn.innerHTML = '🎉 Cheatday aktiv <span class="ch-sub">tippen zum Entfernen</span>';
+    btn.innerHTML = sparkleSvg + '<span class="ch-label">Cheatday aktiv</span><span class="ch-sub">entfernen</span>';
     btn.onclick = removeCheatday;
   } else if (cheatdayThisWeek) {
     btn.classList.remove('active');
     btn.disabled = true;
     var d = new Date(cheatdayThisWeek + 'T00:00:00');
     var wd = d.toLocaleDateString('de-DE', { weekday: 'short' });
-    btn.innerHTML = '🎉 Diese Woche vergeben (' + wd + ')';
+    btn.innerHTML = sparkleSvg + '<span class="ch-label">Diese Woche vergeben</span><span class="ch-sub">' + wd + '</span>';
     btn.onclick = null;
   } else {
     btn.classList.remove('active');
     btn.disabled = false;
-    btn.innerHTML = '🎉 Cheatday aktivieren';
+    btn.innerHTML = sparkleSvg + '<span class="ch-label">Cheatday aktivieren</span>';
     btn.onclick = activateCheatday;
   }
 }
