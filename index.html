@@ -6207,7 +6207,16 @@ async function copyMealFromYesterday(mealType) {
 function escapeHtml(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function escapeAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function isSafeImageUrl(u) { return typeof u === 'string' && /^https:\/\//i.test(u); }
-function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.onclick = null; t.style.cursor=''; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+// Variante mit Reload-Action: Toast bleibt stehen bis Klick, klickbar.
+function showToastReload(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg + ' — tippen zum Neuladen';
+  t.style.cursor = 'pointer';
+  t.onclick = function() { try { location.reload(); } catch (e) {} };
+  t.classList.add('show');
+  setTimeout(() => { t.classList.remove('show'); t.onclick = null; t.style.cursor=''; }, 8000);
+}
 
 // ============================================
 // dbWrite — Schutz-Wrapper fuer jeden Schreibzugriff.
@@ -6247,7 +6256,7 @@ async function dbWrite(fn, { timeoutMs = 12000, label = '' } = {}) {
     return res;
   } catch (err) {
     if (String(err?.message) === 'timeout') {
-      showToast('Zeitueberschreitung — Seite neu laden und erneut versuchen');
+      showToastReload('Verbindung haengt');
     } else {
       console.error('dbWrite' + (label ? ' [' + label + ']' : ''), err);
       showToast('Speichern fehlgeschlagen');
@@ -7035,11 +7044,33 @@ async function resumeFromBackground() {
   }
 }
 
+// iOS-Safari-Bug-Umgehung: nach laengerer Hintergrund-Suspension ist der
+// fetch()-Kontext im JS-VM haeufig zerstoert. Kein JavaScript-Trick kann das
+// reparieren — nur ein Seiten-Reload erzeugt einen frischen Kontext.
+// Wir tracken, wie lange die App hidden war, und reloaden ab >=90s hart.
+var _lastHiddenAt = 0;
+var STALE_AFTER_MS = 90 * 1000;
+
 document.addEventListener('visibilitychange', function() {
-  if (document.visibilityState === 'visible') resumeFromBackground();
+  if (document.visibilityState === 'hidden') {
+    _lastHiddenAt = Date.now();
+  } else if (document.visibilityState === 'visible') {
+    var hiddenFor = _lastHiddenAt ? Date.now() - _lastHiddenAt : 0;
+    _lastHiddenAt = 0;
+    if (hiddenFor >= STALE_AFTER_MS) {
+      // Harter Reload — umgeht iOS fetch-Haenger
+      try { location.reload(); } catch (e) {}
+      return;
+    }
+    resumeFromBackground();
+  }
 });
 window.addEventListener('pageshow', function(event) {
-  if (event.persisted) resumeFromBackground();
+  // BFCache-Rueckkehr: Seite kam aus dem Back-Forward-Cache zurueck.
+  // Auf iOS ist auch dieser Pfad vom fetch-Haenger betroffen → Reload.
+  if (event.persisted) {
+    try { location.reload(); } catch (e) { resumeFromBackground(); }
+  }
 });
 </script>
 </body>
