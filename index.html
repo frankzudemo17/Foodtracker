@@ -1523,6 +1523,14 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+#resume-indicator {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  height: 3px; background: var(--accent); transform: scaleX(0);
+  transform-origin: left; transition: transform 0.3s ease-out;
+  pointer-events: none;
+}
+#resume-indicator.active { transform: scaleX(1); }
+
 .toast {
   position: fixed;
   bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
@@ -2127,6 +2135,8 @@ body {
 </style>
 </head>
 <body>
+
+<div id="resume-indicator"></div>
 
 <!-- ====== AUTH VIEW ====== -->
 <div id="auth-view" class="auth-view">
@@ -3511,7 +3521,7 @@ async function finishOnboarding() {
     updated_at: new Date().toISOString()
   };
 
-  const profRes = await db.from('profiles').update(profileUpdate).eq('id', currentUser.id);
+  const profRes = await dbWrite(() => db.from('profiles').update(profileUpdate).eq('id', currentUser.id), { label: 'profiles.onboarding' });
   if (profRes.error) {
     console.error('Onboarding profile update failed:', profRes.error);
     showToast('Speichern fehlgeschlagen — bitte erneut versuchen');
@@ -3519,12 +3529,12 @@ async function finishOnboarding() {
   }
 
   // Log initial weight (Fehler hier nicht-blockierend)
-  const wRes = await db.from('weight_log').upsert({
+  const wRes = await dbWrite(() => db.from('weight_log').upsert({
     user_id: currentUser.id,
     weight_kg: obData.weight,
     logged_date: getDateStr(new Date()),
     note: 'Startgewicht'
-  }, { onConflict: 'user_id,logged_date' });
+  }, { onConflict: 'user_id,logged_date' }), { label: 'weight_log.initial' });
   if (wRes.error) console.error('Initial weight log failed:', wRes.error);
 
   await loadProfile();
@@ -3674,7 +3684,7 @@ async function saveGoals() {
     daily_carbs_goal: parseInt(document.getElementById('input-carbs').value) || 250,
     daily_fat_goal: parseInt(document.getElementById('input-fat').value) || 65
   };
-  await db.from('profiles').update(goals).eq('id', currentUser.id);
+  await dbWrite(() => db.from('profiles').update(goals).eq('id', currentUser.id), { label: 'profiles.goals' });
   currentProfile = { ...currentProfile, ...goals };
   updateDashboard();
   showToast('Ziele gespeichert!');
@@ -3691,7 +3701,7 @@ async function saveProfileName() {
   const name = document.getElementById('edit-name-input').value.trim();
   if (!name) { showToast('Name darf nicht leer sein'); return; }
   if (name.length > 50) { showToast('Name zu lang (max. 50 Zeichen)'); return; }
-  const { error } = await db.from('profiles').update({ display_name: name }).eq('id', currentUser.id);
+  const { error } = await dbWrite(() => db.from('profiles').update({ display_name: name }).eq('id', currentUser.id), { label: 'profiles.displayName' });
   if (error) { console.error('name update:', error); showToast('Speichern fehlgeschlagen'); return; }
   currentProfile.display_name = name;
   document.getElementById('settings-name').textContent = name;
@@ -3720,7 +3730,7 @@ function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme') || 'light';
   const next = current === 'dark' ? 'light' : 'dark';
   applyTheme(next);
-  if (currentUser) db.from('profiles').update({ theme: next }).eq('id', currentUser.id);
+  if (currentUser) dbWriteFF(() => db.from('profiles').update({ theme: next }).eq('id', currentUser.id), 'profiles.theme');
 }
 
 // ============================================
@@ -3891,7 +3901,7 @@ async function deleteEntry(id) {
     if (!currentUser) { showToast('Nicht angemeldet — Seite neu laden'); return; }
   }
   try {
-    const { error } = await db.from('food_entries').delete().eq('id', id).eq('user_id', currentUser.id);
+    const { error } = await dbWrite(() => db.from('food_entries').delete().eq('id', id).eq('user_id', currentUser.id), { label: 'food_entries.delete' });
     if (error) { console.error('delete:', error); showToast('Fehler: ' + (error.message || 'Löschen fehlgeschlagen')); return; }
     todayEntries = todayEntries.filter(function(e) { return e.id !== id; });
     updateDashboard(); renderMealCards();
@@ -4553,7 +4563,7 @@ async function confirmAddFood() {
   try {
     if (editingEntryId) {
       // UPDATE existing entry
-      var { error } = await db.from('food_entries').update(entryData).eq('id', editingEntryId).eq('user_id', currentUser.id);
+      var { error } = await dbWrite(() => db.from('food_entries').update(entryData).eq('id', editingEntryId).eq('user_id', currentUser.id), { label: 'food_entries.update' });
       if (error) { console.error('update:', error); showToast('Fehler: ' + (error.message || 'Speichern fehlgeschlagen')); return; }
       var idx = todayEntries.findIndex(function(e) { return e.id === editingEntryId; });
       if (idx >= 0) todayEntries[idx] = { ...todayEntries[idx], ...entryData };
@@ -4565,7 +4575,7 @@ async function confirmAddFood() {
       entryData.user_id = currentUser.id;
       entryData.entry_date = getDateStr(selectedDate);
       entryData.meal_type = currentMealType;
-      var { data, error } = await db.from('food_entries').insert([entryData]).select().single();
+      var { data, error } = await dbWrite(() => db.from('food_entries').insert([entryData]).select().single(), { label: 'food_entries.insert' });
       if (error) { console.error('insert:', error); showToast('Fehler: ' + (error.message || 'Speichern fehlgeschlagen')); return; }
       todayEntries.push(data);
       closeModal('modal-amount'); closeModal('modal-add-food');
@@ -5246,7 +5256,7 @@ async function saveCustomFood() {
   if (btn) btn.disabled = true;
 
   try {
-    const { data, error } = await db.from('custom_foods').insert([food]).select().single();
+    const { data, error } = await dbWrite(() => db.from('custom_foods').insert([food]).select().single(), { label: 'custom_foods.insert' });
     if (error) { console.error('saveCustomFood:', error); showToast('Fehler: ' + (error.message || 'Speichern fehlgeschlagen')); return; }
     // Cache aktualisieren damit sofort auffindbar
     if (data) customFoodsCache.unshift(data);
@@ -5449,14 +5459,14 @@ async function saveRecipe() {
 
   if (editingRecipeId) {
     // UPDATE
-    const { error } = await db.from('recipes').update(recipeData).eq('id', editingRecipeId).eq('user_id', currentUser.id);
+    const { error } = await dbWrite(() => db.from('recipes').update(recipeData).eq('id', editingRecipeId).eq('user_id', currentUser.id), { label: 'recipes.update' });
     if (error) { showToast('Fehler beim Speichern'); return; }
     closeModal('modal-recipe'); await loadRecipes(); showToast('Rezept aktualisiert!');
     editingRecipeId = null;
   } else {
     // INSERT
     recipeData.user_id = currentUser.id;
-    const { error } = await db.from('recipes').insert([recipeData]).select();
+    const { error } = await dbWrite(() => db.from('recipes').insert([recipeData]).select(), { label: 'recipes.insert' });
     if (error) { showToast('Fehler beim Speichern'); return; }
     closeModal('modal-recipe'); await loadRecipes(); showToast('Rezept gespeichert!');
   }
@@ -5508,7 +5518,7 @@ async function addRecipeAsMeal(recipeId) {
 async function deleteRecipe(recipeId) {
   if (!currentUser) return;
   if (!confirm('Rezept wirklich löschen?')) return;
-  const { error } = await db.from('recipes').delete().eq('id', recipeId).eq('user_id', currentUser.id);
+  const { error } = await dbWrite(() => db.from('recipes').delete().eq('id', recipeId).eq('user_id', currentUser.id), { label: 'recipes.delete' });
   if (error) { showToast('Fehler beim Löschen'); return; }
   closeModal('modal-recipe-detail');
   await loadRecipes();
@@ -5824,7 +5834,7 @@ async function logWeight() {
   const val = parseFloat(document.getElementById('weight-input').value);
   if (!val || val < 20 || val > 400 || !currentUser) { showToast('Bitte gültiges Gewicht eingeben'); return; }
   const today = getDateStr(new Date());
-  const { error: wErr } = await db.from('weight_log').upsert({ user_id: currentUser.id, weight_kg: val, logged_date: today }, { onConflict: 'user_id,logged_date' });
+  const { error: wErr } = await dbWrite(() => db.from('weight_log').upsert({ user_id: currentUser.id, weight_kg: val, logged_date: today }, { onConflict: 'user_id,logged_date' }), { label: 'weight_log.today' });
   if (wErr) { console.error('weight upsert failed:', wErr); showToast('Speichern fehlgeschlagen'); return; }
 
   // Automatisch Ziele neu berechnen mit neuem Gewicht
@@ -5846,7 +5856,7 @@ async function logWeight() {
       daily_fiber_goal: macros.fiberG, daily_water_ml_goal: macros.waterMl,
       updated_at: new Date().toISOString()
     };
-    const { error: pErr } = await db.from('profiles').update(update).eq('id', currentUser.id);
+    const { error: pErr } = await dbWrite(() => db.from('profiles').update(update).eq('id', currentUser.id), { label: 'profiles.weightUpdate' });
     if (pErr) { console.error('profile update failed:', pErr); showToast('Gewicht gespeichert, Ziel-Update fehlgeschlagen'); }
     currentProfile = { ...currentProfile, ...update };
 
@@ -5854,7 +5864,7 @@ async function logWeight() {
     refreshSettingsInputs();
     if (!pErr) showToast(`${val} kg gespeichert — Ziele angepasst (${kcalGoal} kcal)`);
   } else {
-    const { error: pErr } = await db.from('profiles').update({ current_weight_kg: val }).eq('id', currentUser.id);
+    const { error: pErr } = await dbWrite(() => db.from('profiles').update({ current_weight_kg: val }).eq('id', currentUser.id), { label: 'profiles.currentWeight' });
     if (pErr) console.error('profile update failed:', pErr);
     if (currentProfile) currentProfile.current_weight_kg = val;
     showToast('Gewicht gespeichert: ' + val + ' kg');
@@ -6136,7 +6146,7 @@ function renderFoodList() {
 
 async function removeFavoriteById(id) {
   if (!currentUser) return;
-  const { error } = await db.from('favorites').delete().eq('id', id).eq('user_id', currentUser.id);
+  const { error } = await dbWrite(() => db.from('favorites').delete().eq('id', id).eq('user_id', currentUser.id), { label: 'favorites.delete' });
   if (error) { showToast('Fehler'); return; }
   favoritesCache = favoritesCache.filter(f => f.id !== id);
   foodListData = foodListData.filter(f => f.id !== id);
@@ -6148,7 +6158,7 @@ async function removeFavoriteById(id) {
 async function deleteCustomFood(id) {
   if (!currentUser) return;
   if (!confirm('Lebensmittel wirklich löschen?')) return;
-  const { error } = await db.from('custom_foods').delete().eq('id', id).eq('user_id', currentUser.id);
+  const { error } = await dbWrite(() => db.from('custom_foods').delete().eq('id', id).eq('user_id', currentUser.id), { label: 'custom_foods.delete' });
   if (error) { showToast('Fehler beim Löschen'); return; }
   customFoodsCache = customFoodsCache.filter(f => f.id !== id);
   foodListData = foodListData.filter(f => f.id !== id);
@@ -6182,7 +6192,7 @@ async function copyMealFromYesterday(mealType) {
     fiber_g: e.fiber_g, image_url: e.image_url, off_product_id: e.off_product_id
   }));
 
-  const { data: inserted, error } = await db.from('food_entries').insert(copies).select();
+  const { data: inserted, error } = await dbWrite(() => db.from('food_entries').insert(copies).select(), { label: 'food_entries.bulkInsert' });
   if (error) { showToast('Fehler beim Kopieren'); return; }
 
   todayEntries.push(...(inserted || []));
@@ -6198,6 +6208,54 @@ function escapeHtml(s) { if (!s) return ''; const d = document.createElement('di
 function escapeAttr(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 function isSafeImageUrl(u) { return typeof u === 'string' && /^https:\/\//i.test(u); }
 function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2500); }
+
+// ============================================
+// dbWrite — Schutz-Wrapper fuer jeden Schreibzugriff.
+// Faengt ab: iOS-Fetch-Haenger (Timeout), abgelaufenes JWT (Refresh + Retry),
+// endgueltige Auth-Fehler (klarer Toast statt Stille).
+// Usage: const { data, error } = await dbWrite(() => db.from('x').insert([row]));
+// ============================================
+async function dbWrite(fn, { timeoutMs = 12000, label = '' } = {}) {
+  const runOnce = () => new Promise((resolve, reject) => {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      reject(new Error('timeout'));
+    }, timeoutMs);
+    Promise.resolve()
+      .then(fn)
+      .then((res) => { if (settled) return; settled = true; clearTimeout(timer); resolve(res); })
+      .catch((err) => { if (settled) return; settled = true; clearTimeout(timer); reject(err); });
+  });
+  const isAuthError = (e) => {
+    if (!e) return false;
+    const msg = String(e.message || e.hint || '').toLowerCase();
+    return e.status === 401 || e.code === 'PGRST301' || /jwt|token|unauthor/.test(msg);
+  };
+  try {
+    let res = await runOnce();
+    if (res && isAuthError(res.error)) {
+      const r = await db.auth.refreshSession();
+      if (r.error || !r.data?.session) {
+        showToast('Sitzung abgelaufen — bitte Seite neu laden');
+        return res;
+      }
+      currentUser = r.data.session.user;
+      res = await runOnce();
+    }
+    return res;
+  } catch (err) {
+    if (String(err?.message) === 'timeout') {
+      showToast('Zeitueberschreitung — Seite neu laden und erneut versuchen');
+    } else {
+      console.error('dbWrite' + (label ? ' [' + label + ']' : ''), err);
+      showToast('Speichern fehlgeschlagen');
+    }
+    return { data: null, error: err };
+  }
+}
+function dbWriteFF(fn, label = '') { dbWrite(fn, { label }).catch(() => {}); }
 
 // ============================================
 // FEATURE: WASSERTRACKING
@@ -6250,17 +6308,17 @@ async function addWater(deltaMl) {
     var next = Math.max(0, Math.min(20000, current + deltaMl));
 
     if (existing) {
-      var upd = await db.from('water_log').update({ amount_ml: next })
-        .eq('id', existing.id).eq('user_id', currentUser.id);
+      var upd = await dbWrite(() => db.from('water_log').update({ amount_ml: next })
+        .eq('id', existing.id).eq('user_id', currentUser.id), { label: 'water_log.update' });
       if (upd.error) {
         console.error('water update:', upd.error);
         showToast('Fehler: ' + (upd.error.message || 'Speichern fehlgeschlagen'));
         return;
       }
     } else {
-      var ins = await db.from('water_log').insert([{
+      var ins = await dbWrite(() => db.from('water_log').insert([{
         user_id: currentUser.id, logged_date: today, amount_ml: next
-      }]);
+      }]), { label: 'water_log.insert' });
       if (ins.error) {
         console.error('water insert:', ins.error);
         showToast('Fehler: ' + (ins.error.message || 'Speichern fehlgeschlagen'));
@@ -6341,7 +6399,7 @@ function openFastingSettings() {
 async function saveFastingWindow() {
   var v = parseInt(document.getElementById('fasting-window-input').value);
   if (!v || v < 8 || v > 23) { showToast('Wert muss zwischen 8 und 23 liegen'); return; }
-  var { error } = await db.from('profiles').update({ fasting_window_hours: v }).eq('id', currentUser.id);
+  var { error } = await dbWrite(() => db.from('profiles').update({ fasting_window_hours: v }).eq('id', currentUser.id), { label: 'profiles.fasting' });
   if (error) { showToast('Speichern fehlgeschlagen'); return; }
   if (currentProfile) currentProfile.fasting_window_hours = v;
   closeModal('modal-fasting');
@@ -6490,9 +6548,9 @@ async function activateCheatday() {
   if (!currentUser || !db) return;
   if (!confirm('Cheatday für heute aktivieren?\n\nDeine Streak bleibt erhalten, du musst heute nichts tracken. Diese Woche danach nicht mehr verfügbar.')) return;
   var todayStr = getDateStr(new Date());
-  var { error } = await db.from('cheat_days').insert({
+  var { error } = await dbWrite(() => db.from('cheat_days').insert({
     user_id: currentUser.id, cheat_date: todayStr
-  });
+  }), { label: 'cheat_days.insert' });
   if (error) {
     console.error('cheatday insert:', error);
     showToast('Cheatday konnte nicht aktiviert werden');
@@ -6512,8 +6570,8 @@ async function removeCheatday() {
   if (!currentUser || !db) return;
   if (!confirm('Cheatday entfernen?')) return;
   var todayStr = getDateStr(new Date());
-  var { error } = await db.from('cheat_days').delete()
-    .eq('user_id', currentUser.id).eq('cheat_date', todayStr);
+  var { error } = await dbWrite(() => db.from('cheat_days').delete()
+    .eq('user_id', currentUser.id).eq('cheat_date', todayStr), { label: 'cheat_days.delete' });
   if (error) {
     console.error('cheatday delete:', error);
     showToast('Entfernen fehlgeschlagen');
@@ -6630,11 +6688,11 @@ async function startPause() {
   if (!days || days < 1 || days > 60) { showToast('1 – 60 Tage eingeben'); return; }
   var today = new Date();
   var end = new Date(); end.setDate(today.getDate() + days - 1);
-  var { data, error } = await db.from('pause_periods').insert({
+  var { data, error } = await dbWrite(() => db.from('pause_periods').insert({
     user_id: currentUser.id,
     pause_start: getDateStr(today),
     pause_end: getDateStr(end)
-  }).select().single();
+  }).select().single(), { label: 'pause_periods.insert' });
   if (error) {
     console.error('pause insert:', error);
     showToast('Pause konnte nicht gestartet werden');
@@ -6658,12 +6716,12 @@ async function endPause() {
   var yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
   if (activePause.start > getDateStr(yesterday)) {
     // Pause hatte noch gar nicht begonnen → Eintrag löschen
-    var { error } = await db.from('pause_periods').delete().eq('id', activePause.id);
+    var { error } = await dbWrite(() => db.from('pause_periods').delete().eq('id', activePause.id), { label: 'pause_periods.delete' });
     if (error) { showToast('Fehler beim Beenden'); return; }
     pausePeriodsCache = pausePeriodsCache.filter(function(p){ return p.id !== activePause.id; });
   } else {
     var newEnd = getDateStr(yesterday);
-    var { error } = await db.from('pause_periods').update({ pause_end: newEnd }).eq('id', activePause.id);
+    var { error } = await dbWrite(() => db.from('pause_periods').update({ pause_end: newEnd }).eq('id', activePause.id), { label: 'pause_periods.updateEnd' });
     if (error) { showToast('Fehler beim Beenden'); return; }
     var idx = pausePeriodsCache.findIndex(function(p){ return p.id === activePause.id; });
     if (idx >= 0) pausePeriodsCache[idx].end = newEnd;
@@ -6702,7 +6760,7 @@ async function toggleFavorite(foodObj) {
     return f.food_name.toLowerCase() === foodObj.name.toLowerCase() && (f.brand || '') === (foodObj.brand || '');
   });
   if (existing) {
-    var { error } = await db.from('favorites').delete().eq('id', existing.id).eq('user_id', currentUser.id);
+    var { error } = await dbWrite(() => db.from('favorites').delete().eq('id', existing.id).eq('user_id', currentUser.id), { label: 'favorites.deleteExisting' });
     if (error) { showToast('Fehler'); return; }
     favoritesCache = favoritesCache.filter(function(f) { return f.id !== existing.id; });
     showToast('Aus Favoriten entfernt');
@@ -6720,7 +6778,7 @@ async function toggleFavorite(foodObj) {
       off_id: foodObj.off_id || null,
       unit_hint: foodObj.unitHint || 'g'
     };
-    var { data, error } = await db.from('favorites').insert([row]).select().single();
+    var { data, error } = await dbWrite(() => db.from('favorites').insert([row]).select().single(), { label: 'favorites.insert' });
     if (error) { showToast('Fehler beim Speichern'); return; }
     favoritesCache.unshift(data);
     showToast('Zu Favoriten hinzugefügt ⭐');
@@ -6772,7 +6830,7 @@ async function confirmQuickAdd() {
     fat_g: parseFloat(document.getElementById('qa-fat').value) || 0,
     fiber_g: 0
   };
-  var { data, error } = await db.from('food_entries').insert([entryData]).select().single();
+  var { data, error } = await dbWrite(() => db.from('food_entries').insert([entryData]).select().single(), { label: 'food_entries.quickAdd' });
   if (error) { console.error(error); showToast('Fehler beim Speichern'); return; }
   todayEntries.push(data);
   closeModal('modal-quick-add');
@@ -6891,15 +6949,15 @@ async function deleteAccount() {
   try {
     // Reihenfolge unwichtig (kein FK-Zwang client-seitig)
     await Promise.all([
-      db.from('food_entries').delete().eq('user_id', currentUser.id),
-      db.from('weight_log').delete().eq('user_id', currentUser.id),
-      db.from('custom_foods').delete().eq('user_id', currentUser.id),
-      db.from('recipes').delete().eq('user_id', currentUser.id),
-      db.from('water_log').delete().eq('user_id', currentUser.id),
-      db.from('favorites').delete().eq('user_id', currentUser.id)
+      dbWrite(() => db.from('food_entries').delete().eq('user_id', currentUser.id), { label: 'reset.food_entries', timeoutMs: 30000 }),
+      dbWrite(() => db.from('weight_log').delete().eq('user_id', currentUser.id), { label: 'reset.weight_log', timeoutMs: 30000 }),
+      dbWrite(() => db.from('custom_foods').delete().eq('user_id', currentUser.id), { label: 'reset.custom_foods', timeoutMs: 30000 }),
+      dbWrite(() => db.from('recipes').delete().eq('user_id', currentUser.id), { label: 'reset.recipes', timeoutMs: 30000 }),
+      dbWrite(() => db.from('water_log').delete().eq('user_id', currentUser.id), { label: 'reset.water_log', timeoutMs: 30000 }),
+      dbWrite(() => db.from('favorites').delete().eq('user_id', currentUser.id), { label: 'reset.favorites', timeoutMs: 30000 })
     ]);
     // Profil zuletzt
-    await db.from('profiles').delete().eq('id', currentUser.id);
+    await dbWrite(() => db.from('profiles').delete().eq('id', currentUser.id), { label: 'reset.profiles', timeoutMs: 30000 });
     // Auth-User Löschung erfordert Service-Role-Key — nur Sign-Out client-seitig.
     // Hinweis: Vollständige Auth-Löschung muss in Supabase Dashboard oder via Edge Function erfolgen.
     await db.auth.signOut();
@@ -6957,6 +7015,8 @@ let _resumeInFlight = false;
 async function resumeFromBackground() {
   if (_resumeInFlight || !db) return;
   _resumeInFlight = true;
+  var indicator = document.getElementById('resume-indicator');
+  if (indicator) indicator.classList.add('active');
   try {
     Object.keys(offCache).forEach(function(k) { delete offCache[k]; });
     const { data, error } = await db.auth.refreshSession();
@@ -6971,6 +7031,7 @@ async function resumeFromBackground() {
     console.error('resumeFromBackground:', e);
   } finally {
     _resumeInFlight = false;
+    if (indicator) indicator.classList.remove('active');
   }
 }
 
