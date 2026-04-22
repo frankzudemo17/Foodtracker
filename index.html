@@ -2137,6 +2137,10 @@ body {
 <body>
 
 <div id="resume-indicator"></div>
+<div id="reload-overlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(20,22,17,0.85);color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:system-ui,-apple-system,sans-serif;font-size:0.95rem">
+  <div style="width:36px;height:36px;border:3px solid rgba(255,255,255,0.25);border-top-color:#fff;border-radius:50%;animation:spin 0.9s linear infinite"></div>
+  <div>Verbindung wird neu aufgebaut…</div>
+</div>
 
 <!-- ====== AUTH VIEW ====== -->
 <div id="auth-view" class="auth-view">
@@ -6256,13 +6260,24 @@ async function dbWrite(fn, { timeoutMs = 12000, label = '' } = {}) {
     return res;
   } catch (err) {
     if (String(err?.message) === 'timeout') {
-      showToastReload('Verbindung haengt');
+      // iOS fetch-Haenger → automatischer Reload ist der einzige verlaessliche Fix.
+      // Caller-Error-Handler werden durch das Blocking-Overlay neutralisiert.
+      forceReloadDueToStaleContext();
     } else {
       console.error('dbWrite' + (label ? ' [' + label + ']' : ''), err);
       showToast('Speichern fehlgeschlagen');
     }
     return { data: null, error: err };
   }
+}
+var _reloadScheduled = false;
+function forceReloadDueToStaleContext() {
+  if (_reloadScheduled) return;
+  _reloadScheduled = true;
+  var ov = document.getElementById('reload-overlay');
+  if (ov) { ov.style.display = 'flex'; }
+  // Kleines Delay, damit der Overlay-Render durchkommt bevor Reload feuert.
+  setTimeout(function() { try { location.reload(); } catch (e) {} }, 1200);
 }
 function dbWriteFF(fn, label = '') { dbWrite(fn, { label }).catch(() => {}); }
 
@@ -7047,21 +7062,39 @@ async function resumeFromBackground() {
 // iOS-Safari-Bug-Umgehung: nach laengerer Hintergrund-Suspension ist der
 // fetch()-Kontext im JS-VM haeufig zerstoert. Kein JavaScript-Trick kann das
 // reparieren — nur ein Seiten-Reload erzeugt einen frischen Kontext.
-// Wir tracken, wie lange die App hidden war, und reloaden ab >=90s hart.
+//
+// Strategie mit Guertel + Hosentraeger:
+// 1) Heartbeat-Interval: aktualisiert alle 5s einen Timestamp. Wenn die Seite
+//    suspended wird, pausiert das Interval. Beim Wiederkommen zeigt die Luecke
+//    an, wie lange JS wirklich ausgesetzt war — unabhaengig davon, ob iOS
+//    visibilitychange-Events feuert.
+// 2) visibilitychange/pageshow als Backup-Trigger.
+// Schwelle: >=60s Luecke → harter Reload.
+var _lastHeartbeat = Date.now();
 var _lastHiddenAt = 0;
-var STALE_AFTER_MS = 90 * 1000;
+var STALE_AFTER_MS = 60 * 1000;
+
+setInterval(function() { _lastHeartbeat = Date.now(); }, 5000);
+
+function checkStaleAndMaybeReload() {
+  var now = Date.now();
+  var heartbeatGap = now - _lastHeartbeat;
+  var hiddenFor = _lastHiddenAt ? now - _lastHiddenAt : 0;
+  var gap = Math.max(heartbeatGap, hiddenFor);
+  _lastHiddenAt = 0;
+  _lastHeartbeat = now;
+  if (gap >= STALE_AFTER_MS) {
+    try { location.reload(); } catch (e) {}
+    return true;
+  }
+  return false;
+}
 
 document.addEventListener('visibilitychange', function() {
   if (document.visibilityState === 'hidden') {
     _lastHiddenAt = Date.now();
   } else if (document.visibilityState === 'visible') {
-    var hiddenFor = _lastHiddenAt ? Date.now() - _lastHiddenAt : 0;
-    _lastHiddenAt = 0;
-    if (hiddenFor >= STALE_AFTER_MS) {
-      // Harter Reload — umgeht iOS fetch-Haenger
-      try { location.reload(); } catch (e) {}
-      return;
-    }
+    if (checkStaleAndMaybeReload()) return;
     resumeFromBackground();
   }
 });
@@ -7072,6 +7105,12 @@ window.addEventListener('pageshow', function(event) {
     try { location.reload(); } catch (e) { resumeFromBackground(); }
   }
 });
+window.addEventListener('focus', function() {
+  // focus feuert wenn PWA-Fenster aktiv wird — zusaetzliche Chance,
+  // einen staled context zu erkennen.
+  if (checkStaleAndMaybeReload()) return;
+});
+console.log('%cAufgetischt v3.28', 'color:#9b8;font-size:14px;font-weight:600');
 </script>
 </body>
 </html>
