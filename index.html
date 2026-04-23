@@ -1531,6 +1531,26 @@ body {
 }
 #resume-indicator.active { transform: scaleX(1); }
 
+.meal-wizard-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:8px 16px 8px 13px;
+  border-radius:var(--radius-full);
+  border:1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  background:color-mix(in srgb, var(--accent) 8%, transparent);
+  color:var(--accent);
+  font-family:var(--ff-display);
+  font-weight:600;
+  font-size:0.85rem;
+  letter-spacing:-0.015em;
+  line-height:1;
+  cursor:pointer;
+  transition: background 0.22s ease, border-color 0.22s ease, transform 0.15s ease, box-shadow 0.22s ease;
+}
+.meal-wizard-btn:hover { background:color-mix(in srgb, var(--accent) 14%, transparent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); transform:translateY(-1px); box-shadow:0 2px 8px color-mix(in srgb, var(--accent) 15%, transparent); }
+.meal-wizard-btn:active { transform:translateY(0) scale(0.98); }
+.meal-wizard-btn .mw-icon { width:15px; height:15px; flex-shrink:0; fill:currentColor; }
+.meal-wizard-btn .mw-label { white-space:nowrap; }
+
 .wiz-meal { flex:1; background:var(--bg-tertiary); border:1px solid transparent; padding:10px 8px; font-size:0.85rem; border-radius:var(--radius-sm); cursor:pointer; color:var(--text-primary); font-weight:500; }
 .wiz-meal.active { background:var(--accent); color:#fff; border-color:var(--accent); }
 .wiz-chip { display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg-tertiary);border-radius:999px;font-size:0.85rem;cursor:pointer;user-select:none;border:1px solid transparent; color:var(--text-primary); }
@@ -2536,10 +2556,10 @@ body {
         </div>
       </div>
     </div>
-    <div style="padding:0 20px 20px">
-      <button class="btn btn-primary btn-block" onclick="openMealWizard()" style="padding:14px;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:600;font-size:0.95rem">
-        <span style="font-size:1.2rem">✨</span>
-        Was esse ich heute?
+    <div style="display:flex;justify-content:center;padding:0 20px 16px">
+      <button class="meal-wizard-btn" onclick="openMealWizard()" type="button">
+        <svg class="mw-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.3 3.6 3.8 0.4-2.9 2.5 0.9 3.7L10 10.7 6.9 12.7l0.9-3.7L4.9 6.5l3.8-0.4z"/></svg>
+        <span class="mw-label">Was esse ich heute?</span>
       </button>
     </div>
     <!-- Stats Card mit Toggle Woche/Monat -->
@@ -4581,16 +4601,26 @@ function scoreMatch(nameNorm, queryNorm) {
   return 0;
 }
 
+// Performance: Namen EINMAL normalisieren beim ersten Aufruf, nicht pro Suche.
+var _localFoodsNorm = null;
+function getLocalFoodsNorm() {
+  if (_localFoodsNorm) return _localFoodsNorm;
+  _localFoodsNorm = new Array(LOCAL_FOODS.length);
+  for (var i = 0; i < LOCAL_FOODS.length; i++) {
+    _localFoodsNorm[i] = normalizeForSearch(LOCAL_FOODS[i][0]);
+  }
+  return _localFoodsNorm;
+}
+
 function searchLocalFoods(query) {
   const qNorm = normalizeForSearch(query);
   if (!qNorm) return [];
+  const norms = getLocalFoodsNorm();
   var matches = [];
   for (var i = 0; i < LOCAL_FOODS.length; i++) {
-    var f = LOCAL_FOODS[i];
-    var nameNorm = normalizeForSearch(f[0]);
-    var score = scoreMatch(nameNorm, qNorm);
+    var score = scoreMatch(norms[i], qNorm);
     if (score > 0) {
-      matches.push({ score: score, food: f });
+      matches.push({ score: score, food: LOCAL_FOODS[i] });
     }
   }
   matches.sort(function(a, b) { return b.score - a.score; });
