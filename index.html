@@ -3137,25 +3137,22 @@ body {
         <div class="form-group"><label class="form-label">Fett (g)</label><input class="form-input" type="number" id="wiz-fat" min="0" max="300"></div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Fokus</label>
-          <select class="form-input" id="wiz-focus">
-            <option value="">Egal</option>
-            <option value="protein">Mehr Protein</option>
-            <option value="low_fat">Wenig Fett</option>
-            <option value="low_carb">Wenig Kohlenh.</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Max. Zeit</label>
-          <select class="form-input" id="wiz-time">
-            <option value="">Egal</option>
-            <option value="15">≤ 15 min</option>
-            <option value="30">≤ 30 min</option>
-            <option value="60">≤ 60 min</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Anspruch & Vibe</label>
+        <select class="form-input" id="wiz-mood">
+          <option value="easy">⚡ Schnell & einfach (≤20 min)</option>
+          <option value="everyday" selected>🍳 Alltag (20–40 min)</option>
+          <option value="ambitious">✨ Ambitioniert — Weekend-Wow (40–60 min)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Makro-Fokus</label>
+        <select class="form-input" id="wiz-focus">
+          <option value="">Egal</option>
+          <option value="protein">Mehr Protein</option>
+          <option value="low_fat">Wenig Fett</option>
+          <option value="low_carb">Wenig Kohlenh.</option>
+        </select>
       </div>
 
       <div class="form-group">
@@ -5732,7 +5729,7 @@ async function openMealWizard() {
   document.querySelectorAll('#wiz-meal-group .wiz-meal').forEach(b =>
     b.classList.toggle('active', b.dataset.val === wizState.meal));
   document.getElementById('wiz-focus').value = '';
-  document.getElementById('wiz-time').value = '';
+  document.getElementById('wiz-mood').value = 'everyday';
   document.getElementById('wiz-diet').value = '';
   document.getElementById('wiz-note').value = '';
   document.getElementById('wiz-autosave-toggle').classList.remove('active');
@@ -5970,7 +5967,7 @@ async function submitMealWizard() {
     carbs_target: parseInt(document.getElementById('wiz-carbs').value, 10) || undefined,
     fat_target: parseInt(document.getElementById('wiz-fat').value, 10) || undefined,
     focus: document.getElementById('wiz-focus').value || null,
-    max_time_min: parseInt(document.getElementById('wiz-time').value, 10) || null,
+    mood: document.getElementById('wiz-mood').value || 'everyday',
     diet: document.getElementById('wiz-diet').value || null,
     ingredients: [...wizState.pantrySelected, ...wizState.extras],
     dislikes,
@@ -5996,6 +5993,8 @@ async function submitMealWizard() {
       name: data.recipe.name,
       servings: data.recipe.servings || 1,
       time_min: data.recipe.time_min || null,
+      vibe_intro: data.recipe.vibe_intro || '',
+      pro_tip: data.recipe.pro_tip || '',
       instructions: data.recipe.instructions || '',
       ingredients: resolvedIng,
       totals,
@@ -6064,8 +6063,17 @@ function renderSuggestion(s) {
     </div>`;
   }).join('');
 
+  const vibeBlock = s.vibe_intro
+    ? `<div style="padding:12px 14px;background:linear-gradient(135deg,var(--accent-light),var(--bg-tertiary));border-left:3px solid var(--accent);border-radius:var(--radius-sm);margin-bottom:14px;font-size:0.88rem;line-height:1.5;font-style:italic;color:var(--text-primary)">${escapeHtml(s.vibe_intro)}</div>`
+    : '';
+
+  const proTipBlock = s.pro_tip
+    ? `<div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:var(--radius-sm);margin:12px 0;font-size:0.85rem;line-height:1.5"><strong style="color:var(--accent)">💡 Pro-Tipp:</strong> ${escapeHtml(s.pro_tip)}</div>`
+    : '';
+
   document.getElementById('sug-body').innerHTML = `
     ${unresolvedWarn}
+    ${vibeBlock}
     <div style="display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap">
       <span class="recipe-macro-tag">${t.kcal || 0} kcal</span>
       <span class="recipe-macro-tag">${t.protein_g || 0} g Eiweiß</span>
@@ -6075,8 +6083,9 @@ function renderSuggestion(s) {
     </div>
     ${diffStr ? `<div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:12px">${escapeHtml(diffStr)}</div>` : '<div style="height:12px"></div>'}
     <div style="margin-bottom:12px"><div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">ZUTATEN</div>${ingRows}</div>
-    <div style="margin-bottom:16px"><div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">ZUBEREITUNG</div><div style="white-space:pre-line;font-size:0.9rem;line-height:1.5">${escapeHtml(s.instructions || '')}</div></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <div style="margin-bottom:4px"><div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">ZUBEREITUNG</div><div style="white-space:pre-line;font-size:0.9rem;line-height:1.6">${escapeHtml(s.instructions || '')}</div></div>
+    ${proTipBlock}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
       <button class="btn btn-primary" style="flex:1;min-width:120px;padding:12px" onclick="logSuggestionAsEntry()">➕ In Tagebuch</button>
       <button class="btn" style="flex:1;min-width:110px;padding:12px" onclick="saveSuggestionAsRecipe()">💾 Speichern</button>
       <button class="btn" style="flex:1;min-width:110px;padding:12px" onclick="rerollSuggestion()">🎲 Neu würfeln</button>
@@ -6140,12 +6149,19 @@ async function saveSuggestionAsRecipe(opts) {
     fat: Math.round((i.source ? (i.fat_g / (i.amount / 100)) : 0) * 10) / 10,
     icon: '✨',
   }));
+  // Vibe-Intro und Pro-Tipp vorne/hinten an die Zubereitung haengen,
+  // damit sie im Rezeptbuch nicht verloren gehen.
+  let fullInstructions = '';
+  if (s.vibe_intro) fullInstructions += s.vibe_intro + '\n\n';
+  if (s.instructions) fullInstructions += s.instructions;
+  if (s.pro_tip) fullInstructions += '\n\n💡 Pro-Tipp: ' + s.pro_tip;
+
   const row = {
     user_id: currentUser.id,
     name: s.name,
     servings: s.servings || 1,
     prep_time_min: s.time_min || null,
-    instructions: s.instructions || null,
+    instructions: fullInstructions.trim() || null,
     is_public: false,
     total_kcal: Math.round(t.kcal || 0),
     total_protein: Math.round(t.protein_g || 0),
