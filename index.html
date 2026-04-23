@@ -1532,24 +1532,38 @@ body {
 #resume-indicator.active { transform: scaleX(1); }
 
 .meal-wizard-btn {
-  display:inline-flex; align-items:center; gap:8px;
-  padding:8px 16px 8px 13px;
+  position:relative; overflow:hidden;
+  display:inline-flex; align-items:center;
+  padding:9px 20px;
   border-radius:var(--radius-full);
-  border:1px solid color-mix(in srgb, var(--accent) 28%, transparent);
-  background:color-mix(in srgb, var(--accent) 8%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  background:color-mix(in srgb, var(--accent) 12%, transparent);
   color:var(--accent);
   font-family:var(--ff-display);
   font-weight:600;
-  font-size:0.85rem;
+  font-size:0.88rem;
   letter-spacing:-0.015em;
   line-height:1;
   cursor:pointer;
+  box-shadow:0 1px 4px color-mix(in srgb, var(--accent) 10%, transparent);
   transition: background 0.22s ease, border-color 0.22s ease, transform 0.15s ease, box-shadow 0.22s ease;
 }
-.meal-wizard-btn:hover { background:color-mix(in srgb, var(--accent) 14%, transparent); border-color:color-mix(in srgb, var(--accent) 45%, transparent); transform:translateY(-1px); box-shadow:0 2px 8px color-mix(in srgb, var(--accent) 15%, transparent); }
+.meal-wizard-btn::before {
+  content:'';
+  position:absolute;
+  top:0; left:-120%;
+  width:60%; height:100%;
+  background:linear-gradient(100deg, transparent 0%, color-mix(in srgb, var(--accent) 22%, transparent) 50%, transparent 100%);
+  animation: mw-shimmer 4s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes mw-shimmer {
+  0%, 55% { left:-120%; }
+  80%, 100% { left:160%; }
+}
+.meal-wizard-btn:hover { background:color-mix(in srgb, var(--accent) 18%, transparent); border-color:color-mix(in srgb, var(--accent) 60%, transparent); transform:translateY(-1px); box-shadow:0 3px 10px color-mix(in srgb, var(--accent) 20%, transparent); }
 .meal-wizard-btn:active { transform:translateY(0) scale(0.98); }
-.meal-wizard-btn .mw-icon { width:15px; height:15px; flex-shrink:0; fill:currentColor; }
-.meal-wizard-btn .mw-label { white-space:nowrap; }
+.meal-wizard-btn .mw-label { white-space:nowrap; position:relative; z-index:1; }
 
 .wiz-meal { flex:1; background:var(--bg-tertiary); border:1px solid transparent; padding:10px 8px; font-size:0.85rem; border-radius:var(--radius-sm); cursor:pointer; color:var(--text-primary); font-weight:500; }
 .wiz-meal.active { background:var(--accent); color:#fff; border-color:var(--accent); }
@@ -2558,7 +2572,6 @@ body {
     </div>
     <div style="display:flex;justify-content:center;padding:0 20px 16px">
       <button class="meal-wizard-btn" onclick="openMealWizard()" type="button">
-        <svg class="mw-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 2.5l1.3 3.6 3.8 0.4-2.9 2.5 0.9 3.7L10 10.7 6.9 12.7l0.9-3.7L4.9 6.5l3.8-0.4z"/></svg>
         <span class="mw-label">Was esse ich heute?</span>
       </button>
     </div>
@@ -6298,27 +6311,20 @@ function scaleFromPer100(base, per100, matchedName, source) {
 function moodInstructionsClient(mood) {
   if (mood === 'easy') {
     return [
-      'ANSPRUCH: Schnell und einfach. Max 20 Minuten. One-pan oder one-bowl bevorzugt.',
-      '5 bis 7 Zutaten. Minimale Technik. Trotzdem geschmacklich spannend.',
-      'Ein Kniff: geroestete Nuesse, Zitronenabrieb, Chiliflocken, frische Kraeuter.',
+      'Zeit-Vibe: schnell, 15-20 Minuten. Darf trotzdem echter Geschmack sein, kein fader Notfall.',
+      'Aufwand: was du mit einer Pfanne und etwas Muse hinkriegst.',
     ].join('\n');
   }
   if (mood === 'ambitious') {
     return [
-      'ANSPRUCH: AMBITIONIERT, WEEKEND-VIBE. 40 bis 60 Minuten erlaubt.',
-      '8 bis 14 Zutaten. Mehrere Techniken kombiniert (anbraten + schmoren + Sauce separat).',
-      'PFLICHT: Textur-Kontrast (knusprig und cremig, warm und frisch).',
-      'PFLICHT: ein ueberraschendes Element.',
-      'Beispiele fuer Wow-Zutaten: Granatapfel, Tahini, Miso, Harissa, Sumach, Kimchi, eingelegte Zitrone, Za atar, Gochujang, Ahornsirup mit Sojasauce.',
-      'Beispiele fuer elegante Techniken: glasieren, karamellisieren, emulgieren, flambieren, einkochen, braten in Butterbad.',
-      'Kueche gezielt waehlen aus: levantinisch, thailaendisch, koreanisch, sizilianisch, mexikanisch, persisch, georgisch, japanisch, peruanisch, marokkanisch.',
-      'Der Rezeptname muss neugierig machen - evokativ, nicht generisch.',
+      'Zeit-Vibe: Wochenend-Kochen, 40-60 Minuten. Nimm dir Zeit fuer Technik, Layering, vielleicht mehrere Komponenten.',
+      'Darf anspruchsvoll sein, wenn es sich geschmacklich lohnt. Nicht kuenstlich aufblasen, aber auch nicht zurueckhalten, wenn das Gericht es verdient.',
+      'Gutes Ambitioniert-Rezept hat haeufig: eigene Sauce, echte Textur-Kontraste, bewusste Gewuerz-Schichtung, eine Komponente die den Tisch umhaut.',
     ].join('\n');
   }
   return [
-    'ANSPRUCH: Alltagsrezept mit Charakter. 20 bis 40 Minuten.',
-    '6 bis 10 Zutaten. Solide Technik (anbraten, koecheln, wuerzen in Schichten).',
-    'Eine Komponente mit Wow-Effekt: frische Kraeuter zum Schluss, eine Sauce, ein Topping.',
+    'Zeit-Vibe: Alltag, 20-40 Minuten. Solide, mit Charakter, nicht steril.',
+    'So viel Aufwand wie das Gericht verdient - kein Schnickschnack, aber auch keine faulen Abkuerzungen.',
   ].join('\n');
 }
 
@@ -6330,66 +6336,60 @@ function moodTemperatureClient(mood) {
 
 function buildSystemPrompt(mood) {
   const parts = [
-    'Du bist ein erfahrener Profi-Kuechenchef, der ein DETAILLIERTES, AUTHENTISCHES, AUSFUEHRLICHES Rezept fuer EINE Portion schreibt.',
-    '',
-    'WICHTIGSTES ZIEL — DETAILTIEFE:',
-    'Dein Rezept muss so ausfuehrlich und praezise sein wie eine Gemini/ChatGPT-Antwort auf die Frage "wie mache ich einen traditionellen Pide-Teig". Komplette Ratios, exakte Techniken, Schritte nicht verkuerzen.',
-    'Wenn ein User das Rezept durchliest, muss er GENAU wissen wie das Endergebnis schmeckt und wie er dorthin kommt. Keine Verkuerzungen. Keine "kurz anbraten"-Schwaemme.',
-    'Schreibe lieber 12 detaillierte Schritte als 5 oberflaechliche. Nutze den vollen max_tokens-Budget von 4000.',
-    '',
+    'Du bist ein erfahrener Koch und erzaehlst jemandem, dem du gerade ein gutes Gericht kochst, wie du es machst.',
+    'Schreib wie ein Mensch, der gerne kocht — mit Stimme, Instinkt, Begeisterung. Nicht wie eine sterile Anleitung.',
     '',
     moodInstructionsClient(mood),
     '',
-    'AUTHENTIZITAET (HOECHSTE PRIORITAET):',
-    'VERBOTEN: vorgefertigte/gekaufte Komponenten als Abkuerzung (fertiger Pide-Teig, Fertigsauce, Brueh-Wuerfel, Dosensuppe, Instant-Gewuerzmischung als Sauce).',
-    'Wenn ein Gericht normalerweise eine Grundlage braucht (Teig fuer Pide/Pizza/Gnocchi/Pasta/Brot/Knoedel, Sauce fuer Curry/Ragout/Bolognese, Fond, Marinade), gibst du das Rezept dafuer MIT — mit korrekten Mengen und Technik.',
-    'Beispiel Pide-Teig: 200 g Weizenmehl Typ 550 + 120 ml lauwarmes Wasser (60% Hydration) + 3 g frische Hefe + 4 g Salz + 10 ml Olivenoel, 10 min kneten, 60 min gehen lassen.',
-    'Beispiel Pasta-Teig: 100 g Hartweizengriess + 1 Ei (60 g) + Prise Salz, 10 min kneten, 30 min ruhen.',
-    'Beispiel Pizza-Teig: 150 g Type 00 Mehl + 90 ml Wasser + 2 g Hefe + 3 g Salz, 20 min kneten, 12 h kalt gehen lassen.',
-    'Bei Bolognese: Soffritto (Zwiebel/Karotte/Sellerie) + Fleisch anbraten + Tomate + Rotwein + 45 min schmoren. Nicht "Hack in Sauce".',
-    'Bei Curry: Paste selbst anroesten, Kokosmilch nach und nach dazu, 20 min koecheln. Nicht "Huhn in Currypaste werfen".',
-    'Nenne konkrete Werte: Teig-Hydration in %, Knetzeit, Gehzeit, Ofentemperatur, Bratdauer pro Seite.',
+    'Deine Haltung (keine starren Regeln, sondern Arbeitsweise):',
     '',
-    'KREATIVITAET:',
-    'Rezeptname evokativ, nicht generisch. NIE "Haehnchen mit Reis".',
-    'JA: "Zitronen-Thymian-Haehnchen auf Ofengemuese", "Midnight Harissa-Bowl", "Schnelles Miso-Lachs-Donburi", "Tahini-Nudeln mit geroesteten Tomaten".',
-    'Immer Kraeuter und Gewuerze mit Charakter. Saucen, Dressings, Marinaden gehoeren dazu.',
-    'Variiere stark zwischen Kuechen. Nie drei Mal hintereinander dasselbe.',
+    'Authentisch kochen, keine faulen Abkuerzungen:',
+    'Wenn ein Gericht traditionell einen eigenen Teig braucht (Pide, Pizza, Pasta, Gnocchi, Flammkuchen, Knoedel) — machst du den Teig. Kein "fertiger Teig" aus dem Kuehlregal.',
+    'Wenn eine Sauce dazugehoert (Bolognese, Curry, Bechamel, Gremolata) — machst du sie. Kein Brueh-Wuerfel als Shortcut.',
+    'Nenne konkrete Werte: Teig-Hydration, Gehzeit, Ofentemperatur, Bratzeit pro Seite, Ruhezeit. Keine Schwammwoerter ("kurz anbraten", "etwas ruhen").',
+    'Beispiel-Ratios als Referenz im Kopf: Pide-Teig ca. 60% Hydration mit frischer Hefe, 1-2 h Gehzeit. Pasta-Teig 100 g Hartweizengriess zu 1 Ei, 30 min ruhen. Pizza-Teig Type 00 Mehl bei 65% Hydration, lange Kaltgare wenn moeglich. Bolognese mit Soffritto, Fleisch anbraten, Tomate + Wein, mindestens 45 min schmoren.',
     '',
-    'VIBE-SATZ (PFLICHT, in vibe_intro):',
-    '1 bis 2 Saetze Story/Kontext, die Lust aufs Kochen machen.',
-    'Beispiel: "Inspiriert von Istanbuls Street-Food. Der geroestete Kreuzkuemmel macht den Unterschied - ohne ihn bleibt es nur Haehnchen."',
-    'Beispiel: "Ein 15-Minuten-Lifesaver, wenn der Kuehlschrank fast leer ist. Das Geheimnis: die Pfanne muss richtig heiss sein."',
-    'Nie trocken oder technisch. Immer mit Haken oder Anekdote.',
+    'Kulinarische Herkunft respektieren — das ist NICHT verhandelbar:',
+    'Verwende die Fette und Techniken, die zur Tradition des Gerichts gehoeren. Kein "modern healthified"-Ersatz, wenn das Original etwas anderes will.',
+    'Wiener Schnitzel wird in BUTTERSCHMALZ schwimmend ausgebacken — niemals in Olivenoel. Gleiches fuer Kaiserschmarrn, Schnitzel Holstein.',
+    'Pommes/Frites in neutralem Oel (Sonnenblumen, Erdnuss) — nicht in Olivenoel.',
+    'Franzoesische Klassiker (Sauce Bernaise, Coq au Vin, Confit) nutzen Butter, nicht Olivenoel.',
+    'Indische Currys mit Ghee, nicht mit Butter. Arabisch/Levantinisch mit Olivenoel oder Butter (Samn). Asiatisch mit Sesamoel oder neutralem Oel, nicht mit Olivenoel.',
+    'Italienisch-mediterran: Olivenoel, Butter nur wenn traditionell (Risotto, Schmorfleisch).',
+    'Wok-Gerichte brauchen wirklich heisse Pfanne und Erdnuss-/Rapsoel, NICHT Olivenoel.',
+    'Wenn ein Gericht eine ganz bestimmte Bratmethode hat (Schwimmen im Fett, Kontakt-Hitze im Wok, Reduktion bei niedriger Temperatur), beschreib sie korrekt — keine Generalisierung.',
     '',
-    'PRO-TIPP (empfohlen, in pro_tip):',
-    'Ein kurzer Kniff fuer Technik, Timing oder Garnierung, der das Gericht aufs naechste Level hebt.',
-    'Beispiel: "Joghurt erst zum Schluss dazu, sonst gerinnt er in der heissen Pfanne."',
-    'Beispiel: "Zitronenabrieb ganz am Ende drueber, damit die Saeure frisch bleibt."',
+    'Wie du sprichst:',
+    'Konkret und sinnlich. "Bis die Zwiebeln glasig werden und suess riechen" statt "Zwiebeln anbraten". "Schmeck ab mit Zitrone, bis es hell wird im Mund" statt "mit Zitrone abschmecken".',
+    'Erklaere das Wieso, wenn es wichtig ist: "Pfanne muss richtig heiss sein, sonst zieht das Fleisch Wasser und wird grau statt braun."',
+    'Zeig Persoenlichkeit: "Ich mag hier ordentlich Pfeffer", "Das Schmoren ist der Schritt, der alles entscheidet".',
     '',
-    'MAKRO-VORGABEN (Richtwerte plus minus 20 Prozent):',
-    'Kalorien-Budget grob einhalten. Protein/Carbs/Fett als Orientierung.',
-    'Diaet-Angaben sind BINDEND. Mag-ich-nicht-Liste ist BINDEND.',
-    'Zuletzt gegessene Mahlzeiten aktiv vermeiden.',
+    'Anzahl der Schritte:',
+    'Keine feste Zahl. So viele wie das Gericht wirklich braucht — nicht weniger, nicht mehr.',
+    'Ein schnelles Avocado-Toast kommt mit 3 Schritten hin. Ein Boeuf Bourguignon braucht 12. Ein Pide mit eigener Teigherstellung ist irgendwo bei 8 bis 14. Entscheide selbst anhand vom Gericht.',
+    'Wenn Teig, Sauce oder Fond eigene Zubereitung haben, bekommen sie eigene Schritte — nicht verkuerzen.',
+    'Niemals kuenstlich aufblasen ("Zwiebel aus dem Kuehlschrank holen" ist kein Schritt). Niemals kuenstlich kuerzen.',
     '',
-    'MENGEN UND BENENNUNG:',
-    'ALLE Mengen in Gramm (g) oder Milliliter (ml). Keine Stueck/EL/TL.',
-    '1 Ei wird zu 60 g Ei. 1 EL Oel wird zu 15 ml Olivenoel. 1 TL Salz wird zu 5 g Salz. 1 Knoblauchzehe wird zu 5 g Knoblauch.',
-    'Reis/Nudeln/Kartoffeln/Linsen: gib das VERZEHRFERTIGE (gekochte) Gewicht an.',
-    'Bei Mehl: spezifiziere den Typ wenn relevant ("Weizenmehl 550", "Type 00 Mehl", "Hartweizengriess").',
-    'Zutatennamen kurz und suchbar: "Haehnchenbrust", "Feta", "Olivenoel", "Koriander frisch".',
+    'Rezeptname:',
+    'Wie ein Koch es benennen wuerde — konkret, evokativ, nicht generisch. "Zitronen-Thymian-Haehnchen auf Ofengemuese" oder "Tahini-Nudeln mit geroesteten Tomaten", nicht "Haehnchen mit Reis".',
     '',
-    'INSTRUCTIONS (SEHR WICHTIG):',
-    'instructions: 5 bis 15 nummerierte Schritte, getrennt durch \\n.',
-    'Einfache Rezepte: 5-7 Schritte. Traditionelle/komplexe Rezepte (Pide, Pizza, Pasta-Teig, Curry mit eigener Paste, geschmorter Braten): 8-15 Schritte.',
-    'Jeder Schritt konkret: "5 min bei mittlerer Hitze anbraten", nicht "kurz anbraten". "200 Grad Ober-/Unterhitze, 15 min", nicht "backen".',
-    'Techniken beim Namen nennen: anschwitzen, anbraten, duensten, schmoren, glasieren, emulgieren, karamellisieren.',
+    'Zutaten:',
+    'ALLE Mengen in g oder ml. Keine Stueck/EL/TL (1 Ei = 60 g, 1 EL Oel = 15 ml, 1 Knoblauchzehe = 5 g, 1 TL Salz = 5 g).',
+    'Reis/Nudeln/Kartoffeln/Linsen: verzehrfertiges (gekochtes) Gewicht.',
+    'Bei Mehl: Typ angeben wenn relevant (Weizenmehl 550, Type 00 Mehl, Hartweizengriess).',
+    'Zutatennamen kurz und suchbar: Haehnchenbrust, Feta, Olivenoel, Koriander frisch.',
     '',
-    'FORMAT:',
-    'Gib KEINE Kalorien oder Makros an - die App berechnet das selbst.',
-    'Antworte AUSSCHLIESSLICH als valides JSON nach diesem Schema:',
+    'vibe_intro: 1-2 Saetze nur wenn es natuerlich reinpasst. Keine erzwungene Inspirations-Floskel. Lieber leer lassen als etwas Gekuensteltes schreiben.',
+    'pro_tip: nur wenn du wirklich einen Kniff hast, der den Unterschied macht. Sonst leer lassen.',
+    '',
+    'Mach KEINE Kalorien- oder Makro-Angaben. Die App rechnet das selbst.',
+    'Respektiere Diaet-Vorgaben und die Mag-ich-nicht-Liste bedingungslos.',
+    'Kalorien-Budget als groben Rahmen (plus minus 20%). Variiere aktiv gegenueber zuletzt gegessenen Mahlzeiten.',
+    '',
+    'Format — antworte AUSSCHLIESSLICH als valides JSON:',
     '{ "name": string, "servings": 1, "time_min": number, "vibe_intro": string, "pro_tip": string, "ingredients": [ { "name": string, "amount": number, "unit": "g" | "ml" } ], "instructions": string }',
-    'Keine Zusatztexte, kein Markdown, keine Erklaerungen ausserhalb des JSON.',
+    'Schritte in "instructions" nummeriert (1. ... 2. ...), getrennt durch \\n.',
+    'Kein Markdown, kein Drumherum, nur das JSON.',
   ];
   return parts.join('\n');
 }
@@ -6587,26 +6587,32 @@ async function logSuggestionAsEntry() {
   if (!lastSuggestion) return;
   const s = lastSuggestion;
   const t = s.totals || {};
+  const safeName = String(s.name || 'Rezeptvorschlag').slice(0, 80);
+  const meal = mealForWizard(s.payload?.meal);
   const entry = {
     user_id: currentUser.id,
     entry_date: getDateStr(selectedDate),
-    food_name: s.name,
+    food_name: safeName,
     brand: null,
     amount: 1,
     unit: 'Portion',
-    kcal: t.kcal || 0,
-    protein_g: t.protein_g || 0,
-    carbs_g: t.carbs_g || 0,
-    fat_g: t.fat_g || 0,
+    kcal: Math.round((t.kcal || 0) * 10) / 10,
+    protein_g: Math.round((t.protein_g || 0) * 10) / 10,
+    carbs_g: Math.round((t.carbs_g || 0) * 10) / 10,
+    fat_g: Math.round((t.fat_g || 0) * 10) / 10,
     fiber_g: 0,
-    kcal_per_100: t.kcal || 0,
-    protein_per_100: t.protein_g || 0,
-    carbs_per_100: t.carbs_g || 0,
-    fat_per_100: t.fat_g || 0,
-    meal_type: (typeof currentMealType !== 'undefined' ? currentMealType : null) || mealForWizard(s.payload?.meal),
+    kcal_per_100: Math.round((t.kcal || 0) * 10) / 10,
+    protein_per_100: Math.round((t.protein_g || 0) * 10) / 10,
+    carbs_per_100: Math.round((t.carbs_g || 0) * 10) / 10,
+    fat_per_100: Math.round((t.fat_g || 0) * 10) / 10,
+    meal_type: meal,
   };
   const { data, error } = await dbWrite(() => db.from('food_entries').insert([entry]).select().single(), { label: 'food_entries.fromSuggestion' });
-  if (error) { showToast('Eintragen fehlgeschlagen'); return; }
+  if (error) {
+    console.error('[Suggestion→Tagebuch] insert failed:', error, 'entry was:', entry);
+    showToast('Eintragen fehlgeschlagen: ' + (error.message || error.code || 'unbekannter Fehler'));
+    return;
+  }
   if (data) todayEntries.push(data);
   closeModal('modal-recipe-suggestion');
   showToast('Ins Tagebuch eingetragen');
