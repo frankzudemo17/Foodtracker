@@ -6544,10 +6544,13 @@ function buildGroqPayload(w) {
   if (canonical) temperature = 0.4;
   else if (creative) temperature = 1.1;
   else temperature = moodTemperatureClient(mood);
+  // Token-Budget: ambitionierte Rezepte duerfen laenger werden.
+  // Sparsamer default spart Tages-Tokens im Free-Tier.
+  const maxTokens = (mood === 'ambitious' || canonical) ? 3200 : 2400;
   return {
     model: 'llama-3.3-70b-versatile',
     temperature,
-    max_tokens: 4000,
+    max_tokens: maxTokens,
     response_format: { type: 'json_object' },
     messages: [
       { role: 'system', content: buildSystemPrompt(mood, creative, canonical) },
@@ -6559,27 +6562,17 @@ function buildGroqPayload(w) {
 // ---------- Submit + Suggestion ----------
 let lastSuggestion = null;
 
-// Ruft die Edge Function auf. Bei 429/rate-limit: 1x Retry mit Wartezeit,
-// dann Fallback auf kleineres Modell (separater Rate-Bucket).
+// Ruft die Edge Function auf. Differenziert:
+// - TPM/RPM-Limit (per Minute): kurzer Retry hilft.
+// - TPD-Limit (per Tag): Retry auf dem gleichen Modell ist sinnlos.
+//   Aber: fallback auf llama-3.1-8b-instant nutzt EIGENEN Tages-Bucket.
 async function invokeWithRateRetry(groqPayload, btn) {
-  const attempts = [
-    { payload: groqPayload, label: 'primary' },
-    { payload: groqPayload, label: 'retry', waitMs: 3500 },
-    { payload: { ...groqPayload, model: 'llama-3.1-8b-instant', temperature: Math.min(0.9, groqPayload.temperature || 0.8) }, label: 'fallback-8b', waitMs: 500 },
-  ];
+  const fallback8b = { ...groqPayload, model: 'llama-3.1-8b-instant', temperature: Math.min(0.9, groqPayload.temperature || 0.8) };
 
-  let lastError = null;
-  for (let i = 0; i < attempts.length; i++) {
-    const step = attempts[i];
-    if (step.waitMs) {
-      if (btn) btn.textContent = step.label === 'fallback-8b' ? '🔄 Ausweich-Modell…' : '⏳ Groq ausgelastet, warte kurz…';
-      await new Promise(r => setTimeout(r, step.waitMs));
-    }
-    const { data: raw, error } = await db.functions.invoke('generate-recipe', { body: step.payload });
-    if (!error) return { raw, error: null };
-
-    // Body auslesen fuer Rate-Limit-Detection
-    let isRateLimit = false;
+  async function callOnce(payload) {
+    const { data: raw, error } = await db.functions.invoke('generate-recipe', { body: payload });
+    if (!error) return { raw, error: null, rateKind: null };
+    let rateKind = null;
     let status = null;
     try {
       if (error && error.context && typeof error.context.text === 'function') {
@@ -6587,23 +6580,41 @@ async function invokeWithRateRetry(groqPayload, btn) {
         const bodyText = await error.context.text();
         try {
           const parsed = JSON.parse(bodyText);
-          const msg = String(parsed?.error?.message || parsed?.error || parsed?.detail || bodyText);
-          isRateLimit = (status === 429) || /rate.?limit|too many requests|quota/i.test(msg);
-          // Klonen fuer spaeteren Zugriff im catch
+          const msg = String(parsed?.error?.message || parsed?.error || parsed?.detail || bodyText).toLowerCase();
+          if (status === 429 || /rate.?limit|too many requests|quota/.test(msg)) {
+            rateKind = /per day|tpd\b|tokens.*day|daily/.test(msg) ? 'daily' : 'minute';
+          }
           error._parsedBody = parsed;
           error._statusCode = status;
+          error._rateKind = rateKind;
         } catch (_) {
-          isRateLimit = (status === 429) || /rate.?limit/i.test(bodyText);
+          if (status === 429) rateKind = 'minute';
         }
       }
     } catch (_) {}
-
-    lastError = error;
-    // Nicht-Rate-Limit-Fehler: abbrechen, nicht weiter retrien
-    if (!isRateLimit) return { raw: null, error };
-    // Sonst naechsten Schritt versuchen
+    return { raw: null, error, rateKind };
   }
-  return { raw: null, error: lastError };
+
+  // 1) Primary
+  let res = await callOnce(groqPayload);
+  if (!res.error) return { raw: res.raw, error: null };
+
+  if (res.rateKind === 'minute') {
+    if (btn) btn.textContent = '⏳ Groq ausgelastet, warte kurz…';
+    await new Promise(r => setTimeout(r, 3500));
+    res = await callOnce(groqPayload);
+    if (!res.error) return { raw: res.raw, error: null };
+  }
+
+  if (res.rateKind === 'daily' || res.rateKind === 'minute') {
+    // Fallback auf 8b (eigener Bucket)
+    if (btn) btn.textContent = '🔄 Ausweich-Modell…';
+    await new Promise(r => setTimeout(r, 400));
+    res = await callOnce(fallback8b);
+    if (!res.error) return { raw: res.raw, error: null };
+  }
+
+  return { raw: null, error: res.error };
 }
 
 async function submitMealWizard() {
@@ -6708,8 +6719,13 @@ async function submitMealWizard() {
         }
       } catch (_) {}
     }
-    reason = String(reason || '').slice(0, 160);
-    showToast(reason ? ('Vorschlag fehlgeschlagen: ' + reason) : 'Vorschlag fehlgeschlagen. Nochmal?');
+    reason = String(reason || '').slice(0, 200);
+    // Freundliche Meldung bei Tageslimit
+    if (/per day|tpd\b|tokens.*day|daily/i.test(reason)) {
+      showToast('Tages-Limit von Groq erreicht. Reset in ein paar Stunden — oder Dev-Tier in Groq-Settings aktivieren (gratis).');
+    } else {
+      showToast(reason ? ('Vorschlag fehlgeschlagen: ' + reason) : 'Vorschlag fehlgeschlagen. Nochmal?');
+    }
   } finally {
     wizState.loading = false;
     btn.disabled = false;
