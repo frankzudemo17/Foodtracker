@@ -6559,6 +6559,53 @@ function buildGroqPayload(w) {
 // ---------- Submit + Suggestion ----------
 let lastSuggestion = null;
 
+// Ruft die Edge Function auf. Bei 429/rate-limit: 1x Retry mit Wartezeit,
+// dann Fallback auf kleineres Modell (separater Rate-Bucket).
+async function invokeWithRateRetry(groqPayload, btn) {
+  const attempts = [
+    { payload: groqPayload, label: 'primary' },
+    { payload: groqPayload, label: 'retry', waitMs: 3500 },
+    { payload: { ...groqPayload, model: 'llama-3.1-8b-instant', temperature: Math.min(0.9, groqPayload.temperature || 0.8) }, label: 'fallback-8b', waitMs: 500 },
+  ];
+
+  let lastError = null;
+  for (let i = 0; i < attempts.length; i++) {
+    const step = attempts[i];
+    if (step.waitMs) {
+      if (btn) btn.textContent = step.label === 'fallback-8b' ? '🔄 Ausweich-Modell…' : '⏳ Groq ausgelastet, warte kurz…';
+      await new Promise(r => setTimeout(r, step.waitMs));
+    }
+    const { data: raw, error } = await db.functions.invoke('generate-recipe', { body: step.payload });
+    if (!error) return { raw, error: null };
+
+    // Body auslesen fuer Rate-Limit-Detection
+    let isRateLimit = false;
+    let status = null;
+    try {
+      if (error && error.context && typeof error.context.text === 'function') {
+        status = error.context.status;
+        const bodyText = await error.context.text();
+        try {
+          const parsed = JSON.parse(bodyText);
+          const msg = String(parsed?.error?.message || parsed?.error || parsed?.detail || bodyText);
+          isRateLimit = (status === 429) || /rate.?limit|too many requests|quota/i.test(msg);
+          // Klonen fuer spaeteren Zugriff im catch
+          error._parsedBody = parsed;
+          error._statusCode = status;
+        } catch (_) {
+          isRateLimit = (status === 429) || /rate.?limit/i.test(bodyText);
+        }
+      }
+    } catch (_) {}
+
+    lastError = error;
+    // Nicht-Rate-Limit-Fehler: abbrechen, nicht weiter retrien
+    if (!isRateLimit) return { raw: null, error };
+    // Sonst naechsten Schritt versuchen
+  }
+  return { raw: null, error: lastError };
+}
+
 async function submitMealWizard() {
   if (wizState.loading) return;
   const kcal = parseInt(document.getElementById('wiz-kcal').value, 10);
@@ -6591,7 +6638,7 @@ async function submitMealWizard() {
   try {
     btn.textContent = '✨ Rezept wird erdacht…';
     const groqPayload = buildGroqPayload(wizardData);
-    const { data: raw, error } = await db.functions.invoke('generate-recipe', { body: groqPayload });
+    const { raw, error } = await invokeWithRateRetry(groqPayload, btn);
     if (error) throw error;
     const content = raw?.choices?.[0]?.message?.content;
     if (typeof content !== 'string') throw new Error('empty_response');
