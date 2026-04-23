@@ -6329,17 +6329,23 @@ function moodInstructionsClient(mood) {
 }
 
 function moodTemperatureClient(mood) {
-  if (mood === 'easy') return 0.8;
-  if (mood === 'ambitious') return 1.0;
-  return 0.9;
+  if (mood === 'easy') return 0.85;
+  if (mood === 'ambitious') return 1.1;
+  return 0.95;
 }
 
 function buildSystemPrompt(mood) {
   const parts = [
-    'Du bist ein erfahrener Koch und erzaehlst jemandem, dem du gerade ein gutes Gericht kochst, wie du es machst.',
-    'Schreib wie ein Mensch, der gerne kocht — mit Stimme, Instinkt, Begeisterung. Nicht wie eine sterile Anleitung.',
+    'Du bist ein ambitionierter Koch, der jemandem ein wirklich gutes Rezept zeigt.',
+    'Schreib wie ein Mensch mit Stimme, Instinkt, Begeisterung — aber sei der BESTE Koch, nicht der durchschnittlichste.',
     '',
     moodInstructionsClient(mood),
+    '',
+    'KREATIVITAET — nicht verhandelbar:',
+    'Wenn der User ein konkretes Gericht nennt (z.B. "Pide", "Bolognese", "Schnitzel", "Ramen"), liefere DEINE Version. Nicht die einfachste, sondern die, bei der der User denkt: "okay, DAS probier ich heute aus".',
+    'Zeig Handschrift. Trau dich, eine Komponente zu waehlen, die in Standard-Rezepten nicht vorkommt — eine Tahini-Mayo statt plainer Joghurt-Sauce, brown butter statt normaler Butter, Granatapfel als Topping, gebeizte Rotkohl-Streifen, ein Gremolata-Finish.',
+    'Simple, generische Umsetzungen sind VERBOTEN. Ein Standard-Chefkoch.de-Rezept ist zu wenig. Die Version muss sich anfuehlen wie aus einem guten Restaurant oder einem Kochblog, den man wirklich liest.',
+    'Bei Klassikern: mach die BESTE traditionelle Version MIT deinem Twist. Bei Mainstream-Gerichten: heb sie auf Chef-Level mit Technik, Layering, Texture, unerwarteten Aromen.',
     '',
     'Deine Haltung (keine starren Regeln, sondern Arbeitsweise):',
     '',
@@ -6589,22 +6595,22 @@ async function logSuggestionAsEntry() {
   const t = s.totals || {};
   const safeName = String(s.name || 'Rezeptvorschlag').slice(0, 80);
   const meal = mealForWizard(s.payload?.meal);
+  // Spalten-Set identisch zu confirmAddFood — kein kcal_per_100 etc., die gibt es in food_entries nicht.
   const entry = {
     user_id: currentUser.id,
     entry_date: getDateStr(selectedDate),
     food_name: safeName,
     brand: null,
+    barcode: null,
     amount: 1,
     unit: 'Portion',
-    kcal: Math.round((t.kcal || 0) * 10) / 10,
-    protein_g: Math.round((t.protein_g || 0) * 10) / 10,
-    carbs_g: Math.round((t.carbs_g || 0) * 10) / 10,
-    fat_g: Math.round((t.fat_g || 0) * 10) / 10,
+    kcal: Math.round((Number(t.kcal) || 0) * 10) / 10,
+    protein_g: Math.round((Number(t.protein_g) || 0) * 10) / 10,
+    carbs_g: Math.round((Number(t.carbs_g) || 0) * 10) / 10,
+    fat_g: Math.round((Number(t.fat_g) || 0) * 10) / 10,
     fiber_g: 0,
-    kcal_per_100: Math.round((t.kcal || 0) * 10) / 10,
-    protein_per_100: Math.round((t.protein_g || 0) * 10) / 10,
-    carbs_per_100: Math.round((t.carbs_g || 0) * 10) / 10,
-    fat_per_100: Math.round((t.fat_g || 0) * 10) / 10,
+    image_url: null,
+    off_product_id: null,
     meal_type: meal,
   };
   const { data, error } = await dbWrite(() => db.from('food_entries').insert([entry]).select().single(), { label: 'food_entries.fromSuggestion' });
