@@ -2873,7 +2873,7 @@ body {
         </div>
       </div>
       <button class="btn btn-secondary btn-block" style="margin-top:24px;color:#d44" onclick="handleLogout()">Abmelden</button>
-      <div id="app-version-footer" style="text-align:center;padding:12px;font-size:0.65rem;color:var(--text-tertiary)">v3.46 · kein SW</div>
+      <div id="app-version-footer" style="text-align:center;padding:12px;font-size:0.65rem;color:var(--text-tertiary)">v3.47 · kein SW</div>
     </div>
   </div>
 
@@ -6690,28 +6690,33 @@ async function submitMealWizard() {
   } catch (e) {
     console.error('[wizard submit] error:', e, 'payload was:', wizardData);
     let reason = '';
-    // Vorrangig: echte Message aus Error-Objekt
-    if (e && typeof e.message === 'string') reason = e.message;
-    // supabase-js FunctionsHttpError versteckt den Body unter e.context (Response)
-    if (e && e.context && typeof e.context.text === 'function') {
+
+    // 1) Wenn invokeWithRateRetry den Body schon geparst hat, nimm das Cache-Objekt
+    const cachedParsed = e && e._parsedBody;
+    if (cachedParsed) {
+      if (typeof cachedParsed.error === 'string') {
+        reason = cachedParsed.error + (cachedParsed.detail ? ' — ' + String(cachedParsed.detail).slice(0, 100) : '');
+      } else if (cachedParsed.error && typeof cachedParsed.error === 'object') {
+        reason = String(cachedParsed.error.message || cachedParsed.error.code || cachedParsed.error.type || 'groq error').slice(0, 200);
+      } else if (typeof cachedParsed.message === 'string') {
+        reason = cachedParsed.message;
+      }
+    }
+
+    // 2) Noch leer? Body aus Response-Context lesen (falls noch nicht konsumiert)
+    if (!reason && e && e.context && typeof e.context.text === 'function') {
       try {
         const bodyText = await e.context.text();
         console.error('[wizard submit] edge function body:', bodyText);
         try {
           const parsed = JSON.parse(bodyText);
-          // Unsere Edge-Function: { error: "too_long", detail?: "..." }
-          if (parsed && typeof parsed.error === 'string') {
+          if (typeof parsed.error === 'string') {
             reason = parsed.error + (parsed.detail ? ' — ' + String(parsed.detail).slice(0, 100) : '');
-          }
-          // Groq-Fehler: { error: { message: "...", type, code } }
-          else if (parsed && parsed.error && typeof parsed.error === 'object') {
-            reason = String(parsed.error.message || parsed.error.code || parsed.error.type || 'groq error').slice(0, 160);
-          }
-          // Sonstiger Fehler mit message auf Root
-          else if (parsed && typeof parsed.message === 'string') {
+          } else if (parsed.error && typeof parsed.error === 'object') {
+            reason = String(parsed.error.message || parsed.error.code || parsed.error.type || 'groq error').slice(0, 200);
+          } else if (typeof parsed.message === 'string') {
             reason = parsed.message;
-          }
-          else {
+          } else {
             reason = bodyText.slice(0, 120);
           }
         } catch (_) {
@@ -6719,12 +6724,17 @@ async function submitMealWizard() {
         }
       } catch (_) {}
     }
-    reason = String(reason || '').slice(0, 200);
-    // Freundliche Meldung bei Tageslimit
+
+    // 3) Fallback: Error.message
+    if (!reason && e && typeof e.message === 'string') reason = e.message;
+
+    reason = String(reason || '').slice(0, 220);
+    console.error('[wizard submit] final reason:', reason);
+
     if (/per day|tpd\b|tokens.*day|daily/i.test(reason)) {
-      showToast('Tages-Limit von Groq erreicht. Reset in ein paar Stunden — oder Dev-Tier in Groq-Settings aktivieren (gratis).');
+      showToast('Tages-Limit von Groq erreicht. Reset in ein paar Stunden.');
     } else {
-      showToast(reason ? ('Vorschlag fehlgeschlagen: ' + reason) : 'Vorschlag fehlgeschlagen. Nochmal?');
+      showToast(reason ? ('Fehlgeschlagen: ' + reason) : 'Vorschlag fehlgeschlagen. Nochmal?');
     }
   } finally {
     wizState.loading = false;
@@ -8594,7 +8604,7 @@ window.addEventListener('focus', function() {
   // einen staled context zu erkennen.
   if (checkStaleAndMaybeReload()) return;
 });
-const APP_VERSION = 'v3.46';
+const APP_VERSION = 'v3.47';
 console.log('%cAufgetischt ' + APP_VERSION, 'color:#9b8;font-size:14px;font-weight:600');
 try {
   var _vf = document.getElementById('app-version-footer');
