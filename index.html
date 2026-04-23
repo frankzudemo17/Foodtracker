@@ -5850,6 +5850,27 @@ async function resolveIngredientsMacros(ingredients) {
   return { ingredients: resolved, totals };
 }
 
+// Gewuerze und Kraeuter: in typischen Rezeptmengen vernachlaessigbar.
+// Wenn der Name eines dieser Keywords enthaelt, zaehlen wir 0 Makros.
+const SPICE_KEYWORDS = [
+  'salz','pfeffer','zimt','muskat','nelke','kardamom','piment','anis','sternanis','vanille',
+  'paprikapulver','paprika pulver','chilipulver','chili pulver','chiliflocken','cayenne',
+  'kurkuma','curry','currypulver','curry pulver','kreuzkuemmel','kuemmel','koriander pulver','korianderpulver',
+  'ingwerpulver','ingwer pulver','knoblauchpulver','knoblauch pulver','zwiebelpulver',
+  'oregano','basilikum getrocknet','thymian','rosmarin','lorbeer','majoran','estragon','salbei','dill getrocknet',
+  'petersilie getrocknet','schnittlauch getrocknet','bohnenkraut','liebstoeckel',
+  'gewuerz','gewuerzmischung','kraeutermischung','italienische kraeuter','provence kraeuter',
+  'sumach','zaatar','garam masala','ras el hanout','harissa pulver',
+  'senfpulver','senf pulver','wasabipulver',
+  'backpulver','natron','vanillezucker','vanilleextrakt','zitronenschale','limettenschale','orangeschale','abrieb'
+];
+
+function isSpice(name) {
+  if (!name) return false;
+  const n = String(name).toLowerCase().replace(/ö/g,'oe').replace(/ä/g,'ae').replace(/ü/g,'ue').replace(/ß/g,'ss');
+  return SPICE_KEYWORDS.some(k => n.includes(k));
+}
+
 async function resolveOneIngredient(ing, aliasMap) {
   const name = String(ing.name || '').trim();
   const amount = Number(ing.amount) || 0;
@@ -5857,6 +5878,11 @@ async function resolveOneIngredient(ing, aliasMap) {
   const base = { name, amount, unit };
 
   if (!name || amount <= 0) return { ...base, unresolved: true, reason: 'empty' };
+
+  // 0) Gewuerz/Kraut-Shortcut: in kleinen Mengen vernachlaessigbar → 0 Makros
+  if (isSpice(name) && amount <= 20) {
+    return { ...base, kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0, matched_name: name, source: 'spice' };
+  }
 
   // 1) Alias-Check
   const aliasKey = name.toLowerCase();
@@ -6023,13 +6049,18 @@ function renderSuggestion(s) {
         <div style="min-width:60px;text-align:right">?</div>
       </div>`;
     }
+    const isSpiceRow = i.source === 'spice';
+    const matchLine = isSpiceRow
+      ? `<div class="sug-match" style="font-style:italic">Gewürz — nicht in Makros gezählt</div>`
+      : `<div class="sug-match">→ ${escapeHtml(i.matched_name || '')}</div>`;
+    const kcalCell = isSpiceRow ? '—' : (Math.round(i.kcal) + ' kcal');
     return `<div class="sug-ing-row">
       <div style="flex:1">
         <div>${escapeHtml(i.name)}</div>
-        <div class="sug-match">→ ${escapeHtml(i.matched_name || '')}</div>
+        ${matchLine}
       </div>
       <div style="color:var(--text-secondary)">${i.amount} ${i.unit}</div>
-      <div style="color:var(--text-tertiary);min-width:60px;text-align:right">${Math.round(i.kcal)} kcal</div>
+      <div style="color:var(--text-tertiary);min-width:60px;text-align:right">${kcalCell}</div>
     </div>`;
   }).join('');
 
