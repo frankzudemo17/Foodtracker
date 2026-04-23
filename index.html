@@ -3178,6 +3178,15 @@ body {
           <option value="ambitious">✨ Ambitioniert — Weekend-Wow (40–60 min)</option>
         </select>
       </div>
+
+      <div class="form-group">
+        <label class="form-label">Stil</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="wiz-style-group">
+          <button type="button" class="wiz-meal" data-val="classic" onclick="wizPickStyle(this)">🏡 Klassisch</button>
+          <button type="button" class="wiz-meal active" data-val="normal" onclick="wizPickStyle(this)">🍽️ Normal</button>
+          <button type="button" class="wiz-meal" data-val="creative" onclick="wizPickStyle(this)">✨ Kreativ</button>
+        </div>
+      </div>
       <div class="form-group">
         <label class="form-label">Makro-Fokus</label>
         <select class="form-input" id="wiz-focus">
@@ -6058,6 +6067,7 @@ async function removePantryItem(id) {
 // ---------- Meal Wizard ----------
 let wizState = {
   meal: 'lunch',
+  style: 'normal',
   pantrySelected: new Set(),
   extras: [],
   loading: false,
@@ -6081,12 +6091,15 @@ async function openMealWizard() {
   // State reset
   wizState = {
     meal: guessDefaultMeal(),
+    style: 'normal',
     pantrySelected: new Set(pantryCache.have.map(p => p.name)),
     extras: [],
     loading: false,
   };
   document.querySelectorAll('#wiz-meal-group .wiz-meal').forEach(b =>
     b.classList.toggle('active', b.dataset.val === wizState.meal));
+  document.querySelectorAll('#wiz-style-group .wiz-meal').forEach(b =>
+    b.classList.toggle('active', b.dataset.val === 'normal'));
   document.getElementById('wiz-focus').value = '';
   document.getElementById('wiz-mood').value = 'everyday';
   document.getElementById('wiz-diet').value = '';
@@ -6132,6 +6145,11 @@ function computeRemainingMacros() {
 function wizPickMeal(btn) {
   wizState.meal = btn.dataset.val;
   document.querySelectorAll('#wiz-meal-group .wiz-meal').forEach(b => b.classList.toggle('active', b === btn));
+}
+
+function wizPickStyle(btn) {
+  wizState.style = btn.dataset.val;
+  document.querySelectorAll('#wiz-style-group .wiz-meal').forEach(b => b.classList.toggle('active', b === btn));
 }
 
 function renderWizPantryChips() {
@@ -6334,18 +6352,37 @@ function moodTemperatureClient(mood) {
   return 0.95;
 }
 
-function buildSystemPrompt(mood) {
+function styleInstructionsClient(style) {
+  if (style === 'classic') {
+    return [
+      'STIL: KLASSISCH. Mach das Gericht so, wie es im Kochbuch steht. Wie Nonna/Oma/Mama es macht.',
+      'Keine Fusion, keine exotischen Zutaten-Kunststuecke, keine modernen Twists. Traditionelle Zutaten, klassische Techniken, bewaehrte Proportionen.',
+      'Authentisch im Original-Sinne. Der User will das ehrliche, richtige Rezept — kein "Chef-Remix".',
+    ].join('\n');
+  }
+  if (style === 'creative') {
+    return [
+      'STIL: KREATIV mit Chef-Handschrift — nicht verhandelbar.',
+      'Mach die beste Version MIT einer unerwarteten Komponente: Tahini-Mayo, brown butter, Granatapfel-Topping, Gremolata-Finish, gebeizter Rotkohl, geroestete Haselnuesse, Miso im Butter, eingelegte Zitrone, etc. Eine davon oder aehnlich.',
+      'Zeig Handschrift. Der User soll denken: "so hab ich das noch nie gemacht, das probier ich aus".',
+      'Standard-Chefkoch-Niveau ist zu wenig. Heb es auf Restaurant-Level.',
+    ].join('\n');
+  }
+  return [
+    'STIL: Solide Alltagskueche mit Charakter.',
+    'Keine unnoetigen Experimente, keine exotischen Zutaten-Pflicht. Aber auch nicht steril — eine frische Kraeuter-Note, ein gutes Dressing, sinnvolle Wuerzung.',
+    'Ein "Hausmannskost-Plus"-Niveau. Solide, ansprechend, nicht experimentell.',
+  ].join('\n');
+}
+
+function buildSystemPrompt(mood, style) {
   const parts = [
-    'Du bist ein ambitionierter Koch, der jemandem ein wirklich gutes Rezept zeigt.',
-    'Schreib wie ein Mensch mit Stimme, Instinkt, Begeisterung — aber sei der BESTE Koch, nicht der durchschnittlichste.',
+    'Du bist ein erfahrener Koch, der jemandem ein wirklich gutes Rezept zeigt.',
+    'Schreib wie ein Mensch mit Stimme, Instinkt, Begeisterung — mit der Haltung, die der gewaehlte Stil vorgibt.',
     '',
     moodInstructionsClient(mood),
     '',
-    'KREATIVITAET — nicht verhandelbar:',
-    'Wenn der User ein konkretes Gericht nennt (z.B. "Pide", "Bolognese", "Schnitzel", "Ramen"), liefere DEINE Version. Nicht die einfachste, sondern die, bei der der User denkt: "okay, DAS probier ich heute aus".',
-    'Zeig Handschrift. Trau dich, eine Komponente zu waehlen, die in Standard-Rezepten nicht vorkommt — eine Tahini-Mayo statt plainer Joghurt-Sauce, brown butter statt normaler Butter, Granatapfel als Topping, gebeizte Rotkohl-Streifen, ein Gremolata-Finish.',
-    'Simple, generische Umsetzungen sind VERBOTEN. Ein Standard-Chefkoch.de-Rezept ist zu wenig. Die Version muss sich anfuehlen wie aus einem guten Restaurant oder einem Kochblog, den man wirklich liest.',
-    'Bei Klassikern: mach die BESTE traditionelle Version MIT deinem Twist. Bei Mainstream-Gerichten: heb sie auf Chef-Level mit Technik, Layering, Texture, unerwarteten Aromen.',
+    styleInstructionsClient(style),
     '',
     'Deine Haltung (keine starren Regeln, sondern Arbeitsweise):',
     '',
@@ -6421,13 +6458,14 @@ function buildUserPrompt(w) {
 
 function buildGroqPayload(w) {
   const mood = w.mood || 'everyday';
+  const style = w.style || 'normal';
   return {
     model: 'llama-3.3-70b-versatile',
     temperature: moodTemperatureClient(mood),
     max_tokens: 4000,
     response_format: { type: 'json_object' },
     messages: [
-      { role: 'system', content: buildSystemPrompt(mood) },
+      { role: 'system', content: buildSystemPrompt(mood, style) },
       { role: 'user', content: buildUserPrompt(w) },
     ],
   };
@@ -6452,6 +6490,7 @@ async function submitMealWizard() {
     fat_target: parseInt(document.getElementById('wiz-fat').value, 10) || undefined,
     focus: document.getElementById('wiz-focus').value || null,
     mood: document.getElementById('wiz-mood').value || 'everyday',
+    style: wizState.style || 'normal',
     diet: document.getElementById('wiz-diet').value || null,
     ingredients: [...wizState.pantrySelected, ...wizState.extras],
     dislikes,
