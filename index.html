@@ -2873,7 +2873,7 @@ body {
         </div>
       </div>
       <button class="btn btn-secondary btn-block" style="margin-top:24px;color:#d44" onclick="handleLogout()">Abmelden</button>
-      <div style="text-align:center;padding:12px;font-size:0.65rem;color:var(--text-tertiary)">v3.22 · kein SW</div>
+      <div id="app-version-footer" style="text-align:center;padding:12px;font-size:0.65rem;color:var(--text-tertiary)">v3.46 · kein SW</div>
     </div>
   </div>
 
@@ -8594,7 +8594,12 @@ window.addEventListener('focus', function() {
   // einen staled context zu erkennen.
   if (checkStaleAndMaybeReload()) return;
 });
-console.log('%cAufgetischt v3.28', 'color:#9b8;font-size:14px;font-weight:600');
+const APP_VERSION = 'v3.46';
+console.log('%cAufgetischt ' + APP_VERSION, 'color:#9b8;font-size:14px;font-weight:600');
+try {
+  var _vf = document.getElementById('app-version-footer');
+  if (_vf) _vf.textContent = APP_VERSION + ' · kein SW';
+} catch (_) {}
 </script>
 </body>
 </html>
