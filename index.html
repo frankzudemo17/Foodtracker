@@ -1565,6 +1565,41 @@ body {
 .meal-wizard-btn:active { transform:translateY(0) scale(0.98); }
 .meal-wizard-btn .mw-label { white-space:nowrap; position:relative; z-index:1; }
 
+/* Wizard-Layout v3.38 */
+.wiz-body { padding:0 22px 30px; }
+.wiz-section { padding:16px 0; border-bottom:1px solid var(--border-light); }
+.wiz-section:last-of-type { border-bottom:none; }
+.wiz-section-title { font-family:var(--ff-display); font-size:0.95rem; font-weight:600; color:var(--text-primary); margin-bottom:12px; letter-spacing:-0.01em; }
+.wiz-section-hint { font-size:0.75rem; font-weight:400; color:var(--text-tertiary); font-family:var(--ff-body); letter-spacing:0; }
+.wiz-meal-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; }
+.wiz-kcal-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; padding:10px 14px; background:var(--bg-tertiary); border-radius:var(--radius-md); }
+.wiz-kcal-label { flex:1; font-size:0.85rem; color:var(--text-secondary); font-weight:500; }
+.wiz-kcal-input { width:90px; font-size:1.3rem; font-weight:700; font-family:var(--ff-display); text-align:right; background:transparent; border:none; color:var(--accent); outline:none; padding:0; -moz-appearance:textfield; }
+.wiz-kcal-input::-webkit-outer-spin-button, .wiz-kcal-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.wiz-macro-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.wiz-macro-field { display:flex; align-items:center; gap:4px; padding:8px 10px; background:var(--bg-tertiary); border-radius:var(--radius-sm); }
+.wiz-macro-field label { font-size:0.72rem; color:var(--text-tertiary); flex:1; font-weight:500; }
+.wiz-macro-field input { width:42px; font-size:0.95rem; font-weight:600; text-align:right; background:transparent; border:none; color:var(--text-primary); outline:none; padding:0; -moz-appearance:textfield; }
+.wiz-macro-field input::-webkit-outer-spin-button, .wiz-macro-field input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+.wiz-macro-field span { font-size:0.72rem; color:var(--text-tertiary); }
+.wiz-label { display:block; font-size:0.78rem; color:var(--text-secondary); margin:10px 0 6px; font-weight:500; letter-spacing:0.02em; }
+.wiz-select { font-size:0.9rem; padding:11px 12px; }
+.wiz-toggle-row { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; background:var(--bg-tertiary); border-radius:var(--radius-md); cursor:pointer; margin-top:10px; }
+.wiz-toggle-row:hover { background:var(--bg-hover, var(--bg-tertiary)); }
+.wiz-toggle-text { flex:1; padding-right:12px; }
+.wiz-toggle-label { font-size:0.88rem; font-weight:600; color:var(--text-primary); }
+.wiz-toggle-desc { font-size:0.72rem; color:var(--text-tertiary); margin-top:2px; }
+.wiz-pantry-chips { display:flex; flex-wrap:wrap; gap:6px; min-height:28px; margin-bottom:10px; }
+.wiz-extra-row { display:flex; gap:6px; }
+.wiz-extra-input { flex:1; font-size:0.9rem; padding:10px 12px; }
+.wiz-extra-add { padding:0 18px; font-size:1.1rem; font-weight:600; }
+.wiz-advanced { border:none; padding:10px 0; }
+.wiz-advanced-summary { cursor:pointer; padding:10px 0; font-size:0.85rem; color:var(--text-secondary); font-weight:500; list-style:none; text-align:center; }
+.wiz-advanced-summary::before { content:'▸ '; font-size:0.8em; }
+.wiz-advanced[open] .wiz-advanced-summary::before { content:'▾ '; }
+.wiz-advanced-body { padding:6px 0 10px; }
+.wiz-submit { padding:16px; margin-top:18px; font-size:1rem; }
+
 .wiz-meal { flex:1; background:var(--bg-tertiary); border:1px solid transparent; padding:10px 8px; font-size:0.85rem; border-radius:var(--radius-sm); cursor:pointer; color:var(--text-primary); font-weight:500; }
 .wiz-meal.active { background:var(--accent); color:#fff; border-color:var(--accent); }
 .wiz-chip { display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg-tertiary);border-radius:999px;font-size:0.85rem;cursor:pointer;user-select:none;border:1px solid transparent; color:var(--text-primary); }
@@ -1575,6 +1610,39 @@ body {
 .sug-ing-row { display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--border); font-size:0.88rem; align-items:baseline; }
 .sug-ing-row.unresolved { opacity:0.55; }
 .sug-ing-row .sug-match { font-size:0.7rem;color:var(--text-tertiary); margin-top:2px; }
+
+/* Suggestion-Layout v3.38 */
+.sug-warn { padding:10px 14px; background:var(--bg-tertiary); border-left:3px solid var(--gold, #c9a24b); border-radius:var(--radius-sm); margin-bottom:16px; font-size:0.82rem; color:var(--text-secondary); }
+.sug-vibe { padding:14px 16px; background:color-mix(in srgb, var(--accent) 6%, var(--bg-card)); border-left:3px solid var(--accent); border-radius:var(--radius-md); margin-bottom:18px; font-size:0.9rem; line-height:1.55; color:var(--text-primary); font-style:italic; }
+.sug-macros { display:grid; grid-template-columns:repeat(auto-fit, minmax(70px, 1fr)); gap:8px; margin-bottom:6px; }
+.sug-macro { padding:10px 8px; background:var(--bg-tertiary); border-radius:var(--radius-md); text-align:center; }
+.sug-macro-val { font-family:var(--ff-display); font-size:1.15rem; font-weight:700; color:var(--text-primary); line-height:1.1; }
+.sug-macro-lbl { font-size:0.68rem; color:var(--text-tertiary); margin-top:3px; text-transform:uppercase; letter-spacing:0.04em; }
+.sug-diff { text-align:center; font-size:0.72rem; color:var(--text-tertiary); margin-top:6px; margin-bottom:4px; }
+.sug-block { margin-top:22px; }
+.sug-block-title { font-family:var(--ff-display); font-size:0.88rem; font-weight:600; color:var(--text-secondary); margin-bottom:10px; letter-spacing:-0.005em; }
+.sug-tweaks { display:flex; flex-direction:column; gap:6px; }
+.sug-tweak { padding:9px 12px; background:color-mix(in srgb, var(--accent) 8%, var(--bg-tertiary)); border-radius:var(--radius-sm); font-size:0.85rem; color:var(--text-primary); line-height:1.4; border-left:2px solid color-mix(in srgb, var(--accent) 50%, transparent); }
+.sug-ings { display:flex; flex-direction:column; }
+.sug-ing { display:flex; align-items:baseline; gap:12px; padding:10px 0; border-bottom:1px solid var(--border-light); font-size:0.9rem; }
+.sug-ing:last-child { border-bottom:none; }
+.sug-ing.unresolved { opacity:0.55; }
+.sug-ing-name-wrap { flex:1; min-width:0; }
+.sug-ing-name { color:var(--text-primary); font-weight:500; }
+.sug-ing-match { font-size:0.72rem; color:var(--text-tertiary); margin-top:2px; }
+.sug-ing-match.spice { font-style:italic; }
+.sug-ing-amount { font-size:0.82rem; color:var(--text-secondary); white-space:nowrap; }
+.sug-ing-kcal { font-size:0.78rem; color:var(--text-tertiary); min-width:60px; text-align:right; white-space:nowrap; }
+.sug-steps { display:flex; flex-direction:column; gap:12px; }
+.sug-step { display:flex; gap:12px; align-items:flex-start; }
+.sug-step-num { flex-shrink:0; width:26px; height:26px; border-radius:50%; background:color-mix(in srgb, var(--accent) 15%, var(--bg-tertiary)); color:var(--accent); display:flex; align-items:center; justify-content:center; font-family:var(--ff-display); font-weight:600; font-size:0.82rem; }
+.sug-step-text { flex:1; font-size:0.9rem; line-height:1.55; color:var(--text-primary); padding-top:3px; }
+.sug-protip { margin-top:20px; padding:12px 14px; background:var(--bg-tertiary); border-radius:var(--radius-md); font-size:0.88rem; line-height:1.5; color:var(--text-primary); }
+.sug-protip strong { color:var(--accent); margin-right:4px; }
+.sug-actions { display:flex; flex-direction:column; gap:10px; margin-top:26px; padding-top:18px; border-top:1px solid var(--border-light); }
+.sug-btn-primary { padding:14px; font-size:0.95rem; font-weight:600; }
+.sug-actions-secondary { display:flex; gap:8px; }
+.sug-btn-secondary { flex:1; padding:11px; font-size:0.88rem; }
 
 .toast {
   position: fixed;
@@ -3150,10 +3218,11 @@ body {
 <div id="modal-meal-wizard" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-meal-wizard')">
   <div class="modal-sheet"><div class="modal-handle"></div>
     <div class="modal-header"><div class="modal-title">Was esse ich heute?</div><button class="modal-close" onclick="closeModal('modal-meal-wizard')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
-    <div class="modal-body">
-      <div class="form-group">
-        <label class="form-label">Mahlzeit</label>
-        <div style="display:flex;gap:6px;flex-wrap:wrap" id="wiz-meal-group">
+    <div class="modal-body wiz-body">
+
+      <div class="wiz-section">
+        <div class="wiz-section-title">Für welche Mahlzeit?</div>
+        <div class="wiz-meal-grid" id="wiz-meal-group">
           <button type="button" class="wiz-meal" data-val="breakfast" onclick="wizPickMeal(this)">Frühstück</button>
           <button type="button" class="wiz-meal active" data-val="lunch" onclick="wizPickMeal(this)">Mittag</button>
           <button type="button" class="wiz-meal" data-val="dinner" onclick="wizPickMeal(this)">Abend</button>
@@ -3161,78 +3230,76 @@ body {
         </div>
       </div>
 
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">kcal-Budget</label><input class="form-input" type="number" id="wiz-kcal" min="50" max="3000"></div>
-        <div class="form-group"><label class="form-label">Protein (g)</label><input class="form-input" type="number" id="wiz-protein" min="0" max="500"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Kohlenh. (g)</label><input class="form-input" type="number" id="wiz-carbs" min="0" max="800"></div>
-        <div class="form-group"><label class="form-label">Fett (g)</label><input class="form-input" type="number" id="wiz-fat" min="0" max="300"></div>
+      <div class="wiz-section">
+        <div class="wiz-section-title">Deine Werte für diese Mahlzeit</div>
+        <div class="wiz-kcal-row">
+          <label class="wiz-kcal-label">kcal-Budget</label>
+          <input class="wiz-kcal-input" type="number" id="wiz-kcal" min="50" max="3000">
+        </div>
+        <div class="wiz-macro-row">
+          <div class="wiz-macro-field"><label>Protein</label><input type="number" id="wiz-protein" min="0" max="500"><span>g</span></div>
+          <div class="wiz-macro-field"><label>Kohlenh.</label><input type="number" id="wiz-carbs" min="0" max="800"><span>g</span></div>
+          <div class="wiz-macro-field"><label>Fett</label><input type="number" id="wiz-fat" min="0" max="300"><span>g</span></div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Anspruch & Vibe</label>
-        <select class="form-input" id="wiz-mood">
-          <option value="easy">⚡ Schnell & einfach (≤20 min)</option>
+      <div class="wiz-section">
+        <div class="wiz-section-title">Wie soll's werden?</div>
+        <label class="wiz-label">Zeit &amp; Aufwand</label>
+        <select class="form-input wiz-select" id="wiz-mood">
+          <option value="easy">⚡ Schnell &amp; einfach (≤20 min)</option>
           <option value="everyday" selected>🍳 Alltag (20–40 min)</option>
           <option value="ambitious">✨ Ambitioniert — Weekend-Wow (40–60 min)</option>
         </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Stil</label>
-        <div style="display:flex;gap:6px;flex-wrap:wrap" id="wiz-style-group">
-          <button type="button" class="wiz-meal" data-val="classic" onclick="wizPickStyle(this)">🏡 Klassisch</button>
-          <button type="button" class="wiz-meal active" data-val="normal" onclick="wizPickStyle(this)">🍽️ Normal</button>
-          <button type="button" class="wiz-meal" data-val="creative" onclick="wizPickStyle(this)">✨ Kreativ</button>
+        <div class="wiz-toggle-row" onclick="document.getElementById('wiz-creative-toggle').click()">
+          <div class="wiz-toggle-text">
+            <div class="wiz-toggle-label">Mit kreativem Twist</div>
+            <div class="wiz-toggle-desc">Chef-Handschrift, unerwartete Kniffe</div>
+          </div>
+          <div class="toggle" id="wiz-creative-toggle" onclick="event.stopPropagation();this.classList.toggle('active')"></div>
         </div>
       </div>
-      <div class="form-group">
-        <label class="form-label">Makro-Fokus</label>
-        <select class="form-input" id="wiz-focus">
-          <option value="">Egal</option>
-          <option value="protein">Mehr Protein</option>
-          <option value="low_fat">Wenig Fett</option>
-          <option value="low_carb">Wenig Kohlenh.</option>
-        </select>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label">Ernährung</label>
-        <select class="form-input" id="wiz-diet">
-          <option value="">Egal</option>
-          <option value="vegetarian">Vegetarisch</option>
-          <option value="vegan">Vegan</option>
-          <option value="lactose_free">Laktosefrei</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Zutaten zuhause</label>
-        <div id="wiz-pantry-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:30px"></div>
-        <div style="display:flex;gap:6px">
-          <input class="form-input" id="wiz-extra-ing" placeholder="Zusätzliche Zutat…" style="flex:1" maxlength="60" onkeydown="if(event.key==='Enter'){event.preventDefault();wizAddExtra();}">
-          <button type="button" class="btn" onclick="wizAddExtra()" style="padding:0 14px">+</button>
+      <div class="wiz-section">
+        <div class="wiz-section-title">Was hast du da? <span class="wiz-section-hint">optional</span></div>
+        <div id="wiz-pantry-chips" class="wiz-pantry-chips"></div>
+        <div class="wiz-extra-row">
+          <input class="form-input wiz-extra-input" id="wiz-extra-ing" placeholder="Zusätzliche Zutat…" maxlength="60" onkeydown="if(event.key==='Enter'){event.preventDefault();wizAddExtra();}">
+          <button type="button" class="btn wiz-extra-add" onclick="wizAddExtra()">+</button>
         </div>
-        <div id="wiz-extra-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+        <div id="wiz-extra-list" class="wiz-pantry-chips" style="margin-top:10px"></div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Sonstiges (optional)</label>
-        <input class="form-input" id="wiz-note" placeholder="z.B. scharf, One-Pot, asiatisch…" maxlength="120">
-      </div>
-
-      <div class="settings-item" style="margin:12px 0;padding:10px 0">
-        <div class="settings-item-left">
-          <div>
-            <div class="settings-item-label">Auto-Save ins Rezeptbuch</div>
-            <div class="settings-item-desc">Generiertes Rezept speichern</div>
+      <details class="wiz-advanced">
+        <summary class="wiz-advanced-summary">Mehr einstellen</summary>
+        <div class="wiz-advanced-body">
+          <label class="wiz-label">Makro-Fokus</label>
+          <select class="form-input wiz-select" id="wiz-focus">
+            <option value="">Egal</option>
+            <option value="protein">Mehr Protein</option>
+            <option value="low_fat">Wenig Fett</option>
+            <option value="low_carb">Wenig Kohlenh.</option>
+          </select>
+          <label class="wiz-label">Ernährung</label>
+          <select class="form-input wiz-select" id="wiz-diet">
+            <option value="">Egal</option>
+            <option value="vegetarian">Vegetarisch</option>
+            <option value="vegan">Vegan</option>
+            <option value="lactose_free">Laktosefrei</option>
+          </select>
+          <label class="wiz-label">Sonstiges</label>
+          <input class="form-input wiz-select" id="wiz-note" placeholder="z.B. scharf, One-Pot, asiatisch…" maxlength="120">
+          <div class="wiz-toggle-row" onclick="document.getElementById('wiz-autosave-toggle').click()">
+            <div class="wiz-toggle-text">
+              <div class="wiz-toggle-label">Auto-Save ins Rezeptbuch</div>
+              <div class="wiz-toggle-desc">Generiertes Rezept automatisch speichern</div>
+            </div>
+            <div class="toggle" id="wiz-autosave-toggle" onclick="event.stopPropagation();this.classList.toggle('active')"></div>
           </div>
         </div>
-        <div class="toggle" id="wiz-autosave-toggle" onclick="this.classList.toggle('active')"></div>
-      </div>
+      </details>
 
-      <button class="btn btn-primary btn-block" id="wiz-submit" onclick="submitMealWizard()" style="padding:16px;margin-top:8px">✨ Rezept vorschlagen</button>
+      <button class="btn btn-primary btn-block wiz-submit" id="wiz-submit" onclick="submitMealWizard()">✨ Rezept vorschlagen</button>
     </div>
   </div>
 </div>
@@ -6067,7 +6134,6 @@ async function removePantryItem(id) {
 // ---------- Meal Wizard ----------
 let wizState = {
   meal: 'lunch',
-  style: 'normal',
   pantrySelected: new Set(),
   extras: [],
   loading: false,
@@ -6091,15 +6157,13 @@ async function openMealWizard() {
   // State reset
   wizState = {
     meal: guessDefaultMeal(),
-    style: 'normal',
     pantrySelected: new Set(pantryCache.have.map(p => p.name)),
     extras: [],
     loading: false,
   };
   document.querySelectorAll('#wiz-meal-group .wiz-meal').forEach(b =>
     b.classList.toggle('active', b.dataset.val === wizState.meal));
-  document.querySelectorAll('#wiz-style-group .wiz-meal').forEach(b =>
-    b.classList.toggle('active', b.dataset.val === 'normal'));
+  document.getElementById('wiz-creative-toggle').classList.remove('active');
   document.getElementById('wiz-focus').value = '';
   document.getElementById('wiz-mood').value = 'everyday';
   document.getElementById('wiz-diet').value = '';
@@ -6147,10 +6211,6 @@ function wizPickMeal(btn) {
   document.querySelectorAll('#wiz-meal-group .wiz-meal').forEach(b => b.classList.toggle('active', b === btn));
 }
 
-function wizPickStyle(btn) {
-  wizState.style = btn.dataset.val;
-  document.querySelectorAll('#wiz-style-group .wiz-meal').forEach(b => b.classList.toggle('active', b === btn));
-}
 
 function renderWizPantryChips() {
   const wrap = document.getElementById('wiz-pantry-chips');
@@ -6352,15 +6412,8 @@ function moodTemperatureClient(mood) {
   return 0.95;
 }
 
-function styleInstructionsClient(style) {
-  if (style === 'classic') {
-    return [
-      'STIL: KLASSISCH. Mach das Gericht so, wie es im Kochbuch steht. Wie Nonna/Oma/Mama es macht.',
-      'Keine Fusion, keine exotischen Zutaten-Kunststuecke, keine modernen Twists. Traditionelle Zutaten, klassische Techniken, bewaehrte Proportionen.',
-      'Authentisch im Original-Sinne. Der User will das ehrliche, richtige Rezept — kein "Chef-Remix".',
-    ].join('\n');
-  }
-  if (style === 'creative') {
+function styleInstructionsClient(creative) {
+  if (creative) {
     return [
       'STIL: KREATIV mit Chef-Handschrift — nicht verhandelbar.',
       'Mach die beste Version MIT einer unerwarteten Komponente: Tahini-Mayo, brown butter, Granatapfel-Topping, Gremolata-Finish, gebeizter Rotkohl, geroestete Haselnuesse, Miso im Butter, eingelegte Zitrone, etc. Eine davon oder aehnlich.',
@@ -6369,20 +6422,20 @@ function styleInstructionsClient(style) {
     ].join('\n');
   }
   return [
-    'STIL: Solide Alltagskueche mit Charakter.',
-    'Keine unnoetigen Experimente, keine exotischen Zutaten-Pflicht. Aber auch nicht steril — eine frische Kraeuter-Note, ein gutes Dressing, sinnvolle Wuerzung.',
-    'Ein "Hausmannskost-Plus"-Niveau. Solide, ansprechend, nicht experimentell.',
+    'STIL: Solide, nah am Klassiker, keine Experimente.',
+    'Traditionelle Zutaten und Techniken, wie man das Gericht normalerweise kennt. Keine exotischen Kunststuecke, keine Chef-Remixes.',
+    'Ehrlich und gut. Wie es in einem guten Hausmanns-Kochbuch steht.',
   ].join('\n');
 }
 
-function buildSystemPrompt(mood, style) {
+function buildSystemPrompt(mood, creative) {
   const parts = [
     'Du bist ein erfahrener Koch, der jemandem ein wirklich gutes Rezept zeigt.',
     'Schreib wie ein Mensch mit Stimme, Instinkt, Begeisterung — mit der Haltung, die der gewaehlte Stil vorgibt.',
     '',
     moodInstructionsClient(mood),
     '',
-    styleInstructionsClient(style),
+    styleInstructionsClient(creative),
     '',
     'Deine Haltung (keine starren Regeln, sondern Arbeitsweise):',
     '',
@@ -6422,15 +6475,25 @@ function buildSystemPrompt(mood, style) {
     'Bei Mehl: Typ angeben wenn relevant (Weizenmehl 550, Type 00 Mehl, Hartweizengriess).',
     'Zutatennamen kurz und suchbar: Haehnchenbrust, Feta, Olivenoel, Koriander frisch.',
     '',
-    'vibe_intro: 1-2 Saetze nur wenn es natuerlich reinpasst. Keine erzwungene Inspirations-Floskel. Lieber leer lassen als etwas Gekuensteltes schreiben.',
+    'vibe_intro (1-2 Saetze, PFLICHT):',
+    'Kurzer Einstieg, der ZWEI Dinge macht: a) erklaert in einem Halbsatz, wie das Rezept zu den Rest-Makros passt ("Die Haehnchenbrust bringt dir die fehlenden 30 g Protein, Reis deckt die Kohlenhydrate"). b) einen geschmacklichen Haken ("der geroestete Kreuzkuemmel macht den Unterschied").',
+    'Nicht pathetisch, nicht werbesprachig. Informativ und lustmachend in einem.',
+    '',
     'pro_tip: nur wenn du wirklich einen Kniff hast, der den Unterschied macht. Sonst leer lassen.',
     '',
-    'Mach KEINE Kalorien- oder Makro-Angaben. Die App rechnet das selbst.',
+    'tweaks (PFLICHT, 1-2 Eintraege als Array):',
+    'Konkrete Optimierungs-Hinweise, wie der User das Rezept anpassen kann:',
+    '- "+60 g Haehnchen fuer +25 g Protein"',
+    '- "Olivenoel halbieren (-45 kcal)"',
+    '- "Zucchini durch Aubergine ersetzen fuer tieferen Geschmack"',
+    'Kurz, konkret, mit Mengen und Folge. Keine Floskeln.',
+    '',
+    'Mach KEINE Kalorien- oder Makro-Angaben in ingredients oder instructions. Die App rechnet das selbst.',
     'Respektiere Diaet-Vorgaben und die Mag-ich-nicht-Liste bedingungslos.',
     'Kalorien-Budget als groben Rahmen (plus minus 20%). Variiere aktiv gegenueber zuletzt gegessenen Mahlzeiten.',
     '',
     'Format — antworte AUSSCHLIESSLICH als valides JSON:',
-    '{ "name": string, "servings": 1, "time_min": number, "vibe_intro": string, "pro_tip": string, "ingredients": [ { "name": string, "amount": number, "unit": "g" | "ml" } ], "instructions": string }',
+    '{ "name": string, "servings": 1, "time_min": number, "vibe_intro": string, "pro_tip": string, "tweaks": [string], "ingredients": [ { "name": string, "amount": number, "unit": "g" | "ml" } ], "instructions": string }',
     'Schritte in "instructions" nummeriert (1. ... 2. ...), getrennt durch \\n.',
     'Kein Markdown, kein Drumherum, nur das JSON.',
   ];
@@ -6458,14 +6521,14 @@ function buildUserPrompt(w) {
 
 function buildGroqPayload(w) {
   const mood = w.mood || 'everyday';
-  const style = w.style || 'normal';
+  const creative = !!w.creative;
   return {
     model: 'llama-3.3-70b-versatile',
-    temperature: moodTemperatureClient(mood),
+    temperature: creative ? 1.1 : moodTemperatureClient(mood),
     max_tokens: 4000,
     response_format: { type: 'json_object' },
     messages: [
-      { role: 'system', content: buildSystemPrompt(mood, style) },
+      { role: 'system', content: buildSystemPrompt(mood, creative) },
       { role: 'user', content: buildUserPrompt(w) },
     ],
   };
@@ -6490,7 +6553,7 @@ async function submitMealWizard() {
     fat_target: parseInt(document.getElementById('wiz-fat').value, 10) || undefined,
     focus: document.getElementById('wiz-focus').value || null,
     mood: document.getElementById('wiz-mood').value || 'everyday',
-    style: wizState.style || 'normal',
+    creative: document.getElementById('wiz-creative-toggle').classList.contains('active'),
     diet: document.getElementById('wiz-diet').value || null,
     ingredients: [...wizState.pantrySelected, ...wizState.extras],
     dislikes,
@@ -6530,6 +6593,7 @@ async function submitMealWizard() {
       time_min: data.recipe.time_min || null,
       vibe_intro: data.recipe.vibe_intro || '',
       pro_tip: data.recipe.pro_tip || '',
+      tweaks: Array.isArray(data.recipe.tweaks) ? data.recipe.tweaks.filter(t => typeof t === 'string' && t.trim()).slice(0, 4) : [],
       instructions: data.recipe.instructions || '',
       ingredients: resolvedIng,
       totals,
@@ -6563,67 +6627,120 @@ function collectRecentMealNames() {
   } catch(e) { return []; }
 }
 
+function parseInstructionSteps(instructionsText) {
+  if (!instructionsText) return [];
+  const txt = String(instructionsText).trim();
+  const lines = txt.split('\n').map(l => l.trim()).filter(Boolean);
+  const steps = [];
+  let current = '';
+  for (const line of lines) {
+    const numMatch = line.match(/^\s*(\d+)[.)\]]\s+(.+)$/);
+    if (numMatch) {
+      if (current) steps.push(current.trim());
+      current = numMatch[2];
+    } else if (current) {
+      current += ' ' + line;
+    } else {
+      current = line;
+    }
+  }
+  if (current) steps.push(current.trim());
+  return steps.length ? steps : [txt];
+}
+
 function renderSuggestion(s) {
   document.getElementById('sug-title').textContent = s.name || 'Rezeptvorschlag';
   const t = s.totals || {};
   const budget = s.payload?.kcal_budget || 0;
   const diff = budget ? Math.round(((t.kcal - budget) / budget) * 100) : 0;
-  const diffStr = budget ? ((diff >= 0 ? '+' : '') + diff + ' % vs. Budget') : '';
+  const diffStr = budget ? ((diff >= 0 ? '+' : '') + diff + '% vs. Budget') : '';
 
   const unresolvedCount = s.ingredients.filter(i => i.unresolved).length;
   const unresolvedWarn = unresolvedCount
-    ? `<div style="padding:8px 12px;background:var(--bg-tertiary);border-radius:var(--radius-sm);margin-bottom:12px;font-size:0.8rem;color:var(--text-secondary)">⚠️ ${unresolvedCount} Zutat(en) konnten nicht nachgeschlagen werden — Totals ohne diese.</div>`
+    ? `<div class="sug-warn">⚠️ ${unresolvedCount} Zutat(en) konnten nicht nachgeschlagen werden — Totals ohne diese.</div>`
     : '';
 
+  // Vibe-Hero
+  const vibeBlock = s.vibe_intro
+    ? `<div class="sug-vibe">${escapeHtml(s.vibe_intro)}</div>`
+    : '';
+
+  // Macro-Strip
+  const macroStrip = `
+    <div class="sug-macros">
+      <div class="sug-macro"><div class="sug-macro-val">${t.kcal || 0}</div><div class="sug-macro-lbl">kcal</div></div>
+      <div class="sug-macro"><div class="sug-macro-val">${t.protein_g || 0}</div><div class="sug-macro-lbl">Eiweiß (g)</div></div>
+      <div class="sug-macro"><div class="sug-macro-val">${t.carbs_g || 0}</div><div class="sug-macro-lbl">Kohlenh. (g)</div></div>
+      <div class="sug-macro"><div class="sug-macro-val">${t.fat_g || 0}</div><div class="sug-macro-lbl">Fett (g)</div></div>
+      ${s.time_min ? `<div class="sug-macro"><div class="sug-macro-val">${s.time_min}</div><div class="sug-macro-lbl">min</div></div>` : ''}
+    </div>
+    ${diffStr ? `<div class="sug-diff">${escapeHtml(diffStr)}</div>` : ''}
+  `;
+
+  // Tweaks
+  const tweaksBlock = (Array.isArray(s.tweaks) && s.tweaks.length)
+    ? `<div class="sug-block">
+         <div class="sug-block-title">⚡ Anpassen</div>
+         <div class="sug-tweaks">
+           ${s.tweaks.map(tw => `<div class="sug-tweak">${escapeHtml(tw)}</div>`).join('')}
+         </div>
+       </div>`
+    : '';
+
+  // Zutaten
   const ingRows = s.ingredients.map(i => {
     if (i.unresolved) {
-      return `<div class="sug-ing-row unresolved">
-        <div style="flex:1">${escapeHtml(i.name)}</div>
-        <div style="color:var(--text-secondary)">${i.amount} ${i.unit}</div>
-        <div style="min-width:60px;text-align:right">?</div>
+      return `<div class="sug-ing unresolved">
+        <div class="sug-ing-name">${escapeHtml(i.name)}</div>
+        <div class="sug-ing-amount">${i.amount} ${i.unit}</div>
+        <div class="sug-ing-kcal">?</div>
       </div>`;
     }
     const isSpiceRow = i.source === 'spice';
     const matchLine = isSpiceRow
-      ? `<div class="sug-match" style="font-style:italic">Gewürz — nicht in Makros gezählt</div>`
-      : `<div class="sug-match">→ ${escapeHtml(i.matched_name || '')}</div>`;
+      ? `<div class="sug-ing-match spice">Gewürz — nicht in Makros</div>`
+      : (i.matched_name ? `<div class="sug-ing-match">→ ${escapeHtml(i.matched_name)}</div>` : '');
     const kcalCell = isSpiceRow ? '—' : (Math.round(i.kcal) + ' kcal');
-    return `<div class="sug-ing-row">
-      <div style="flex:1">
-        <div>${escapeHtml(i.name)}</div>
+    return `<div class="sug-ing">
+      <div class="sug-ing-name-wrap">
+        <div class="sug-ing-name">${escapeHtml(i.name)}</div>
         ${matchLine}
       </div>
-      <div style="color:var(--text-secondary)">${i.amount} ${i.unit}</div>
-      <div style="color:var(--text-tertiary);min-width:60px;text-align:right">${kcalCell}</div>
+      <div class="sug-ing-amount">${i.amount} ${i.unit}</div>
+      <div class="sug-ing-kcal">${kcalCell}</div>
     </div>`;
   }).join('');
 
-  const vibeBlock = s.vibe_intro
-    ? `<div style="padding:12px 14px;background:linear-gradient(135deg,var(--accent-light),var(--bg-tertiary));border-left:3px solid var(--accent);border-radius:var(--radius-sm);margin-bottom:14px;font-size:0.88rem;line-height:1.5;font-style:italic;color:var(--text-primary)">${escapeHtml(s.vibe_intro)}</div>`
-    : '';
+  // Zubereitung — parsed into steps
+  const steps = parseInstructionSteps(s.instructions);
+  const stepsHtml = steps.map((step, idx) =>
+    `<div class="sug-step"><div class="sug-step-num">${idx + 1}</div><div class="sug-step-text">${escapeHtml(step)}</div></div>`
+  ).join('');
 
   const proTipBlock = s.pro_tip
-    ? `<div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:var(--radius-sm);margin:12px 0;font-size:0.85rem;line-height:1.5"><strong style="color:var(--accent)">💡 Pro-Tipp:</strong> ${escapeHtml(s.pro_tip)}</div>`
+    ? `<div class="sug-protip"><strong>💡 Pro-Tipp</strong> ${escapeHtml(s.pro_tip)}</div>`
     : '';
 
   document.getElementById('sug-body').innerHTML = `
     ${unresolvedWarn}
     ${vibeBlock}
-    <div style="display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap">
-      <span class="recipe-macro-tag">${t.kcal || 0} kcal</span>
-      <span class="recipe-macro-tag">${t.protein_g || 0} g Eiweiß</span>
-      <span class="recipe-macro-tag">${t.carbs_g || 0} g Kohlenh.</span>
-      <span class="recipe-macro-tag">${t.fat_g || 0} g Fett</span>
-      ${s.time_min ? `<span class="recipe-macro-tag">${s.time_min} min</span>` : ''}
+    ${macroStrip}
+    ${tweaksBlock}
+    <div class="sug-block">
+      <div class="sug-block-title">🥗 Zutaten</div>
+      <div class="sug-ings">${ingRows}</div>
     </div>
-    ${diffStr ? `<div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:12px">${escapeHtml(diffStr)}</div>` : '<div style="height:12px"></div>'}
-    <div style="margin-bottom:12px"><div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">ZUTATEN</div>${ingRows}</div>
-    <div style="margin-bottom:4px"><div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">ZUBEREITUNG</div><div style="white-space:pre-line;font-size:0.9rem;line-height:1.6">${escapeHtml(s.instructions || '')}</div></div>
+    <div class="sug-block">
+      <div class="sug-block-title">👨‍🍳 Zubereitung</div>
+      <div class="sug-steps">${stepsHtml}</div>
+    </div>
     ${proTipBlock}
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
-      <button class="btn btn-primary" style="flex:1;min-width:120px;padding:12px" onclick="logSuggestionAsEntry()">➕ In Tagebuch</button>
-      <button class="btn" style="flex:1;min-width:110px;padding:12px" onclick="saveSuggestionAsRecipe()">💾 Speichern</button>
-      <button class="btn" style="flex:1;min-width:110px;padding:12px" onclick="rerollSuggestion()">🎲 Neu würfeln</button>
+    <div class="sug-actions">
+      <button class="btn btn-primary sug-btn-primary" onclick="logSuggestionAsEntry()">➕ In Tagebuch</button>
+      <div class="sug-actions-secondary">
+        <button class="btn sug-btn-secondary" onclick="saveSuggestionAsRecipe()">💾 Speichern</button>
+        <button class="btn sug-btn-secondary" onclick="rerollSuggestion()">🎲 Neu würfeln</button>
+      </div>
     </div>
   `;
 }
@@ -6690,12 +6807,15 @@ async function saveSuggestionAsRecipe(opts) {
     fat: Math.round((i.source ? (i.fat_g / (i.amount / 100)) : 0) * 10) / 10,
     icon: '✨',
   }));
-  // Vibe-Intro und Pro-Tipp vorne/hinten an die Zubereitung haengen,
+  // Vibe-Intro, Pro-Tipp und Tweaks in die Zubereitung falten,
   // damit sie im Rezeptbuch nicht verloren gehen.
   let fullInstructions = '';
   if (s.vibe_intro) fullInstructions += s.vibe_intro + '\n\n';
   if (s.instructions) fullInstructions += s.instructions;
   if (s.pro_tip) fullInstructions += '\n\n💡 Pro-Tipp: ' + s.pro_tip;
+  if (Array.isArray(s.tweaks) && s.tweaks.length) {
+    fullInstructions += '\n\n⚡ Anpassen:\n' + s.tweaks.map(t => '• ' + t).join('\n');
+  }
 
   const row = {
     user_id: currentUser.id,
