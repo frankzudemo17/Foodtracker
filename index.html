@@ -1593,11 +1593,44 @@ body {
 .wiz-extra-row { display:flex; gap:6px; }
 .wiz-extra-input { flex:1; font-size:0.9rem; padding:10px 12px; }
 .wiz-extra-add { padding:0 18px; font-size:1.1rem; font-weight:600; }
-.wiz-advanced { border:none; padding:10px 0; }
-.wiz-advanced-summary { cursor:pointer; padding:10px 0; font-size:0.85rem; color:var(--text-secondary); font-weight:500; list-style:none; text-align:center; }
-.wiz-advanced-summary::before { content:'▸ '; font-size:0.8em; }
-.wiz-advanced[open] .wiz-advanced-summary::before { content:'▾ '; }
-.wiz-advanced-body { padding:6px 0 10px; }
+.wiz-advanced { border:none; padding:14px 0 0; }
+.wiz-advanced-summary {
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  margin:0 auto;
+  padding:9px 18px;
+  max-width:max-content;
+  background:var(--bg-tertiary);
+  border:1px solid var(--border-light);
+  border-radius:var(--radius-full);
+  font-size:0.82rem;
+  font-family:var(--ff-display);
+  color:var(--text-secondary);
+  font-weight:500;
+  letter-spacing:-0.005em;
+  list-style:none;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.wiz-advanced-summary::-webkit-details-marker { display:none; }
+.wiz-advanced-summary:hover { background:color-mix(in srgb, var(--accent) 6%, var(--bg-tertiary)); color:var(--text-primary); border-color:color-mix(in srgb, var(--accent) 25%, var(--border-light)); }
+.wiz-advanced-summary::after {
+  content:'';
+  display:inline-block;
+  width:9px; height:9px;
+  border-right:1.6px solid currentColor;
+  border-bottom:1.6px solid currentColor;
+  transform:rotate(45deg) translateY(-2px);
+  transition: transform 0.25s ease;
+  flex-shrink:0;
+  margin-left:2px;
+}
+.wiz-advanced[open] .wiz-advanced-summary { color:var(--accent); border-color:color-mix(in srgb, var(--accent) 35%, transparent); background:color-mix(in srgb, var(--accent) 8%, var(--bg-tertiary)); }
+.wiz-advanced[open] .wiz-advanced-summary::after { transform:rotate(-135deg) translateY(0); }
+.wiz-advanced-body { padding:16px 0 6px; animation: wiz-adv-fade 0.25s ease-out; }
+@keyframes wiz-adv-fade { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+
+.wiz-label-hint { font-size:0.72rem; font-weight:400; color:var(--text-tertiary); margin-left:4px; }
 .wiz-submit { padding:16px; margin-top:18px; font-size:1rem; }
 
 .wiz-meal { flex:1; background:var(--bg-tertiary); border:1px solid transparent; padding:10px 8px; font-size:0.85rem; border-radius:var(--radius-sm); cursor:pointer; color:var(--text-primary); font-weight:500; }
@@ -3251,6 +3284,8 @@ body {
           <option value="everyday" selected>🍳 Alltag (20–40 min)</option>
           <option value="ambitious">✨ Ambitioniert — Weekend-Wow (40–60 min)</option>
         </select>
+        <label class="wiz-label">Wunsch-Gericht oder Stil <span class="wiz-label-hint">(optional)</span></label>
+        <input class="form-input wiz-select" id="wiz-note" placeholder="z.B. Pide, Wiener Schnitzel, Thai Curry, scharf, asiatisch…" maxlength="120">
         <div class="wiz-toggle-row" onclick="document.getElementById('wiz-creative-toggle').click()">
           <div class="wiz-toggle-text">
             <div class="wiz-toggle-label">Mit kreativem Twist</div>
@@ -3287,8 +3322,6 @@ body {
             <option value="vegan">Vegan</option>
             <option value="lactose_free">Laktosefrei</option>
           </select>
-          <label class="wiz-label">Sonstiges</label>
-          <input class="form-input wiz-select" id="wiz-note" placeholder="z.B. scharf, One-Pot, asiatisch…" maxlength="120">
           <div class="wiz-toggle-row" onclick="document.getElementById('wiz-autosave-toggle').click()">
             <div class="wiz-toggle-text">
               <div class="wiz-toggle-label">Auto-Save ins Rezeptbuch</div>
@@ -6436,6 +6469,11 @@ function buildSystemPrompt(mood, creative) {
     moodInstructionsClient(mood),
     '',
     styleInstructionsClient(creative),
+    '',
+    'WICHTIG zum User-Wunsch:',
+    'Wenn der User im Feld "Wunsch" ein konkretes Gericht nennt (z.B. "Pide", "Wiener Schnitzel", "Thai Curry", "Carbonara", "Ramen"), mach GENAU dieses Gericht. Passe es nur insoweit an die Makro-Vorgaben an, wie noetig — aber ohne die Identitaet des Gerichts zu brechen.',
+    'Ein Wiener Schnitzel ist ein Wiener Schnitzel. Ein Pide ist ein Pide. Wenn die Kalorien knapp sind, reduziere Portionsgroessen oder passe Beilagen an — ersetze nicht das Hauptgericht.',
+    'Wenn der Wunsch stattdessen ein Stil-Hinweis ist ("scharf", "asiatisch", "One-Pot"), nutze ihn als Richtungsangabe und waehle selbst ein passendes Gericht.',
     '',
     'Deine Haltung (keine starren Regeln, sondern Arbeitsweise):',
     '',
