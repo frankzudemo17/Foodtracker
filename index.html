@@ -5948,6 +5948,119 @@ function scaleFromPer100(base, per100, matchedName, source) {
   };
 }
 
+// ---------- Prompt-Bau (Client-seitig, damit Edge Function dumb bleiben kann) ----------
+function moodInstructionsClient(mood) {
+  if (mood === 'easy') {
+    return [
+      'ANSPRUCH: Schnell und einfach. Max 20 Minuten. One-pan oder one-bowl bevorzugt.',
+      '5 bis 7 Zutaten. Minimale Technik. Trotzdem geschmacklich spannend.',
+      'Ein Kniff: geroestete Nuesse, Zitronenabrieb, Chiliflocken, frische Kraeuter.',
+    ].join('\n');
+  }
+  if (mood === 'ambitious') {
+    return [
+      'ANSPRUCH: AMBITIONIERT, WEEKEND-VIBE. 40 bis 60 Minuten erlaubt.',
+      '8 bis 14 Zutaten. Mehrere Techniken kombiniert (anbraten + schmoren + Sauce separat).',
+      'PFLICHT: Textur-Kontrast (knusprig und cremig, warm und frisch).',
+      'PFLICHT: ein ueberraschendes Element.',
+      'Beispiele fuer Wow-Zutaten: Granatapfel, Tahini, Miso, Harissa, Sumach, Kimchi, eingelegte Zitrone, Za atar, Gochujang, Ahornsirup mit Sojasauce.',
+      'Beispiele fuer elegante Techniken: glasieren, karamellisieren, emulgieren, flambieren, einkochen, braten in Butterbad.',
+      'Kueche gezielt waehlen aus: levantinisch, thailaendisch, koreanisch, sizilianisch, mexikanisch, persisch, georgisch, japanisch, peruanisch, marokkanisch.',
+      'Der Rezeptname muss neugierig machen - evokativ, nicht generisch.',
+    ].join('\n');
+  }
+  return [
+    'ANSPRUCH: Alltagsrezept mit Charakter. 20 bis 40 Minuten.',
+    '6 bis 10 Zutaten. Solide Technik (anbraten, koecheln, wuerzen in Schichten).',
+    'Eine Komponente mit Wow-Effekt: frische Kraeuter zum Schluss, eine Sauce, ein Topping.',
+  ].join('\n');
+}
+
+function moodTemperatureClient(mood) {
+  if (mood === 'easy') return 0.8;
+  if (mood === 'ambitious') return 1.0;
+  return 0.9;
+}
+
+function buildSystemPrompt(mood) {
+  const parts = [
+    'Du bist ein kreativer Ernaehrungs- und Kuechen-Coach.',
+    'Erstelle EIN konkretes, inspirierendes Rezept fuer EINE Portion.',
+    'Das Rezept soll besser sein als ein Standard-Instagram-Reel. Hohe Qualitaet, kein Baukasten-Basic.',
+    '',
+    moodInstructionsClient(mood),
+    '',
+    'KREATIVITAET:',
+    'Der Rezeptname ist evokativ, nicht generisch. NIE "Haehnchen mit Reis".',
+    'JA: "Zitronen-Thymian-Haehnchen auf Ofengemuese" oder "Midnight Harissa-Bowl" oder "Schnelles Miso-Lachs-Donburi".',
+    'Immer Kraeuter und Gewuerze mit Charakter. Saucen, Dressings, Marinaden sind willkommen.',
+    'Variiere stark zwischen Kuechen. Nie drei Mal hintereinander dasselbe.',
+    '',
+    'VIBE-SATZ (PFLICHT):',
+    'In vibe_intro: 1 bis 2 Saetze Story/Kontext, die Lust aufs Kochen machen.',
+    'Beispiel: "Inspiriert von Istanbuls Street-Food - der geroestete Kreuzkuemmel macht den Unterschied."',
+    'Beispiel: "Ein 15-Minuten-Lifesaver, wenn der Kuehlschrank fast leer ist."',
+    'Nie trocken oder technisch. Immer mit Haken.',
+    '',
+    'PRO-TIPP (empfohlen, in pro_tip):',
+    'Ein kurzer Kniff fuer Technik, Timing oder Garnierung.',
+    'Beispiel: "Joghurt erst zum Schluss dazu, sonst gerinnt er in der heissen Pfanne."',
+    'Beispiel: "Zitronenabrieb ganz am Ende drueber, damit die Saeure frisch bleibt."',
+    '',
+    'MAKRO-VORGABEN (Richtwerte plus minus 20 Prozent):',
+    'Kalorien-Budget grob einhalten. Protein/Carbs/Fett als Orientierung.',
+    'Diaet-Angaben sind BINDEND. Mag-ich-nicht-Liste ist BINDEND.',
+    'Zuletzt gegessene Mahlzeiten aktiv vermeiden.',
+    '',
+    'MENGEN UND BENENNUNG:',
+    'ALLE Mengen in Gramm (g) oder Milliliter (ml). Keine Stueck/EL/TL.',
+    '1 Ei wird zu 60 g Ei. 1 EL Oel wird zu 15 ml Olivenoel. 1 TL Salz wird zu 5 g Salz.',
+    'Reis/Nudeln/Kartoffeln/Linsen: gib das VERZEHRFERTIGE (gekochte) Gewicht an.',
+    'Zutatennamen kurz und suchbar: "Haehnchenbrust", "Feta", "Olivenoel", "Koriander frisch".',
+    '',
+    'FORMAT:',
+    'Gib KEINE Kalorien oder Makros an - die App berechnet das selbst.',
+    'instructions: 4 bis 6 nummerierte Schritte, getrennt durch \\n.',
+    'Antworte AUSSCHLIESSLICH als valides JSON nach diesem Schema:',
+    '{ "name": string, "servings": 1, "time_min": number, "vibe_intro": string, "pro_tip": string, "ingredients": [ { "name": string, "amount": number, "unit": "g" | "ml" } ], "instructions": string }',
+    'Keine Zusatztexte, kein Markdown, keine Erklaerungen ausserhalb des JSON.',
+  ];
+  return parts.join('\n');
+}
+
+function buildUserPrompt(w) {
+  const mealDe = { breakfast: 'Fruehstueck', lunch: 'Mittagessen', dinner: 'Abendessen', snack: 'Snack' };
+  const focusDe = { protein: 'mehr Protein', low_fat: 'wenig Fett', low_carb: 'wenig Kohlenhydrate' };
+  const dietDe = { vegetarian: 'vegetarisch', vegan: 'vegan', lactose_free: 'laktosefrei' };
+  const lines = [];
+  lines.push('Mahlzeit: ' + mealDe[w.meal]);
+  lines.push('Kalorien-Budget: ' + w.kcal_budget + ' kcal');
+  if (w.protein_target) lines.push('Protein-Ziel: ' + w.protein_target + ' g');
+  if (w.carbs_target) lines.push('Kohlenhydrate-Ziel: ' + w.carbs_target + ' g');
+  if (w.fat_target) lines.push('Fett-Ziel: ' + w.fat_target + ' g');
+  if (w.focus) lines.push('Fokus: ' + focusDe[w.focus]);
+  if (w.diet) lines.push('Ernaehrungsform: ' + dietDe[w.diet]);
+  lines.push('Zutaten zuhause: ' + (w.ingredients.length ? w.ingredients.join(', ') : 'keine Angaben'));
+  if (w.dislikes && w.dislikes.length) lines.push('Mag ich nicht (NIE verwenden): ' + w.dislikes.join(', '));
+  if (w.recent_meals && w.recent_meals.length) lines.push('Zuletzt gegessen (vermeiden): ' + w.recent_meals.join(', '));
+  if (w.extra_note) lines.push('Wunsch: ' + w.extra_note);
+  return lines.join('\n');
+}
+
+function buildGroqPayload(w) {
+  const mood = w.mood || 'everyday';
+  return {
+    model: 'llama-3.3-70b-versatile',
+    temperature: moodTemperatureClient(mood),
+    max_tokens: 1800,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: buildSystemPrompt(mood) },
+      { role: 'user', content: buildUserPrompt(w) },
+    ],
+  };
+}
+
 // ---------- Submit + Suggestion ----------
 let lastSuggestion = null;
 
@@ -5956,11 +6069,10 @@ async function submitMealWizard() {
   const kcal = parseInt(document.getElementById('wiz-kcal').value, 10);
   if (!kcal || kcal < 50 || kcal > 3000) { showToast('kcal-Budget zwischen 50 und 3000'); return; }
 
-  // Dislikes aus Pantry + Recent Meals (letzte 5 distinct food_names aus todayEntries + Vortag ungefähr)
   const dislikes = (pantryCache.dislike || []).map(p => p.name);
   const recentMeals = collectRecentMealNames();
 
-  const payload = {
+  const wizardData = {
     meal: wizState.meal,
     kcal_budget: kcal,
     protein_target: parseInt(document.getElementById('wiz-protein').value, 10) || undefined,
@@ -5982,9 +6094,21 @@ async function submitMealWizard() {
 
   try {
     btn.textContent = '✨ Rezept wird erdacht…';
-    const { data, error } = await db.functions.invoke('generate-recipe', { body: payload });
+    const groqPayload = buildGroqPayload(wizardData);
+    const { data: raw, error } = await db.functions.invoke('generate-recipe', { body: groqPayload });
     if (error) throw error;
-    if (!data?.ok || !data.recipe) throw new Error(data?.error || 'unknown');
+    const content = raw?.choices?.[0]?.message?.content;
+    if (typeof content !== 'string') throw new Error('empty_response');
+    let recipe;
+    try { recipe = JSON.parse(content); } catch(e) { throw new Error('bad_json'); }
+    if (!recipe?.name || !Array.isArray(recipe.ingredients) || recipe.ingredients.length === 0) {
+      throw new Error('bad_shape');
+    }
+    // Units absichern
+    recipe.ingredients.forEach(i => { if (i.unit !== 'g' && i.unit !== 'ml') i.unit = 'g'; });
+    if (typeof recipe.vibe_intro !== 'string') recipe.vibe_intro = '';
+    if (typeof recipe.pro_tip !== 'string') recipe.pro_tip = '';
+    const data = { ok: true, recipe };
 
     btn.textContent = '🔍 Zutaten werden nachgeschlagen…';
     const { ingredients: resolvedIng, totals } = await resolveIngredientsMacros(data.recipe.ingredients || []);
@@ -5998,7 +6122,7 @@ async function submitMealWizard() {
       instructions: data.recipe.instructions || '',
       ingredients: resolvedIng,
       totals,
-      payload,
+      payload: wizardData,
     };
 
     renderSuggestion(lastSuggestion);
