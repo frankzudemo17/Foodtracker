@@ -6461,7 +6461,7 @@ function styleInstructionsClient(creative) {
   ].join('\n');
 }
 
-function buildSystemPrompt(mood, creative) {
+function buildSystemPrompt(mood, creative, canonical) {
   const parts = [
     'Du bist ein erfahrener Koch, der jemandem ein wirklich gutes Rezept zeigt.',
     'Schreib wie ein Mensch mit Stimme, Instinkt, Begeisterung — mit der Haltung, die der gewaehlte Stil vorgibt.',
@@ -6473,7 +6473,12 @@ function buildSystemPrompt(mood, creative) {
     'WICHTIG zum User-Wunsch:',
     'Wenn der User im Feld "Wunsch" ein konkretes Gericht nennt (z.B. "Pide", "Wiener Schnitzel", "Thai Curry", "Carbonara", "Ramen"), mach GENAU dieses Gericht. Passe es nur insoweit an die Makro-Vorgaben an, wie noetig — aber ohne die Identitaet des Gerichts zu brechen.',
     'Ein Wiener Schnitzel ist ein Wiener Schnitzel. Ein Pide ist ein Pide. Wenn die Kalorien knapp sind, reduziere Portionsgroessen oder passe Beilagen an — ersetze nicht das Hauptgericht.',
-    'Wenn der Wunsch stattdessen ein Stil-Hinweis ist ("scharf", "asiatisch", "One-Pot"), nutze ihn als Richtungsangabe und waehle selbst ein passendes Gericht.',
+    '',
+    'Wenn der Wunsch stattdessen eine Kueche/Herkunft ist ("kroatisch", "thailaendisch", "georgisch", "sizilianisch", "mexikanisch", "persisch"):',
+    'Waehle ein AUTHENTISCHES Gericht aus dieser Tradition und benenn es beim richtigen Namen. Kroatisch = Sarma, Peka, Cevapcici, Raznjici, Pasticada, Krumpir-Salat. Thai = Pad Thai, Green/Red Curry, Som Tam, Tom Kha, Larb. Georgisch = Chatschapuri, Khinkali, Badrijani, Pkhali, Chakhokhbili. Nie "kroatisch-inspiriertes XYZ mit Reis" — immer ein echtes Gericht der Kueche.',
+    '',
+    'Wenn der Wunsch ein Stil-Adjektiv ist ("scharf", "one-pot", "cremig", "leicht", "deftig"), nutze es als Richtungsangabe und waehle selbst ein passendes Gericht.',
+    canonical ? '\nANFRAGE IST AUF ORIGINAL-VERSION: Halte dich strikt an die kanonische, traditionelle Version des Gerichts. Keine eigenen Varianten, keine modernen Twists, keine Zutat-Kreativitaet. Die Standard-Rezeptur, wie sie in seriosen Kochbuchern steht. Konsistenz vor Kreativitaet.' : '',
     '',
     'Deine Haltung (keine starren Regeln, sondern Arbeitsweise):',
     '',
@@ -6557,16 +6562,28 @@ function buildUserPrompt(w) {
   return lines.join('\n');
 }
 
+function wantsCanonical(w) {
+  const note = String(w.extra_note || '').toLowerCase();
+  if (!note) return false;
+  return /\b(original|klassisch|traditionell|authentisch|echt|wie\s+im\s+restaurant|nach\s+nonna|omas?\s+art)\b/.test(note);
+}
+
 function buildGroqPayload(w) {
   const mood = w.mood || 'everyday';
   const creative = !!w.creative;
+  const canonical = wantsCanonical(w);
+  // Klassiker-Wunsch -> Temperature runter fuer Konsistenz
+  let temperature;
+  if (canonical) temperature = 0.4;
+  else if (creative) temperature = 1.1;
+  else temperature = moodTemperatureClient(mood);
   return {
     model: 'llama-3.3-70b-versatile',
-    temperature: creative ? 1.1 : moodTemperatureClient(mood),
+    temperature,
     max_tokens: 4000,
     response_format: { type: 'json_object' },
     messages: [
-      { role: 'system', content: buildSystemPrompt(mood, creative) },
+      { role: 'system', content: buildSystemPrompt(mood, creative, canonical) },
       { role: 'user', content: buildUserPrompt(w) },
     ],
   };
@@ -6646,8 +6663,9 @@ async function submitMealWizard() {
       await saveSuggestionAsRecipe({ silent: true });
     }
   } catch (e) {
-    console.error('wizard submit', e);
-    showToast('Vorschlag fehlgeschlagen. Nochmal?');
+    console.error('[wizard submit] error:', e, 'payload was:', wizardData);
+    const reason = String(e && (e.message || e.error) || '').slice(0, 80);
+    showToast(reason ? ('Vorschlag fehlgeschlagen: ' + reason) : 'Vorschlag fehlgeschlagen. Nochmal?');
   } finally {
     wizState.loading = false;
     btn.disabled = false;
