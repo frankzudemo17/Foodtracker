@@ -1531,6 +1531,17 @@ body {
 }
 #resume-indicator.active { transform: scaleX(1); }
 
+.wiz-meal { flex:1; background:var(--bg-tertiary); border:1px solid transparent; padding:10px 8px; font-size:0.85rem; border-radius:var(--radius-sm); cursor:pointer; color:var(--text-primary); font-weight:500; }
+.wiz-meal.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.wiz-chip { display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--bg-tertiary);border-radius:999px;font-size:0.85rem;cursor:pointer;user-select:none;border:1px solid transparent; color:var(--text-primary); }
+.wiz-chip.active { background:var(--accent);color:#fff;border-color:var(--accent); }
+.wiz-chip button { border:none;background:none;color:inherit;cursor:pointer;padding:0;line-height:1;font-size:1.1rem; }
+.pantry-tab { flex:1; padding:10px; background:var(--bg-tertiary); border:none; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:600; cursor:pointer; color:var(--text-secondary); }
+.pantry-tab.active { background:var(--accent); color:#fff; }
+.sug-ing-row { display:flex;gap:8px;padding:8px 0;border-bottom:1px solid var(--border); font-size:0.88rem; align-items:baseline; }
+.sug-ing-row.unresolved { opacity:0.55; }
+.sug-ing-row .sug-match { font-size:0.7rem;color:var(--text-tertiary); margin-top:2px; }
+
 .toast {
   position: fixed;
   bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
@@ -2525,6 +2536,12 @@ body {
         </div>
       </div>
     </div>
+    <div style="padding:0 20px 20px">
+      <button class="btn btn-primary btn-block" onclick="openMealWizard()" style="padding:14px;display:flex;align-items:center;justify-content:center;gap:10px;font-weight:600;font-size:0.95rem">
+        <span style="font-size:1.2rem">✨</span>
+        Was esse ich heute?
+      </button>
+    </div>
     <!-- Stats Card mit Toggle Woche/Monat -->
     <div class="weekly-stats" id="stats-section">
       <div class="card">
@@ -2635,6 +2652,16 @@ body {
             </div>
           </div>
           <div class="weight-chart-container"><canvas id="weight-chart"></canvas></div>
+        </div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Rezept-Assistent</div>
+        <div class="settings-item" onclick="openPantryModal()" style="cursor:pointer">
+          <div class="settings-item-left">
+            <div class="settings-item-icon" style="background:var(--green-light);color:var(--green)">🥫</div>
+            <div><div class="settings-item-label">Mein Vorrat</div><div class="settings-item-desc">Zutaten zuhause + Abneigungen</div></div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
       </div>
       <div class="settings-group">
@@ -3060,6 +3087,123 @@ body {
     <div class="modal-body">
       <div class="form-group"><label class="form-label">EAN/UPC (8–14 Ziffern)</label><input type="text" inputmode="numeric" pattern="[0-9]*" class="form-input" id="manual-barcode-input" placeholder="z.B. 4000417025005" maxlength="14"></div>
       <button class="btn btn-primary btn-block" onclick="submitManualBarcode()" style="padding:16px;margin-top:8px">Suchen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pantry Modal -->
+<div id="modal-pantry" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-pantry')">
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title">Mein Vorrat</div><button class="modal-close" onclick="closeModal('modal-pantry')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div style="display:flex;gap:6px;margin-bottom:12px">
+        <button class="pantry-tab active" data-kind="have" onclick="switchPantryTab('have')">🥫 Hab ich</button>
+        <button class="pantry-tab" data-kind="dislike" onclick="switchPantryTab('dislike')">🚫 Mag ich nicht</button>
+      </div>
+      <div class="form-group" style="display:flex;gap:8px;margin-bottom:8px">
+        <input class="form-input" id="pantry-input" placeholder="z.B. Reis, Eier, Tomaten…" style="flex:1" maxlength="60" onkeydown="if(event.key==='Enter'){event.preventDefault();addPantryItem();}">
+        <button class="btn btn-primary" onclick="addPantryItem()" style="white-space:nowrap">+</button>
+      </div>
+      <div id="pantry-list" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;min-height:40px"></div>
+      <div id="pantry-empty" class="empty-state" style="display:none;padding:20px 0">
+        <div class="empty-state-icon">🥫</div>
+        <div class="empty-state-text" id="pantry-empty-text">Noch leer.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Meal Wizard -->
+<div id="modal-meal-wizard" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-meal-wizard')">
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title">Was esse ich heute?</div><button class="modal-close" onclick="closeModal('modal-meal-wizard')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Mahlzeit</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="wiz-meal-group">
+          <button type="button" class="wiz-meal" data-val="breakfast" onclick="wizPickMeal(this)">Frühstück</button>
+          <button type="button" class="wiz-meal active" data-val="lunch" onclick="wizPickMeal(this)">Mittag</button>
+          <button type="button" class="wiz-meal" data-val="dinner" onclick="wizPickMeal(this)">Abend</button>
+          <button type="button" class="wiz-meal" data-val="snack" onclick="wizPickMeal(this)">Snack</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">kcal-Budget</label><input class="form-input" type="number" id="wiz-kcal" min="50" max="3000"></div>
+        <div class="form-group"><label class="form-label">Protein (g)</label><input class="form-input" type="number" id="wiz-protein" min="0" max="500"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Kohlenh. (g)</label><input class="form-input" type="number" id="wiz-carbs" min="0" max="800"></div>
+        <div class="form-group"><label class="form-label">Fett (g)</label><input class="form-input" type="number" id="wiz-fat" min="0" max="300"></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Fokus</label>
+          <select class="form-input" id="wiz-focus">
+            <option value="">Egal</option>
+            <option value="protein">Mehr Protein</option>
+            <option value="low_fat">Wenig Fett</option>
+            <option value="low_carb">Wenig Kohlenh.</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max. Zeit</label>
+          <select class="form-input" id="wiz-time">
+            <option value="">Egal</option>
+            <option value="15">≤ 15 min</option>
+            <option value="30">≤ 30 min</option>
+            <option value="60">≤ 60 min</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Ernährung</label>
+        <select class="form-input" id="wiz-diet">
+          <option value="">Egal</option>
+          <option value="vegetarian">Vegetarisch</option>
+          <option value="vegan">Vegan</option>
+          <option value="lactose_free">Laktosefrei</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Zutaten zuhause</label>
+        <div id="wiz-pantry-chips" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;min-height:30px"></div>
+        <div style="display:flex;gap:6px">
+          <input class="form-input" id="wiz-extra-ing" placeholder="Zusätzliche Zutat…" style="flex:1" maxlength="60" onkeydown="if(event.key==='Enter'){event.preventDefault();wizAddExtra();}">
+          <button type="button" class="btn" onclick="wizAddExtra()" style="padding:0 14px">+</button>
+        </div>
+        <div id="wiz-extra-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Sonstiges (optional)</label>
+        <input class="form-input" id="wiz-note" placeholder="z.B. scharf, One-Pot, asiatisch…" maxlength="120">
+      </div>
+
+      <div class="settings-item" style="margin:12px 0;padding:10px 0">
+        <div class="settings-item-left">
+          <div>
+            <div class="settings-item-label">Auto-Save ins Rezeptbuch</div>
+            <div class="settings-item-desc">Generiertes Rezept speichern</div>
+          </div>
+        </div>
+        <div class="toggle" id="wiz-autosave-toggle" onclick="this.classList.toggle('active')"></div>
+      </div>
+
+      <button class="btn btn-primary btn-block" id="wiz-submit" onclick="submitMealWizard()" style="padding:16px;margin-top:8px">✨ Rezept vorschlagen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recipe Suggestion -->
+<div id="modal-recipe-suggestion" class="modal-overlay" onclick="if(event.target===this)closeModal('modal-recipe-suggestion')">
+  <div class="modal-sheet"><div class="modal-handle"></div>
+    <div class="modal-header"><div class="modal-title" id="sug-title">Rezeptvorschlag</div><button class="modal-close" onclick="closeModal('modal-recipe-suggestion')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+    <div class="modal-body" id="sug-body">
+      <div style="text-align:center;padding:30px 0;color:var(--text-tertiary)">Rezept wird geladen…</div>
     </div>
   </div>
 </div>
@@ -5474,6 +5618,522 @@ async function saveRecipe() {
     if (error) { showToast('Fehler beim Speichern'); return; }
     closeModal('modal-recipe'); await loadRecipes(); showToast('Rezept gespeichert!');
   }
+}
+
+// ============================================================
+// RECIPE WIZARD — "Was esse ich heute?"
+// ============================================================
+
+// ---------- Pantry ----------
+let pantryCache = { have: [], dislike: [] };
+let pantryCurrentTab = 'have';
+
+async function openPantryModal() {
+  openModal('modal-pantry');
+  await loadPantry();
+}
+
+async function loadPantry() {
+  if (!currentUser) return;
+  const { data, error } = await db.from('pantry_items')
+    .select('id,name,kind')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+  if (error) { showToast('Vorrat konnte nicht geladen werden'); return; }
+  pantryCache = { have: [], dislike: [] };
+  (data || []).forEach(p => {
+    if (p.kind === 'dislike') pantryCache.dislike.push(p);
+    else pantryCache.have.push(p);
+  });
+  renderPantry();
+}
+
+function switchPantryTab(kind) {
+  pantryCurrentTab = kind;
+  document.querySelectorAll('.pantry-tab').forEach(b => b.classList.toggle('active', b.dataset.kind === kind));
+  document.getElementById('pantry-input').placeholder = kind === 'have'
+    ? 'z.B. Reis, Eier, Tomaten…'
+    : 'z.B. Koriander, Oliven…';
+  renderPantry();
+}
+
+function renderPantry() {
+  const list = document.getElementById('pantry-list');
+  const empty = document.getElementById('pantry-empty');
+  const emptyText = document.getElementById('pantry-empty-text');
+  const items = pantryCache[pantryCurrentTab] || [];
+  if (!items.length) {
+    list.innerHTML = '';
+    empty.style.display = 'block';
+    emptyText.textContent = pantryCurrentTab === 'have'
+      ? 'Noch leer. Trag ein, was du zuhause hast.'
+      : 'Keine Abneigungen. Trag ein, was du nicht magst.';
+    return;
+  }
+  empty.style.display = 'none';
+  const cls = pantryCurrentTab === 'have' ? 'wiz-chip active' : 'wiz-chip';
+  list.innerHTML = items.map(p =>
+    `<span class="${cls}">${escapeHtml(p.name)} <button onclick="removePantryItem('${p.id}')">×</button></span>`
+  ).join('');
+}
+
+async function addPantryItem() {
+  const input = document.getElementById('pantry-input');
+  const name = (input.value || '').trim();
+  if (!name) return;
+  if (name.length > 60) { showToast('Max. 60 Zeichen'); return; }
+  const { error } = await dbWrite(() => db.from('pantry_items')
+    .insert([{ user_id: currentUser.id, name, kind: pantryCurrentTab }]), { label: 'pantry.insert' });
+  if (error) {
+    if (error.code === '23505') showToast('Schon in der Liste');
+    return;
+  }
+  input.value = '';
+  await loadPantry();
+}
+
+async function removePantryItem(id) {
+  const { error } = await dbWrite(() => db.from('pantry_items')
+    .delete().eq('id', id).eq('user_id', currentUser.id), { label: 'pantry.delete' });
+  if (error) return;
+  await loadPantry();
+}
+
+// ---------- Meal Wizard ----------
+let wizState = {
+  meal: 'lunch',
+  pantrySelected: new Set(),
+  extras: [],
+  loading: false,
+};
+
+async function openMealWizard() {
+  if (!currentUser) { showToast('Bitte erst einloggen'); return; }
+
+  // Pantry erstmals laden, falls noch nicht im Cache
+  if (!pantryCache.have.length && !pantryCache.dislike.length) {
+    await loadPantry();
+  }
+
+  // Rest-Makros vorausfüllen
+  const rem = computeRemainingMacros();
+  document.getElementById('wiz-kcal').value = rem.kcal;
+  document.getElementById('wiz-protein').value = rem.protein;
+  document.getElementById('wiz-carbs').value = rem.carbs;
+  document.getElementById('wiz-fat').value = rem.fat;
+
+  // State reset
+  wizState = {
+    meal: guessDefaultMeal(),
+    pantrySelected: new Set(pantryCache.have.map(p => p.name)),
+    extras: [],
+    loading: false,
+  };
+  document.querySelectorAll('#wiz-meal-group .wiz-meal').forEach(b =>
+    b.classList.toggle('active', b.dataset.val === wizState.meal));
+  document.getElementById('wiz-focus').value = '';
+  document.getElementById('wiz-time').value = '';
+  document.getElementById('wiz-diet').value = '';
+  document.getElementById('wiz-note').value = '';
+  document.getElementById('wiz-autosave-toggle').classList.remove('active');
+  document.getElementById('wiz-submit').disabled = false;
+  document.getElementById('wiz-submit').textContent = '✨ Rezept vorschlagen';
+
+  renderWizPantryChips();
+  renderWizExtras();
+  openModal('modal-meal-wizard');
+}
+
+function guessDefaultMeal() {
+  const h = new Date().getHours();
+  if (h < 10) return 'breakfast';
+  if (h < 14) return 'lunch';
+  if (h < 17) return 'snack';
+  return 'dinner';
+}
+
+function computeRemainingMacros() {
+  const goals = {
+    kcal: currentProfile?.daily_kcal_goal || 2000,
+    protein: currentProfile?.daily_protein_goal || 120,
+    carbs: currentProfile?.daily_carbs_goal || 250,
+    fat: currentProfile?.daily_fat_goal || 65,
+  };
+  const eaten = (todayEntries || []).reduce((a, e) => ({
+    kcal: a.kcal + (Number(e.kcal) || 0),
+    protein: a.protein + (Number(e.protein_g) || 0),
+    carbs: a.carbs + (Number(e.carbs_g) || 0),
+    fat: a.fat + (Number(e.fat_g) || 0),
+  }), { kcal: 0, protein: 0, carbs: 0, fat: 0 });
+  return {
+    kcal: Math.max(50, Math.round(goals.kcal - eaten.kcal)),
+    protein: Math.max(0, Math.round(goals.protein - eaten.protein)),
+    carbs: Math.max(0, Math.round(goals.carbs - eaten.carbs)),
+    fat: Math.max(0, Math.round(goals.fat - eaten.fat)),
+  };
+}
+
+function wizPickMeal(btn) {
+  wizState.meal = btn.dataset.val;
+  document.querySelectorAll('#wiz-meal-group .wiz-meal').forEach(b => b.classList.toggle('active', b === btn));
+}
+
+function renderWizPantryChips() {
+  const wrap = document.getElementById('wiz-pantry-chips');
+  if (!pantryCache.have.length) {
+    wrap.innerHTML = '<span style="font-size:0.8rem;color:var(--text-tertiary)">Vorrat leer — unten Zutaten ergänzen oder via Einstellungen pflegen.</span>';
+    return;
+  }
+  wrap.innerHTML = pantryCache.have.map(p => {
+    const active = wizState.pantrySelected.has(p.name);
+    const safe = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    return `<span class="wiz-chip${active?' active':''}" onclick="wizTogglePantry('${safe}')">${escapeHtml(p.name)}</span>`;
+  }).join('');
+}
+
+function wizTogglePantry(name) {
+  if (wizState.pantrySelected.has(name)) wizState.pantrySelected.delete(name);
+  else wizState.pantrySelected.add(name);
+  renderWizPantryChips();
+}
+
+function wizAddExtra() {
+  const input = document.getElementById('wiz-extra-ing');
+  const v = (input.value || '').trim();
+  if (!v) return;
+  if (v.length > 60) { showToast('Max. 60 Zeichen'); return; }
+  if (wizState.extras.includes(v)) { input.value = ''; return; }
+  wizState.extras.push(v);
+  input.value = '';
+  renderWizExtras();
+}
+
+function renderWizExtras() {
+  const wrap = document.getElementById('wiz-extra-list');
+  wrap.innerHTML = wizState.extras.map((n, idx) =>
+    `<span class="wiz-chip active">${escapeHtml(n)} <button onclick="wizRemoveExtra(${idx})">×</button></span>`
+  ).join('');
+}
+
+function wizRemoveExtra(idx) {
+  wizState.extras.splice(idx, 1);
+  renderWizExtras();
+}
+
+// ---------- Hybrid: resolve ingredient macros ----------
+// Accepts [{name, amount, unit}] from the LLM. Returns enriched list:
+//   [{name, amount, unit, kcal, protein_g, carbs_g, fat_g, matched_name, source, unresolved?}]
+// Plus totals object.
+async function resolveIngredientsMacros(ingredients) {
+  // Lade alle Aliases einmal
+  let aliasMap = {};
+  try {
+    if (currentUser) {
+      const { data } = await db.from('ingredient_aliases')
+        .select('input_name,match_name,source,kcal_per_100,protein_per_100,carbs_per_100,fat_per_100')
+        .eq('user_id', currentUser.id);
+      (data || []).forEach(a => { aliasMap[a.input_name.trim().toLowerCase()] = a; });
+    }
+  } catch(e) {}
+
+  const resolved = await Promise.all(ingredients.map(ing => resolveOneIngredient(ing, aliasMap)));
+  const totals = resolved.reduce((a, i) => ({
+    kcal: a.kcal + (i.kcal || 0),
+    protein_g: a.protein_g + (i.protein_g || 0),
+    carbs_g: a.carbs_g + (i.carbs_g || 0),
+    fat_g: a.fat_g + (i.fat_g || 0),
+  }), { kcal: 0, protein_g: 0, carbs_g: 0, fat_g: 0 });
+  totals.kcal = Math.round(totals.kcal);
+  totals.protein_g = Math.round(totals.protein_g * 10) / 10;
+  totals.carbs_g = Math.round(totals.carbs_g * 10) / 10;
+  totals.fat_g = Math.round(totals.fat_g * 10) / 10;
+  return { ingredients: resolved, totals };
+}
+
+async function resolveOneIngredient(ing, aliasMap) {
+  const name = String(ing.name || '').trim();
+  const amount = Number(ing.amount) || 0;
+  const unit = ing.unit === 'ml' ? 'ml' : 'g';
+  const base = { name, amount, unit };
+
+  if (!name || amount <= 0) return { ...base, unresolved: true, reason: 'empty' };
+
+  // 1) Alias-Check
+  const aliasKey = name.toLowerCase();
+  if (aliasMap && aliasMap[aliasKey]) {
+    const a = aliasMap[aliasKey];
+    return scaleFromPer100(base, {
+      kcal: Number(a.kcal_per_100) || 0,
+      protein: Number(a.protein_per_100) || 0,
+      carbs: Number(a.carbs_per_100) || 0,
+      fat: Number(a.fat_per_100) || 0,
+    }, a.match_name, a.source);
+  }
+
+  // 2) Lokale Foods zuerst
+  try {
+    if (typeof searchLocalFoods === 'function') {
+      const local = searchLocalFoods(name);
+      if (local && local.length) {
+        const f = local[0];
+        return scaleFromPer100(base, {
+          kcal: Number(f.kcal) || 0,
+          protein: Number(f.protein) || 0,
+          carbs: Number(f.carbs) || 0,
+          fat: Number(f.fat) || 0,
+        }, f.name, 'local');
+      }
+    }
+  } catch(e) {}
+
+  // 3) OpenFoodFacts Fallback
+  try {
+    const url = 'https://world.openfoodfacts.org/cgi/search.pl'
+      + '?search_terms=' + encodeURIComponent(name)
+      + '&search_simple=1&action=process&json=1&page_size=5'
+      + '&fields=product_name,brands,nutriments,code&lc=de';
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('off ' + resp.status);
+    const data = await resp.json();
+    const products = (data.products || []).filter(p =>
+      p.product_name && p.nutriments &&
+      (p.nutriments['energy-kcal_100g'] !== undefined || p.nutriments['energy-kcal'] !== undefined)
+    );
+    if (!products.length) return { ...base, unresolved: true, reason: 'no_match' };
+    const p = products[0];
+    return scaleFromPer100(base, {
+      kcal: Number(p.nutriments['energy-kcal_100g'] || p.nutriments['energy-kcal'] || 0),
+      protein: Number(p.nutriments.proteins_100g || 0),
+      carbs: Number(p.nutriments.carbohydrates_100g || 0),
+      fat: Number(p.nutriments.fat_100g || 0),
+    }, p.product_name, 'off');
+  } catch(e) {
+    return { ...base, unresolved: true, reason: 'network' };
+  }
+}
+
+function scaleFromPer100(base, per100, matchedName, source) {
+  const f = base.amount / 100;
+  return {
+    ...base,
+    kcal: per100.kcal * f,
+    protein_g: per100.protein * f,
+    carbs_g: per100.carbs * f,
+    fat_g: per100.fat * f,
+    matched_name: matchedName,
+    source,
+  };
+}
+
+// ---------- Submit + Suggestion ----------
+let lastSuggestion = null;
+
+async function submitMealWizard() {
+  if (wizState.loading) return;
+  const kcal = parseInt(document.getElementById('wiz-kcal').value, 10);
+  if (!kcal || kcal < 50 || kcal > 3000) { showToast('kcal-Budget zwischen 50 und 3000'); return; }
+
+  // Dislikes aus Pantry + Recent Meals (letzte 5 distinct food_names aus todayEntries + Vortag ungefähr)
+  const dislikes = (pantryCache.dislike || []).map(p => p.name);
+  const recentMeals = collectRecentMealNames();
+
+  const payload = {
+    meal: wizState.meal,
+    kcal_budget: kcal,
+    protein_target: parseInt(document.getElementById('wiz-protein').value, 10) || undefined,
+    carbs_target: parseInt(document.getElementById('wiz-carbs').value, 10) || undefined,
+    fat_target: parseInt(document.getElementById('wiz-fat').value, 10) || undefined,
+    focus: document.getElementById('wiz-focus').value || null,
+    max_time_min: parseInt(document.getElementById('wiz-time').value, 10) || null,
+    diet: document.getElementById('wiz-diet').value || null,
+    ingredients: [...wizState.pantrySelected, ...wizState.extras],
+    dislikes,
+    recent_meals: recentMeals,
+    extra_note: (document.getElementById('wiz-note').value || '').trim() || undefined,
+  };
+
+  const btn = document.getElementById('wiz-submit');
+  wizState.loading = true;
+  btn.disabled = true;
+  const originalText = btn.textContent;
+
+  try {
+    btn.textContent = '✨ Rezept wird erdacht…';
+    const { data, error } = await db.functions.invoke('generate-recipe', { body: payload });
+    if (error) throw error;
+    if (!data?.ok || !data.recipe) throw new Error(data?.error || 'unknown');
+
+    btn.textContent = '🔍 Zutaten werden nachgeschlagen…';
+    const { ingredients: resolvedIng, totals } = await resolveIngredientsMacros(data.recipe.ingredients || []);
+
+    lastSuggestion = {
+      name: data.recipe.name,
+      servings: data.recipe.servings || 1,
+      time_min: data.recipe.time_min || null,
+      instructions: data.recipe.instructions || '',
+      ingredients: resolvedIng,
+      totals,
+      payload,
+    };
+
+    renderSuggestion(lastSuggestion);
+    closeModal('modal-meal-wizard');
+    openModal('modal-recipe-suggestion');
+
+    if (document.getElementById('wiz-autosave-toggle').classList.contains('active')) {
+      await saveSuggestionAsRecipe({ silent: true });
+    }
+  } catch (e) {
+    console.error('wizard submit', e);
+    showToast('Vorschlag fehlgeschlagen. Nochmal?');
+  } finally {
+    wizState.loading = false;
+    btn.disabled = false;
+    btn.textContent = originalText;
+  }
+}
+
+function collectRecentMealNames() {
+  try {
+    const names = [];
+    (todayEntries || []).forEach(e => {
+      if (e.food_name && !names.includes(e.food_name)) names.push(e.food_name);
+    });
+    return names.slice(0, 5);
+  } catch(e) { return []; }
+}
+
+function renderSuggestion(s) {
+  document.getElementById('sug-title').textContent = s.name || 'Rezeptvorschlag';
+  const t = s.totals || {};
+  const budget = s.payload?.kcal_budget || 0;
+  const diff = budget ? Math.round(((t.kcal - budget) / budget) * 100) : 0;
+  const diffStr = budget ? ((diff >= 0 ? '+' : '') + diff + ' % vs. Budget') : '';
+
+  const unresolvedCount = s.ingredients.filter(i => i.unresolved).length;
+  const unresolvedWarn = unresolvedCount
+    ? `<div style="padding:8px 12px;background:var(--bg-tertiary);border-radius:var(--radius-sm);margin-bottom:12px;font-size:0.8rem;color:var(--text-secondary)">⚠️ ${unresolvedCount} Zutat(en) konnten nicht nachgeschlagen werden — Totals ohne diese.</div>`
+    : '';
+
+  const ingRows = s.ingredients.map(i => {
+    if (i.unresolved) {
+      return `<div class="sug-ing-row unresolved">
+        <div style="flex:1">${escapeHtml(i.name)}</div>
+        <div style="color:var(--text-secondary)">${i.amount} ${i.unit}</div>
+        <div style="min-width:60px;text-align:right">?</div>
+      </div>`;
+    }
+    return `<div class="sug-ing-row">
+      <div style="flex:1">
+        <div>${escapeHtml(i.name)}</div>
+        <div class="sug-match">→ ${escapeHtml(i.matched_name || '')}</div>
+      </div>
+      <div style="color:var(--text-secondary)">${i.amount} ${i.unit}</div>
+      <div style="color:var(--text-tertiary);min-width:60px;text-align:right">${Math.round(i.kcal)} kcal</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('sug-body').innerHTML = `
+    ${unresolvedWarn}
+    <div style="display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+      <span class="recipe-macro-tag">${t.kcal || 0} kcal</span>
+      <span class="recipe-macro-tag">${t.protein_g || 0} g Eiweiß</span>
+      <span class="recipe-macro-tag">${t.carbs_g || 0} g Kohlenh.</span>
+      <span class="recipe-macro-tag">${t.fat_g || 0} g Fett</span>
+      ${s.time_min ? `<span class="recipe-macro-tag">${s.time_min} min</span>` : ''}
+    </div>
+    ${diffStr ? `<div style="font-size:0.75rem;color:var(--text-tertiary);margin-bottom:12px">${escapeHtml(diffStr)}</div>` : '<div style="height:12px"></div>'}
+    <div style="margin-bottom:12px"><div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">ZUTATEN</div>${ingRows}</div>
+    <div style="margin-bottom:16px"><div style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);margin-bottom:6px">ZUBEREITUNG</div><div style="white-space:pre-line;font-size:0.9rem;line-height:1.5">${escapeHtml(s.instructions || '')}</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary" style="flex:1;min-width:120px;padding:12px" onclick="logSuggestionAsEntry()">➕ In Tagebuch</button>
+      <button class="btn" style="flex:1;min-width:110px;padding:12px" onclick="saveSuggestionAsRecipe()">💾 Speichern</button>
+      <button class="btn" style="flex:1;min-width:110px;padding:12px" onclick="rerollSuggestion()">🎲 Neu würfeln</button>
+    </div>
+  `;
+}
+
+async function logSuggestionAsEntry() {
+  if (!lastSuggestion) return;
+  const s = lastSuggestion;
+  const t = s.totals || {};
+  const entry = {
+    user_id: currentUser.id,
+    entry_date: getDateStr(selectedDate),
+    food_name: s.name,
+    brand: null,
+    amount: 1,
+    unit: 'Portion',
+    kcal: t.kcal || 0,
+    protein_g: t.protein_g || 0,
+    carbs_g: t.carbs_g || 0,
+    fat_g: t.fat_g || 0,
+    fiber_g: 0,
+    kcal_per_100: t.kcal || 0,
+    protein_per_100: t.protein_g || 0,
+    carbs_per_100: t.carbs_g || 0,
+    fat_per_100: t.fat_g || 0,
+    meal_type: (typeof currentMealType !== 'undefined' ? currentMealType : null) || mealForWizard(s.payload?.meal),
+  };
+  const { data, error } = await dbWrite(() => db.from('food_entries').insert([entry]).select().single(), { label: 'food_entries.fromSuggestion' });
+  if (error) { showToast('Eintragen fehlgeschlagen'); return; }
+  if (data) todayEntries.push(data);
+  closeModal('modal-recipe-suggestion');
+  showToast('Ins Tagebuch eingetragen');
+  try { updateDashboard(); } catch(e) {}
+  try { renderMealCards(); } catch(e) {}
+  try { loadStreak(); } catch(e) {}
+  try { loadFastingStatus(); } catch(e) {}
+}
+
+function mealForWizard(m) {
+  // Map unseres Wizards auf das, was currentMealType normalerweise benutzt.
+  if (m === 'breakfast') return 'breakfast';
+  if (m === 'lunch') return 'lunch';
+  if (m === 'dinner') return 'dinner';
+  return 'snack';
+}
+
+async function saveSuggestionAsRecipe(opts) {
+  const silent = opts && opts.silent;
+  if (!lastSuggestion) return;
+  const s = lastSuggestion;
+  const t = s.totals || {};
+  // Mappe Zutaten auf das Format, das das bestehende Rezeptbuch erwartet
+  const ingForBook = s.ingredients.map(i => ({
+    name: i.name,
+    amount: i.amount,
+    kcal: Math.round((i.source ? (i.kcal / (i.amount / 100)) : 0) * 10) / 10,
+    protein: Math.round((i.source ? (i.protein_g / (i.amount / 100)) : 0) * 10) / 10,
+    carbs: Math.round((i.source ? (i.carbs_g / (i.amount / 100)) : 0) * 10) / 10,
+    fat: Math.round((i.source ? (i.fat_g / (i.amount / 100)) : 0) * 10) / 10,
+    icon: '✨',
+  }));
+  const row = {
+    user_id: currentUser.id,
+    name: s.name,
+    servings: s.servings || 1,
+    prep_time_min: s.time_min || null,
+    instructions: s.instructions || null,
+    is_public: false,
+    total_kcal: Math.round(t.kcal || 0),
+    total_protein: Math.round(t.protein_g || 0),
+    total_carbs: Math.round(t.carbs_g || 0),
+    total_fat: Math.round(t.fat_g || 0),
+    ingredients_json: JSON.stringify(ingForBook),
+  };
+  const { error } = await dbWrite(() => db.from('recipes').insert([row]).select(), { label: 'recipes.fromSuggestion' });
+  if (error) {
+    if (!silent) showToast('Speichern fehlgeschlagen');
+    console.error('recipe save failed', error);
+    return;
+  }
+  if (!silent) showToast('Im Rezeptbuch gespeichert');
+}
+
+function rerollSuggestion() {
+  closeModal('modal-recipe-suggestion');
+  openModal('modal-meal-wizard');
 }
 
 async function viewRecipe(recipeId) {
