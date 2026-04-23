@@ -6478,9 +6478,9 @@ function buildSystemPrompt(mood, creative, canonical) {
     '',
     'ORIGINAL-ANFRAGE — REFERENZ-QUALITAET:',
     'Liefere die REFERENZ-VERSION wie aus einem renommierten Kochbuch (Plachutta/Witzigmann = oesterreichisch, Hazan/La Cucina Italiana = italienisch, Escoffier/Julia Child = franzoesisch, Ottolenghi = levantinisch).',
-    'Zutaten-Praezision Pflicht: Wiener Schnitzel = KALBSFLEISCH + Semmelbroesel + Butterschmalz 170-180 Grad, Panade NICHT andruecken (Souffle). Richtige Sorte, richtiges Fett, richtige Technik.',
-    'Technik beim Namen mit Begruendung wo entscheidend ("Pfanne wellen, damit Fett unter das Schnitzel gelangt und es souffliert").',
-    'Unsicher zwischen authentisch und modern → IMMER authentisch. Orthodoxe Referenz, nicht Interpretation. Konsistenz + hoechste Qualitaet.'
+    'STRENG VERBOTEN bei Klassikern: Gewuerze/Zutaten, die NICHT zum Original gehoeren. Wiener Schnitzel hat Salz und Pfeffer — mehr nicht, keine Paprika, kein Kreuzkuemmel, kein Knoblauch, kein Kraeuterzusatz. Carbonara hat KEINE Sahne. Bolognese hat KEIN Oregano-Topping. Pad Thai hat KEINEN Sesam. Wenn ein Klassiker-Rezept es traditionell nicht hat, gehoert es nicht rein. Keine "Verbesserung", keine eigene Note.',
+    'Zutaten-Praezision Pflicht: Wiener Schnitzel = Kalbfleisch + Weizenmehl + Ei + Semmelbroesel + Butterschmalz 170-180 Grad + Salz/Pfeffer + Zitrone. Panade NICHT andruecken (Souffle). Beim Backen Pfanne wellen.',
+    'Unsicher zwischen authentisch und modern → IMMER authentisch. Die Rezeptur so wie sie in seriosen Kochbuechern steht — kein Zusatz, kein Weglassen, keine Interpretation.'
   );
 
   parts.push(
@@ -6498,13 +6498,12 @@ function buildSystemPrompt(mood, creative, canonical) {
     '',
     'ZUTATEN: ALLE Mengen in g/ml (1 Ei=60g, 1 EL=15ml, 1 TL=5g, 1 Knoblauchzehe=5g). Reis/Nudeln/Kartoffeln/Linsen verzehrfertig (gekocht). Mehl-Typ angeben wenn relevant (Weizenmehl 550, Type 00, Hartweizengriess). Zutatennamen kurz+suchbar.',
     '',
-    'vibe_intro (PFLICHT, 1-2 Saetze): a) Halbsatz zur Makro-Logik ("Haehnchen bringt fehlende 30g Protein, Reis fuellt Kohlenhydrate auf"). b) Geschmacks-Haken ("geroesteter Kreuzkuemmel macht den Unterschied"). Nuetzlich + lustmachend, nicht pathetisch.',
+    'vibe_intro (PFLICHT, 1-2 Saetze): schoene, beschreibende Einleitung zum Gericht — was macht es besonders, welche Aromen dominieren, wo kommt es her, welcher Moment passt dazu. Sinnlich, nicht technisch. Keine Makro-Rechtfertigung. Beispiele: "Ein Klassiker der Wiener Kueche — das Kalbfleisch duenn geklopft, golden aus dem Butterschmalz, mit Zitrone. Schlicht und perfekt." oder "Eine Bowl aus dem Nahen Osten — geroestete Kichererbsen, cremiger Joghurt, frische Kraeuter. Sommer auf dem Teller."',
     'pro_tip: nur wenn echter Kniff, sonst leer.',
-    'tweaks (PFLICHT, 1-2 Strings): konkrete Anpassungs-Hinweise. Beispiele: "+60g Haehnchen fuer +25g Protein", "Oel halbieren (-45 kcal)", "Zucchini statt Aubergine". Kurz, Mengen-konkret, keine Floskeln.',
     '',
     'KEINE Kalorien/Makros in ingredients oder instructions. App rechnet selbst. Diaet + Mag-ich-nicht bindend. Kalorien-Budget +/-20%. Variiere gegenueber zuletzt gegessenen Mahlzeiten.',
     '',
-    'Antworte AUSSCHLIESSLICH als valides JSON: { "name": string, "servings": 1, "time_min": number, "vibe_intro": string, "pro_tip": string, "tweaks": [string], "ingredients": [{"name": string, "amount": number, "unit": "g"|"ml"}], "instructions": string }',
+    'Antworte AUSSCHLIESSLICH als valides JSON: { "name": string, "servings": 1, "time_min": number, "vibe_intro": string, "pro_tip": string, "ingredients": [{"name": string, "amount": number, "unit": "g"|"ml"}], "instructions": string }',
     'Schritte in instructions nummeriert (1. ... 2. ...), getrennt durch \\n. Kein Markdown, kein Drumherum.'
   );
 
@@ -6632,22 +6631,38 @@ async function submitMealWizard() {
     }
   } catch (e) {
     console.error('[wizard submit] error:', e, 'payload was:', wizardData);
-    let reason = String(e && (e.message || e.error) || '');
-    // supabase-js FunctionsHttpError versteckt den Body unter e.context
+    let reason = '';
+    // Vorrangig: echte Message aus Error-Objekt
+    if (e && typeof e.message === 'string') reason = e.message;
+    // supabase-js FunctionsHttpError versteckt den Body unter e.context (Response)
     if (e && e.context && typeof e.context.text === 'function') {
       try {
         const bodyText = await e.context.text();
         console.error('[wizard submit] edge function body:', bodyText);
-        // Falls JSON mit error-Feld: das als Grund zeigen
         try {
           const parsed = JSON.parse(bodyText);
-          if (parsed && parsed.error) reason = parsed.error + (parsed.detail ? ' — ' + String(parsed.detail).slice(0, 80) : '');
+          // Unsere Edge-Function: { error: "too_long", detail?: "..." }
+          if (parsed && typeof parsed.error === 'string') {
+            reason = parsed.error + (parsed.detail ? ' — ' + String(parsed.detail).slice(0, 100) : '');
+          }
+          // Groq-Fehler: { error: { message: "...", type, code } }
+          else if (parsed && parsed.error && typeof parsed.error === 'object') {
+            reason = String(parsed.error.message || parsed.error.code || parsed.error.type || 'groq error').slice(0, 160);
+          }
+          // Sonstiger Fehler mit message auf Root
+          else if (parsed && typeof parsed.message === 'string') {
+            reason = parsed.message;
+          }
+          else {
+            reason = bodyText.slice(0, 120);
+          }
         } catch (_) {
           if (bodyText) reason = bodyText.slice(0, 120);
         }
       } catch (_) {}
     }
-    showToast(reason ? ('Vorschlag fehlgeschlagen: ' + reason.slice(0, 120)) : 'Vorschlag fehlgeschlagen. Nochmal?');
+    reason = String(reason || '').slice(0, 160);
+    showToast(reason ? ('Vorschlag fehlgeschlagen: ' + reason) : 'Vorschlag fehlgeschlagen. Nochmal?');
   } finally {
     wizState.loading = false;
     btn.disabled = false;
